@@ -1,0 +1,26 @@
+{
+    "name": "patternseek/ecommerce",
+    "type": "library",
+    "description": "The Patternseek ECommerce library",
+    "keywords": ["library"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tolan Blundell",
+            "email": "tolan@patternseek.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "patternseek/componentview": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.0.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "PatternSeek\\ECommerce\\": "lib",
+            "PatternSeek\\ECommerce\\Test\\": "tests"
+        }
+    }
+}

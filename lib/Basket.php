@@ -159,7 +159,7 @@ class Basket extends AbstractViewComponent
      */
     protected function getVatRate( $countryCode )
     {
-        // TODO
+        $this->config->vatRates['rates'][$countryCode]['standard_rate'];
     }
 
     /**
@@ -194,15 +194,6 @@ class Basket extends AbstractViewComponent
         $prelimRemoteVatRate = $this->getVatRate( $prelimCountryCode );
 
         $this->updateLineItemsVat( $prelimRemoteVatRate );
-
-
-//        foreach( $this->state['lineItems'] as $id=>$itemConf ) {
-//            $this->addOrUpdateChild(
-//                "lineItems-{$id}",
-//                "\\PatternSeek\\ECommerce\\LineItem",
-//                $itemConf
-//            );
-//        }
 
         // Template properties
         // Everything needed is in this->state so easiest to just return a copy of that.

@@ -31,4 +31,11 @@ class BasketConfig extends StructClass\StructClass{
      */
     public $localVatRate;
 
+    /**
+     * @var array JSON decoded version of https://euvatrates.com/rates.json.
+     * This isn't handled by this library as caching behaviour is better
+     * left to the host app.
+     */
+    public $vatRates;
+
 }
