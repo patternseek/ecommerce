@@ -24,6 +24,14 @@ class Basket extends AbstractViewComponent
      * @var BasketConfig
      */
     protected $config;
+
+    /**
+     * @var array JSON decoded version of https://euvatrates.com/rates.json.
+     * This isn't handled by this library as caching behaviour is better
+     * left to the host app.
+     */
+    protected $vatRates;
+
     /**
      * @var LineItem[]
      */
@@ -159,7 +167,7 @@ class Basket extends AbstractViewComponent
      */
     protected function getVatRate( $countryCode )
     {
-        $this->config->vatRates['rates'][$countryCode]['standard_rate'];
+        $this->vatRates['rates'][tf_strtoupper($countryCode)]['standard_rate'];
     }
 
     /**
@@ -184,11 +192,13 @@ class Basket extends AbstractViewComponent
     {
         $this->testInputs(
             [
-                'config'=>['PatternSeek\ECommerce\BasketConfig'] // Required
+                'config'=>['PatternSeek\ECommerce\BasketConfig'], // Required
+                'vatRates'=>['array']                             // Required
             ],
             $props
         );
         $this->config = $props['config'];
+        $this->vatRates = $props['vatRates'];
 
         $prelimCountryCode = $this->geoIPCountryCode();
         $prelimRemoteVatRate = $this->getVatRate( $prelimCountryCode );
