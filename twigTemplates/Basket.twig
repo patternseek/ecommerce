@@ -1,0 +1,28 @@
+{{ props.intro }}
+
+<table class="basketTable">
+    <thead>
+    <th>Quantity</th>
+    <th>Description</th>
+    <th>Net per item</th>
+    <th>VAT per item</th>
+    </thead>
+    <tbody>
+    {% for lineItem in props.lineItems %}
+        <tr>
+            <td>{% if lineItem.quantity != null %}
+                    {{ lineItem.quantity }}
+                {% else %}
+                    -
+                {% endif %}</td>
+            <td>{{ lineItem.description }}</td>
+            <td>{{ lineItem.netPrice }}</td>
+            <td>{{ lineItem.vatPerItem }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% for provider in props.paymentProviders %}
+    {{ component( provider ) }}
+{% endfor %}

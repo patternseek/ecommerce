@@ -10,13 +10,14 @@
 
 namespace PatternSeek\ECommerce;
 
-use PatternSeek\StructClass;
+use PatternSeek\StructClass\StructClass;
 
 /**
  * Class LineItem
  * @package PatternSeek\ECommerce
  */
-class LineItem extends StructClass\StructClass{
+class LineItem extends StructClass
+{
 
     /**
      * A description for the item.

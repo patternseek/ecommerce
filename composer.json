@@ -10,9 +10,25 @@
             "email": "tolan@patternseek.net"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "/home/tolan/storage/workspace/patternseek-componentview"
+        },
+        {
+            "type": "vcs",
+            "url": "/home/tolan/storage/workspace/patternseek-structclass"
+        }
+    ],
     "require": {
         "php": ">=5.3.3",
-        "patternseek/componentview": "dev-master"
+        "ext-geoip": "*",
+        "ext-mbstring": "*",
+        "patternseek/componentview": "dev-master",
+        "patternseek/structclass": "dev-master",
+        "symfony/validator": "*",
+        "doctrine/annotations": "*",
+        "doctrine/cache": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "4.0.*"

@@ -1,0 +1,16 @@
+{% set formBody %}
+<script
+        src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+        data-key="{{ props.apiPubKey }}"
+        data-amount="{{ props.amount }}"
+        data-name="{{ props.config.siteName }}"
+        data-description="{{ props.description }}"
+        data-currency="{{ props.config.currency }}"
+        {{ props.emailHTML }}
+        {{ props.labelHTML }}
+        data-image="{{ props.config.siteLogo }}"
+        >
+</script>
+{% endset %}
+{{ _path }}
+{{ exec.wrapForm( _path ~ ".submitForm", 'POST', formBody ) }}

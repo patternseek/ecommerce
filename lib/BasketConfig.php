@@ -10,25 +10,98 @@
 
 namespace PatternSeek\ECommerce;
 
-use PatternSeek\StructClass;
+use PatternSeek\StructClass\StructClass;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Defines configuration for a Basket
  *
  * @package PatternSeek\ECommerce
  */
-class BasketConfig extends StructClass\StructClass{
+class BasketConfig extends StructClass
+{
 
     /**
-     * Specifies which array key to use to fetch the user's remote IP from the $_SERVER superglobal
+     * The user's IP
+     *
      * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
      */
-    public $remoteIpKey;
+    public $remoteIp;
 
     /**
      * The VAT rate for the country the business is based in. Used for products not affected by EU 2015 VAT changes.
+     *
      * @var double
+     *
+     * @Assert\Type(type="double")
+     * @Assert\NotBlank
+     * @Assert\Range( min="0", max="1" )
      */
     public $localVatRate;
+
+    /**
+     * 3 letter currency code for the currency the basket should work in.
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $currencyCode;
+
+    /**
+     * Configuration for payment system providers
+     * @var PaymentProviderConfig[]
+     *
+     * @Assert\Type(type="array")
+     * @Assert\All(
+     *      @Assert\NotBlank(),
+     *      @Assert\Type( type="PatternSeek\ECommerce\PaymentProviderConfig" )
+     * )
+     */
+    public $paymentProviders;
+
+    /**
+     * A brief description covering all the items in the basket
+     *
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     * @Assert\NotBlank
+     */
+    public $briefDescription;
+
+    /**
+     * Optional introductory text for the basket page
+     *
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $intro = '';
+
+    /**
+     * Populate the StructClass's properties from an array
+     * @param array $properties
+     * @param bool $discardInvalidEntries If set to true, entries in $properties for which there is no corresponding class member will be discarded instead of generating an error
+     * @return BasketConfig
+     */
+    static function fromArray( array $properties, $discardInvalidEntries = false )
+    {
+        $paymentProviders = $properties[ 'paymentProviders' ];
+        unset( $properties[ 'paymentProviders' ] );
+
+        /** @var BasketConfig $base */
+        $base = parent::fromArray( $properties );
+
+        $base->paymentProviders = [ ];
+        foreach ($paymentProviders as $provider) {
+            $provConf = PaymentProviderConfig::fromArray( $provider );
+            $base->paymentProviders[ ] = $provConf;
+        }
+        return $base;
+    }
 
 }
