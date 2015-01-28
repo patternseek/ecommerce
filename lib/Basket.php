@@ -58,7 +58,7 @@ class Basket extends AbstractViewComponent
         $config = $initConfig[ 'config' ];
 
         foreach ($initConfig[ 'lineItems' ] as $lineItem) {
-            $this->addLineItem( $lineItem );
+            $this->state->lineItems[ ] = $lineItem;
         }
 
         $this->state->config = $config;
@@ -294,6 +294,19 @@ class Basket extends AbstractViewComponent
     {
         return ( (double)$this->state->vatRates[ 'rates' ][ mb_strtoupper( $countryCode,
                 'UTF-8' ) ][ 'standard_rate' ] / 100 );
+    }
+
+    public function getVatCountries()
+    {
+        $ret = [ ];
+        foreach ($this->state->vatRates[ 'rates' ] as $cc => $info) {
+            if (isset( $info[ 'iso_duplicate_of' ] )) {
+                continue;
+            }
+            $ret[ $cc ] = $info[ 'country' ];
+        }
+        asort( $ret );
+        return $ret;
     }
 
     /**
