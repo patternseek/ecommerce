@@ -300,7 +300,7 @@ class Basket extends AbstractViewComponent
     {
         $ret = [ ];
         foreach ($this->state->vatRates[ 'rates' ] as $cc => $info) {
-            if (isset( $info[ 'iso_duplicate_of' ] )) {
+            if (isset( $info[ 'iso_duplicate' ] )) {
                 continue;
             }
             $ret[ $cc ] = $info[ 'country' ];
