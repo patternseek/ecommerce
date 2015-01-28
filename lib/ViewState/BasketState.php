@@ -21,6 +21,13 @@ class BasketState extends ViewState
     public $config;
 
     /**
+     * @var array
+     *
+     * @Assert\Type(type="array")
+     */
+    public $vatRates;
+
+    /**
      * @var string
      *
      * @Assert\Type(type="string")

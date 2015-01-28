@@ -21,12 +21,6 @@ use PatternSeek\ECommerce\ViewState\BasketState;
 class Basket extends AbstractViewComponent
 {
 
-    /**
-     * @var BasketConfig
-     */
-    protected $config;
-
-    protected $vatRates;
 
     /**
      * @var BasketState
@@ -62,24 +56,18 @@ class Basket extends AbstractViewComponent
         );
 
         $config = $initConfig[ 'config' ];
-        $vatRates = $initConfig[ 'vatRates' ];
 
         foreach ($initConfig[ 'lineItems' ] as $lineItem) {
             $this->addLineItem( $lineItem );
         }
 
-        if (isset( $this->state->initialised ) && ( $this->state->initialised === true )) {
-            return;
-        }
-
         $this->state->config = $config;
-        $this->vatRates = $vatRates;
+        $this->state->vatRates = $initConfig[ 'vatRates' ];
         $this->state->intro = $config->intro;
 
         $this->state->cardCountryCode = null;
-        if (!isset( $this->state->addressCountryCode )) {
-            $this->state->addressCountryCode = null;
-        }
+        $this->state->addressCountryCode = null;
+
         $this->state->ipCountryCode = $this->geoIPCountryCode();
         $countryCode = $this->determineCountryCode();
         $this->state->countryCodeUsedForTransaction = $countryCode;
@@ -117,9 +105,10 @@ class Basket extends AbstractViewComponent
 
     /**
      * Using $this->state, optionally update state, optionally create child components via addOrUpdateChild(), return template props
+     * @param $props
      * @return array Template props
      */
-    protected function doUpdate()
+    protected function doUpdate( $props )
     {
 
         $this->state->validate();
@@ -129,15 +118,16 @@ class Basket extends AbstractViewComponent
 
         foreach ($this->state->config->paymentProviders as $providerConfig) {
             $this->addOrUpdateChild(
-                $providerConfig->name,
-                $providerConfig->componentClass,
+                $providerConfig->name, $providerConfig->componentClass,
+                [
+                    'description' => $this->state->config->briefDescription,
+                    'amount' => $this->state->total
+                ],
                 [
                     'config' => $providerConfig->conf,
                     'cardMustMatchCountryCode' => $this->state->ipCountryCode,
                     'buttonLabel' => null,
                     'email' => null,
-                    'amount' => $this->state->total,
-                    'description' => $this->state->config->briefDescription,
                     'testMode' => true
                 ] );
             $tplProps[ 'paymentProviders' ][ ] = $providerConfig->name;
@@ -177,6 +167,11 @@ class Basket extends AbstractViewComponent
             ],
             $args
         );
+
+        $this->state->vatNumber = null;
+        $this->state->vatNumberStatus = null;
+        $this->state->vatNumberCountryCode = null;
+
         $client = new \SoapClient( "http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl" );
         $soapResponse = null;
         try{
@@ -191,17 +186,27 @@ class Basket extends AbstractViewComponent
                 $this->state->vatNumberCountryCode = $args[ 'countryCode' ];
             }else {
                 // Invalid
-                unset( $this->state->vatNumber );
-                unset( $this->state->vatNumberCountryCode );
+                $this->state->vatNumber = null;
+                $this->state->vatNumberCountryCode = null;
                 $this->state->vatNumberStatus = 'invalid';
             }
         }catch( \SoapFault $e ){
-            // Unknown due to technical error
-            // We allow the vat number but flag it for manual checking
-            $this->state->vatNumber = $args[ 'vatNumber' ];
-            $this->state->vatNumberStatus = 'unknown';
-            $this->state->vatNumberCountryCode = $args[ 'countryCode' ];
+            if ($e->getMessage() == "INVALID_INPUT") {
+                // Invalid
+                $this->state->vatNumber = null;
+                $this->state->vatNumberCountryCode = null;
+                $this->state->vatNumberStatus = 'invalid';
+            }else {
+                // Unknown due to technical error
+                // We allow the vat number but flag it for manual checking
+                $this->state->vatNumber = $args[ 'vatNumber' ];
+                $this->state->vatNumberStatus = 'unknown';
+                $this->state->vatNumberCountryCode = $args[ 'countryCode' ];
+            }
+
         }
+        $this->updateLineItemsAndTotal( $this->determineCountryCode() );
+
         // Render full component
         return $this->renderRoot();
     }
@@ -256,7 +261,7 @@ class Basket extends AbstractViewComponent
 
             // VAT number either verified or there was a
             // technical error so it is allowed but marked for manual check
-            if (isset( $this->state->vatNumber )) {
+            if (null !== $this->state->vatNumber) {
                 $lineItem->isB2b = true;
                 $lineItem->vatTypeCharged = 'b2b';
                 $lineItem->vatPerItem = 0.0;
@@ -268,17 +273,17 @@ class Basket extends AbstractViewComponent
                 // Line item VAT jurisdiction is remote
             }else {
                 $this->state->requireVATLocationProof = true;
-                $this->state->requireVATLocationProof = true;
                 $lineItem->isB2b = false;
                 $lineItem->vatPerItem = $lineItem->netPrice * $remoteRate;
                 $lineItem->vatTypeCharged = 'remote';
             }
-            $total += ( $lineItem->netPrice
-                    + ( $lineItem->vatPerItem?$lineItem->vatPerItem:1 )
+            $total
+                += ( $lineItem->netPrice
+                    + ( $lineItem->vatPerItem?$lineItem->vatPerItem:0 )
                 )
                 * ( $lineItem->quantity?$lineItem->quantity:1 );
         }
-        $this->state->total = $total;
+        $this->state->total = (double)$total;
     }
 
     /**
@@ -318,7 +323,7 @@ class Basket extends AbstractViewComponent
      */
     protected function getVatRate( $countryCode )
     {
-        return ( (double)$this->vatRates[ 'rates' ][ mb_strtoupper( $countryCode,
+        return ( (double)$this->state->vatRates[ 'rates' ][ mb_strtoupper( $countryCode,
                 'UTF-8' ) ][ 'standard_rate' ] / 100 );
     }
 

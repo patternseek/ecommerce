@@ -67,14 +67,12 @@ class Stripe extends AbstractViewComponent
                 'config' => [ "array" ],  // Required, entries should be PatternSeek\ECommerce\PaymentProviderConfig
                 'buttonLabel' => [ 'string', null ],                                 // Optional, default null
                 'email' => [ 'string', null ],                                       // Optional, default null
-                'amount' => [ 'double' ],                                           // Required
-                'description' => [ "string" ],                                      // Required
                 'testMode' => [ 'boolean' ]                                        // Required
             ],
             $initConfig
         );
 
-        $initConfig[ 'amount' ] *= 100; // Stripe expects price in cents
+
 
         $c = (object)$initConfig[ 'config' ];
 
@@ -93,10 +91,21 @@ class Stripe extends AbstractViewComponent
 
     /**
      * Using $this->state, optionally update state, optionally create child components via addOrUpdateChild(), return template props
+     * @param $props
      * @return array Template props
      */
-    protected function doUpdate()
+    protected function doUpdate( $props )
     {
+        $this->testInputs(
+            [
+                'amount' => [ 'double' ],                                           // Required
+                'description' => [ "string" ]                                      // Required
+            ],
+            $props
+        );
+        $this->state->amount = $props[ 'amount' ] * 100; // Stripe wants amount in cents
+        $this->state->description = $props[ 'description' ];
+
         return (array)$this->state;
     }
 
