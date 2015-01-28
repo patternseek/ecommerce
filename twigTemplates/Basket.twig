@@ -32,7 +32,7 @@
             <input type="text" name="vatNumber">
             <select name="countryCode">
                 {% for cc,country in this.getVatCountries() %}
-                    <option value="{{ cc }}">{{ country }}"</option>
+                    <option value="{{ cc }}">{{ country }}</option>
                 {% endfor %}
             </select>
             <input type="submit" value="Set">
