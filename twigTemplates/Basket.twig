@@ -30,7 +30,11 @@
         </td>
         <td>
             <input type="text" name="vatNumber">
-            <input type="text" name="countryCode">
+            <select name="countryCode">
+                {% for cc,country in this.getVatCountries() %}
+                    <option value="{{ cc }}">{{ country }}"</option>
+                {% endfor %}
+            </select>
             <input type="submit" value="Set">
         </td>
     </tr>
