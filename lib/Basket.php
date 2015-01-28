@@ -168,7 +168,7 @@ class Basket extends AbstractViewComponent
      * @return ViewComponentResponse
      * @throws \Exception
      */
-    private function validateVatNumberHandler( $args )
+    protected function validateVatNumberHandler( $args )
     {
         $this->testInputs(
             [
