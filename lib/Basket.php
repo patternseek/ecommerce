@@ -213,39 +213,6 @@ class Basket extends AbstractViewComponent
         return $this->renderRoot();
     }
 
-    // Public methods
-
-    /**
-     * @param LineItem $item
-     * @throws \Exception
-     */
-    public function addLineItem( LineItem $item )
-    {
-        // Require some fields
-        if (!( $item->description && $item->netPrice && $item->vatJurisdictionType )) {
-            throw new \Exception( "LineItem objects added to Basket must include description, net price and vat jurisdiction type." );
-        }
-        $this->state->lineItems[ ] = $item;
-    }
-
-    /**
-     * @param $id
-     * @param LineItem $item
-     */
-    public function updateLineItem( $id, LineItem $item )
-    {
-        $this->state->lineItems[ $id ] = $item;
-    }
-
-    /**
-     * @param $id
-     */
-    public function removeLineItem( $id )
-    {
-        unset( $this->state->lineItems[ $id ] );
-    }
-
-
 
     // Protected methods
 
