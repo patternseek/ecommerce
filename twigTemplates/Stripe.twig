@@ -12,5 +12,4 @@
         >
 </script>
 {% endset %}
-{{ _path }}
-{{ exec.wrapForm( _path ~ ".submitForm", 'POST', formBody ) }}
+{{ this.exec.wrapForm( "submitForm", 'POST', formBody ) }}

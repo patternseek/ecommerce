@@ -20,7 +20,24 @@
             <td>{{ lineItem.vatPerItem }}</td>
         </tr>
     {% endfor %}
+    {% set validateFormBody %}
+    <tr>
+        <td>VAT number.
+            <small>
+                If you have a business VAT number please
+                enter it here and indicate which country your business is based in.
+            </small>
+        </td>
+        <td>
+            <input type="text" name="vatNumber">
+            <input type="text" name="countryCode">
+            <input type="submit" value="Set">
+        </td>
+    </tr>
+    {% endset %}
+    {{ this.exec.wrapForm( "validateVatNumber", "GET", validateFormBody ) }}
     </tbody>
+
 </table>
 
 {% for provider in props.paymentProviders %}
