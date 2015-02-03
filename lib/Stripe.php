@@ -146,7 +146,7 @@ class Stripe extends AbstractViewComponent
             'countryCode2' => $countryCode,
             'countryCode2Type' => $type
         ];
-        return $this->parent->transactionSuccessCallback( $ret );
+        return $this->parent->transactionSuccess( $ret );
     }
 
     /**

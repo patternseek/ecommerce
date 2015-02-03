@@ -25,10 +25,12 @@ class Basket extends AbstractViewComponent
      * @var callable
      */
     public $transactionSuccessCallback;
+
     /**
      * @var BasketState
      */
     protected $state;
+
     /**
      * Message to display when rendering component. Won't be serialised to will only be displayed once.
      * @var string
@@ -55,7 +57,8 @@ class Basket extends AbstractViewComponent
             [
                 'config' => [ 'PatternSeek\ECommerce\BasketConfig' ],
                 'vatRates' => [ 'array' ],
-                'lineItems' => [ 'array' ]
+                'lineItems' => [ 'array' ],
+                'testMode' => [ 'boolean' ]
             ],
             $initConfig
         );
@@ -69,6 +72,8 @@ class Basket extends AbstractViewComponent
         $this->state->config = $config;
         $this->state->vatRates = $initConfig[ 'vatRates' ];
         $this->state->intro = $config->intro;
+        $this->state->outro = $config->outro;
+        $this->state->testMode = $initConfig[ 'testMode' ];
 
         $this->state->cardCountryCode = null;
         $this->state->addressCountryCode = null;
@@ -200,6 +205,15 @@ class Basket extends AbstractViewComponent
     public function setFlashError( $string )
     {
         $this->flashError = $string;
+    }
+
+    /**
+     * @param $ret
+     */
+    public function transactionSuccess( $ret )
+    {
+        $this->state->complete = true;
+        $this->transactionSuccessCallback( $ret );
     }
 
     /**
@@ -338,10 +352,11 @@ class Basket extends AbstractViewComponent
                     'cardMustMatchCountryCode' => $this->state->ipCountryCode,
                     'buttonLabel' => null,
                     'email' => null,
-                    'testMode' => true
+                    'testMode' => $this->state->testMode
                 ] );
             $tplProps[ 'paymentProviders' ][ ] = $providerConfig->name;
         }
+
         // Template properties
         return $tplProps;
     }

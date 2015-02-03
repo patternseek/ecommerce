@@ -1,13 +1,14 @@
 {% if this.flashMessage %}
     <strong>{{ this.flashMessage }}</strong>
-{% endif %}
-{% this.flashMessage AND this.flashError %}
-<br>
+    <br>
 {% endif %}
 {% if this.flashError %}
     <strong class="error">{{ this.flashError }}</strong>
+    <br>
 {% endif %}
-
+{% if props.testMode %}
+    <br><strong>TEST MODE</strong><br>
+{% endif %}
 
 {{ props.intro }}
 
@@ -55,6 +56,10 @@
 
 </table>
 
-{% for provider in props.paymentProviders %}
-    {{ component( provider ) }}
-{% endfor %}
+{% if not props.complete %}
+    {% for provider in props.paymentProviders %}
+        {{ component( provider ) }}
+    {% endfor %}
+{% endif %}
+
+{{ props.outro }}

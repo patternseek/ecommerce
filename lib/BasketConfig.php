@@ -74,13 +74,22 @@ class BasketConfig extends StructClass
     public $briefDescription;
 
     /**
-     * Optional introductory text for the basket page
+     * Optional header
      *
      * @var string
      *
      * @Assert\Type(type="string")
      */
     public $intro = '';
+
+    /**
+     * Optional footer
+     *
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $outro = '';
 
     /**
      * Populate the StructClass's properties from an array

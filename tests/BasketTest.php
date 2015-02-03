@@ -50,6 +50,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
         /** @var BasketConfig $config */
         $config = BasketConfig::fromArray( $configArray );
+
+        $config->intro = "An intro";
+        $config->outro = "An outro";
+
         $config->validate();
 
         $vatRates = $this->getVatRates();
@@ -63,22 +67,20 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $initConfig = [
             'config' => $config,
             'vatRates' => $vatRates,
-            'lineItems' => [ $lineItem ]
+            'lineItems' => [ $lineItem ],
+            'testMode' => true
         ];
 
         /** @var \PatternSeek\ECommerce\Basket $view */
         $view = new Basket( null, null, $initConfig );
 
-        $view->execFormHelper =
-            function ( $execPath, $method, $formBody ){
-                return <<<EOS
-<form method='{$method}'>
-    <input type='hidden' name='exec' value='{$execPath}>
-    {$formBody}
-EOS;
-            };
+        $successCallback = function( $txnDetails ){ print_r( $txnDetails ); };
 
-        $view->update();
+        $view->update(
+            [
+                'transactionSuccessCallback'=>$successCallback
+            ]
+        );
         // TODO: Test something
 
         echo $view->render()->content;
@@ -86,8 +88,14 @@ EOS;
         $ser = serialize( $view );
         $uns = unserialize( $ser );
 
-        $uns->update();
+        $uns->update(
+            [
+                'transactionSuccessCallback'=>$successCallback
+            ]
+        );
+
         $uns->render();
+
     }
 
     /**

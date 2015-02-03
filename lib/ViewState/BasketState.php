@@ -21,6 +21,13 @@ class BasketState extends ViewState
     public $config;
 
     /**
+     * @var boolean
+     *
+     * @Assert\Type(type="boolean")
+     */
+    public $testMode;
+
+    /**
      * @var array
      *
      * @Assert\Type(type="array")
@@ -33,6 +40,13 @@ class BasketState extends ViewState
      * @Assert\Type(type="string")
      */
     public $intro;
+
+    /**
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $outro;
 
     /**
      * @var \PatternSeek\ECommerce\LineItem[]
@@ -115,4 +129,11 @@ class BasketState extends ViewState
      * @Assert\Length(min = 2, max = 2)
      */
     public $vatNumberCountryCode;
+
+    /**
+     * @var boolean
+     *
+     * @Assert\Type(type="boolean")
+     */
+    public $complete = false;
 }
