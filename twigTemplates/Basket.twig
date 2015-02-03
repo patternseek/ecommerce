@@ -1,3 +1,14 @@
+{% if this.flashMessage %}
+    <strong>{{ this.flashMessage }}</strong>
+{% endif %}
+{% this.flashMessage AND this.flashError %}
+<br>
+{% endif %}
+{% if this.flashError %}
+    <strong class="error">{{ this.flashError }}</strong>
+{% endif %}
+
+
 {{ props.intro }}
 
 <table class="basketTable">

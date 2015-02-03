@@ -11,7 +11,6 @@ namespace PatternSeek\ECommerce;
 
 use PatternSeek\ComponentView\AbstractViewComponent;
 use PatternSeek\ComponentView\Template\TwigTemplate;
-use PatternSeek\ComponentView\ViewComponentResponse;
 use PatternSeek\ECommerce\ViewState\StripeState;
 
 /**
@@ -41,82 +40,13 @@ class Stripe extends AbstractViewComponent
     protected $state;
 
     /**
-     * Initialise $this->state with either a new ViewState or an appropriate subclass
-     * @return void
-     */
-    protected function initState()
-    {
-        $this->state = new StripeState();
-    }
-
-    /**
-     * Load or configure the component's template as necessary
-     *
-     * @return void
-     */
-    protected function initTemplate()
-    {
-        $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Stripe.twig" );
-        $this->template = new TwigTemplate( $this, $tplTwig );
-    }
-
-    protected function initComponent( $initConfig )
-    {
-        $this->testInputs(
-            [
-                'config' => [ "array" ],  // Required, entries should be PatternSeek\ECommerce\PaymentProviderConfig
-                'buttonLabel' => [ 'string', null ],                                 // Optional, default null
-                'email' => [ 'string', null ],                                       // Optional, default null
-                'testMode' => [ 'boolean' ]                                        // Required
-            ],
-            $initConfig
-        );
-
-
-
-        $c = (object)$initConfig[ 'config' ];
-
-        if (null !== $initConfig[ 'buttonLabel' ]) {
-            $initConfig[ 'buttonLabelHTML' ] = "data-label=\"{$c->buttonLabel}\"";
-        }
-
-        $initConfig[ 'apiPubKey' ] = $initConfig[ 'testMode' ]?$c->testApiPubKey:$c->liveApiPubKey;
-
-        if (null !== $initConfig[ 'email' ]) {
-            $initConfig[ 'emailHTML' ] = "data-email=\"{$initConfig['email']}\"";
-        }
-
-        $this->state = StripeState::fromArray( $initConfig );
-    }
-
-    /**
-     * Using $this->state, optionally update state, optionally create child components via addOrUpdateChild(), return template props
-     * @param $props
-     * @return array Template props
-     */
-    protected function doUpdate( $props )
-    {
-        $this->testInputs(
-            [
-                'amount' => [ 'double' ],                                           // Required
-                'description' => [ "string" ]                                      // Required
-            ],
-            $props
-        );
-        $this->state->amount = $props[ 'amount' ] * 100; // Stripe wants amount in cents
-        $this->state->description = $props[ 'description' ];
-
-        return (array)$this->state;
-    }
-
-    /**
-     *
+     * HTTP accessible method
      * @param $args
      * @return array
      * @throws \Exception
      * @throws \Stripe_CardError
      */
-    function submitFormHandler( $args )
+    public function submitFormHandler( $args )
     {
 
         $this->testInputs(
@@ -132,6 +62,7 @@ class Stripe extends AbstractViewComponent
         \Stripe::setApiKey( $apiPrivKey );
         $tok = \Stripe_Token::retrieve( $stripeToken, $apiPrivKey );
         $countryCode = '';
+        $type = "";
         if ($tok->type == 'card') {
             $countryCode = mb_strtolower( $tok->card->country, "UTF-8" );
             $type = "card";
@@ -203,7 +134,8 @@ class Stripe extends AbstractViewComponent
                 ]
             );
         }catch( \Stripe_CardError $e ){
-            throw $e;
+            $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
+            return $this->parent->render();
         }
 
         // FIXME handle complete transaction, pass txn data back to basket.
@@ -211,10 +143,81 @@ class Stripe extends AbstractViewComponent
 
         $ret = [
             'chargeID' => $charge->id,
-            'additionalFields' => $args->additionalFields,
             'countryCode2' => $countryCode,
             'countryCode2Type' => $type
         ];
-        return $ret;
+        return $this->parent->transactionSuccessCallback( $ret );
+    }
+
+    /**
+     * Initialise $this->state with either a new ViewState or an appropriate subclass
+     * @return void
+     */
+    protected function initState()
+    {
+        $this->state = new StripeState();
+    }
+
+    /**
+     * Load or configure the component's template as necessary
+     *
+     * @return void
+     */
+    protected function initTemplate()
+    {
+        $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Stripe.twig" );
+        $this->template = new TwigTemplate( $this, $tplTwig );
+    }
+
+    /**
+     * @param $initConfig
+     * @return mixed
+     *
+     */
+    protected function initComponent( $initConfig )
+    {
+        $this->testInputs(
+            [
+                'config' => [ "array" ],  // Required, entries should be PatternSeek\ECommerce\PaymentProviderConfig
+                'buttonLabel' => [ 'string', null ],                                 // Optional, default null
+                'email' => [ 'string', null ],                                       // Optional, default null
+                'testMode' => [ 'boolean' ]                                        // Required
+            ],
+            $initConfig
+        );
+
+        $c = (object)$initConfig[ 'config' ];
+
+        if (null !== $initConfig[ 'buttonLabel' ]) {
+            $initConfig[ 'buttonLabelHTML' ] = "data-label=\"{$c->buttonLabel}\"";
+        }
+
+        $initConfig[ 'apiPubKey' ] = $initConfig[ 'testMode' ]?$c->testApiPubKey:$c->liveApiPubKey;
+
+        if (null !== $initConfig[ 'email' ]) {
+            $initConfig[ 'emailHTML' ] = "data-email=\"{$initConfig['email']}\"";
+        }
+
+        $this->state = StripeState::fromArray( $initConfig );
+    }
+
+    /**
+     * Using $this->state, optionally update state, optionally create child components via addOrUpdateChild(), return template props
+     * @param $props
+     * @return array Template props
+     */
+    protected function doUpdate( $props )
+    {
+        $this->testInputs(
+            [
+                'amount' => [ 'double' ],                                           // Required
+                'description' => [ "string" ]                                      // Required
+            ],
+            $props
+        );
+        $this->state->amount = $props[ 'amount' ] * 100; // Stripe wants amount in cents
+        $this->state->description = $props[ 'description' ];
+
+        return (array)$this->state;
     }
 }
