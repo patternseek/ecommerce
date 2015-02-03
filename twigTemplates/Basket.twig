@@ -29,7 +29,18 @@
                 {% endif %}</td>
             <td>{{ lineItem.description }}</td>
             <td>{{ lineItem.netPrice }}</td>
-            <td>{{ lineItem.vatPerItem }}</td>
+            <td>
+                {{ lineItem.vatPerItem }}
+                {% if lineItem.isB2b %}
+                    (Zero rated)
+                {% else %}
+                    {% if lineItem.vatJurisdictionType == "local" %}
+                        ({{ props.config.countryCode }} VAT)
+                    {% else %}
+                        ({{ lineItem.remoteVatJusrisdictionCountryCode }} VAT)
+                    {% endif %}
+                {% endif %}
+            </td>
         </tr>
     {% endfor %}
     {% set validateFormBody %}

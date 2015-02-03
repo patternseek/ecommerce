@@ -43,6 +43,15 @@ class BasketConfig extends StructClass
     public $localVatRate;
 
     /**
+     * 2 letter country code for the vendor country
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $countryCode;
+
+    /**
      * 3 letter currency code for the currency the basket should work in.
      * @var string
      *

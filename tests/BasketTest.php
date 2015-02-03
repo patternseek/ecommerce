@@ -28,6 +28,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'localVatRate' => 0.20,
             'remoteIp' => "212.58.244.20", // A BBC server in the UK
             'currencyCode' => "GBP",
+            'countryCode' => "GB",
             'briefDescription' => "Brief description of basket contents.",
             'intro' => "Optional intro HTML for page.",
             'paymentProviders' => [
