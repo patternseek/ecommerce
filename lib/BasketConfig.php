@@ -108,8 +108,8 @@ class BasketConfig extends StructClass
      */
     static function fromArray( array $properties, $discardInvalidEntries = false )
     {
-        $paymentProviders = $properties[ 'paymentProvider' ];
-        unset( $properties[ 'paymentProvider' ] );
+        $paymentProviders = $properties[ 'paymentProviders' ];
+        unset( $properties[ 'paymentProviders' ] );
 
         /** @var BasketConfig $base */
         $base = parent::fromArray( $properties );
