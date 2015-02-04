@@ -1,14 +1,14 @@
 {% set formBody %}
 <script
         src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-        data-key="{{ props.apiPubKey }}"
-        data-amount="{{ props.amount }}"
-        data-name="{{ props.config.siteName }}"
-        data-description="{{ props.description }}"
-        data-currency="{{ props.config.currency }}"
-        {{ props.emailHTML }}
-        {{ props.labelHTML }}
-        data-image="{{ props.config.siteLogo }}"
+        data-key="{{ state.apiPubKey }}"
+        data-amount="{{ state.amount }}"
+        data-name="{{ state.config.siteName }}"
+        data-description="{{ state.description }}"
+        data-currency="{{ state.config.currency }}"
+        {{ state.emailHTML }}
+        {{ state.labelHTML }}
+        data-image="{{ state.config.siteLogo }}"
         >
 </script>
 {% endset %}

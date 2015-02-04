@@ -4,6 +4,7 @@ namespace PatternSeek\ECommerce\ViewState;
 
 use PatternSeek\ComponentView\ViewState\ViewState;
 use PatternSeek\ECommerce\BasketConfig;
+use PatternSeek\ECommerce\PaymentProviderConfig;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -136,4 +137,12 @@ class BasketState extends ViewState
      * @Assert\Type(type="boolean")
      */
     public $complete = false;
+
+    /**
+     * @var string[]
+     *
+     * @Assert\Type(type="array")
+     */
+    public $paymentProviderNames;
+
 }

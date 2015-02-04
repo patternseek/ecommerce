@@ -6,11 +6,11 @@
     <strong class="error">{{ this.flashError }}</strong>
     <br>
 {% endif %}
-{% if props.testMode %}
+{% if state.testMode %}
     <br><strong>TEST MODE</strong><br>
 {% endif %}
 
-{{ props.intro }}
+{{ state.intro }}
 
 <table class="basketTable">
     <thead>
@@ -20,7 +20,7 @@
     <th>VAT per item</th>
     </thead>
     <tbody>
-    {% for lineItem in props.lineItems %}
+    {% for lineItem in state.lineItems %}
         <tr>
             <td>{% if lineItem.quantity != null %}
                     {{ lineItem.quantity }}
@@ -29,15 +29,15 @@
                 {% endif %}</td>
             <td>{{ lineItem.description }}</td>
             <td>{{ lineItem.netPrice }}</td>
-            <td>
+            <td style="text-wrap: none;">
                 {{ lineItem.vatPerItem }}
                 {% if lineItem.isB2b %}
-                    (Zero rated)
+                    ( Zero rated )
                 {% else %}
                     {% if lineItem.vatJurisdictionType == "local" %}
-                        ({{ props.config.countryCode }} VAT)
+                        ( {{ state.config.countryCode|upper }} VAT )
                     {% else %}
-                        ({{ lineItem.remoteVatJusrisdictionCountryCode }} VAT)
+                        ( {{ lineItem.remoteVatJusrisdictionCountryCode|upper }} VAT )
                     {% endif %}
                 {% endif %}
             </td>
@@ -45,20 +45,21 @@
     {% endfor %}
     {% set validateFormBody %}
     <tr>
-        <td>VAT number.
-            <small>
-                If you have a business VAT number please
-                enter it here and indicate which country your business is based in.
-            </small>
-        </td>
         <td>
-            <input type="text" name="vatNumber">
+            VAT number
+        </td>
+        <td colspan="3">
+            {% if state.vatNumber %}
+                <strong>{{ state.vatNumber }}</strong>
+                <br>
+            {% endif %}
+            <input type="text" name="vatNumber" placeholder="VAT number">
             <select name="countryCode">
                 {% for cc,country in this.getVatCountries() %}
                     <option value="{{ cc }}">{{ country }}</option>
                 {% endfor %}
             </select>
-            <input type="submit" value="Set">
+            <input type="submit" value="Update">
         </td>
     </tr>
     {% endset %}
@@ -66,11 +67,13 @@
     </tbody>
 
 </table>
-
-{% if not props.complete %}
-    {% for provider in props.paymentProviders %}
+{% if not state.complete %}
+    <div class="basketPaymentProviders">
+        {% for provider in state.paymentProviderNames %}
         {{ component( provider ) }}
     {% endfor %}
+    </div>
 {% endif %}
 
-{{ props.outro }}
+
+{{ state.outro }}

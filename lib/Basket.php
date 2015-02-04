@@ -25,23 +25,20 @@ class Basket extends AbstractViewComponent
      * @var callable
      */
     public $transactionSuccessCallback;
-
-    /**
-     * @var BasketState
-     */
-    protected $state;
-
     /**
      * Message to display when rendering component. Won't be serialised to will only be displayed once.
      * @var string
      */
-    protected $flashMessage;
-
+    public $flashMessage;
     /**
      * Error to display when rendering component. Won't be serialised to will only be displayed once.
      * @var string
      */
-    protected $flashError;
+    public $flashError;
+    /**
+     * @var BasketState
+     */
+    protected $state;
 
     /**
      * Called after the page creating this view has
@@ -127,6 +124,7 @@ class Basket extends AbstractViewComponent
                 $this->state->vatNumber = null;
                 $this->state->vatNumberCountryCode = null;
                 $this->state->vatNumberStatus = 'invalid';
+                $this->setFlashError( "Sorry but the VAT number or country entered was incorrect." );
             }
         }catch( \SoapFault $e ){
             if ($e->getMessage() == "INVALID_INPUT") {
@@ -134,6 +132,7 @@ class Basket extends AbstractViewComponent
                 $this->state->vatNumber = null;
                 $this->state->vatNumberCountryCode = null;
                 $this->state->vatNumberStatus = 'invalid';
+                $this->setFlashError( "Sorry but the VAT number or country entered was incorrect." );
             }else {
                 // Unknown due to technical error
                 // We allow the vat number but flag it for manual checking
@@ -280,13 +279,13 @@ class Basket extends AbstractViewComponent
                 // Line item VAT jurisdiction is local
             }elseif ($lineItem->vatJurisdictionType == 'local') {
                 $lineItem->isB2b = false;
-                $lineItem->vatPerItem = $lineItem->netPrice * $this->state->config->localVatRate;
+                $lineItem->vatPerItem = round( $lineItem->netPrice * $this->state->config->localVatRate, 2 );
                 $lineItem->vatTypeCharged = 'local';
                 // Line item VAT jurisdiction is remote
             }else {
                 $this->state->requireVATLocationProof = true;
                 $lineItem->isB2b = false;
-                $lineItem->vatPerItem = $lineItem->netPrice * $remoteRate;
+                $lineItem->vatPerItem = round( $lineItem->netPrice * $remoteRate, 2 );
                 $lineItem->vatTypeCharged = 'remote';
             }
             $total
@@ -337,9 +336,6 @@ class Basket extends AbstractViewComponent
 
         $this->state->validate();
 
-        $tplProps = (array)$this->state;
-        $tplProps[ 'paymentProviders' ] = [ ];
-
         foreach ($this->state->config->paymentProviders as $providerConfig) {
             $this->addOrUpdateChild(
                 $providerConfig->name, $providerConfig->componentClass,
@@ -354,11 +350,8 @@ class Basket extends AbstractViewComponent
                     'email' => null,
                     'testMode' => $this->state->testMode
                 ] );
-            $tplProps[ 'paymentProviders' ][ ] = $providerConfig->name;
+            $this->state->paymentProviderNames[ ] = $providerConfig->name;
         }
-
-        // Template properties
-        return $tplProps;
     }
 
     /**

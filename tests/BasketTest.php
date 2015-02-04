@@ -31,7 +31,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'countryCode' => "GB",
             'briefDescription' => "Brief description of basket contents.",
             'intro' => "Optional intro HTML for page.",
-            'paymentProviders' => [
+            'paymentProviderNames' => [
                 'Stripe' => [
                     'name' => 'stripe',
                     'componentClass' => "\\PatternSeek\\ECommerce\\Stripe",
