@@ -334,7 +334,7 @@ class Basket extends AbstractViewComponent
 
         $this->transactionSuccessCallback = $props[ 'transactionSuccessCallback' ];
 
-        $this->state->validate();
+        $this->state->paymentProviderNames = [ ];
 
         foreach ($this->state->config->paymentProviders as $providerConfig) {
             $this->addOrUpdateChild(
