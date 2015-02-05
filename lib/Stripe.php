@@ -75,8 +75,9 @@ class Stripe extends AbstractViewComponent
         // Do we require VAT location proof, and if so do we have
         // enough and does it match the information used
         // to calculate the original VAT?
-        if ($this->parent->confirmValidTxnFunc( $countryCode )) {
-            throw new \Exception( "Sorry but we can't collect enough information about your location to comply with EU VAT legislation with the information we have available. Please contact us to arrange a manual payment." );
+        if (!$this->parent->confirmValidTxnFunc( $countryCode )) {
+            $this->parent->setFlashError( "Sorry but we can't collect enough information about your location to comply with EU VAT legislation with the information we have available. You have not been charged. Please contact us to arrange a manual payment." );
+            return $this->parent->render();
         }
 
         /*
