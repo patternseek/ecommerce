@@ -16,7 +16,6 @@ class AddressState extends ViewState
      * @var string
      *
      * @Assert\Type(type="string")
-     * @Assert\NotBlank()
      */
     public $addressLine1;
 
@@ -31,7 +30,6 @@ class AddressState extends ViewState
      * @var string
      *
      * @Assert\Type(type="string")
-     * @Assert\NotBlank()
      */
     public $townOrCity;
 
@@ -60,7 +58,6 @@ class AddressState extends ViewState
      * @var string
      *
      * @Assert\Type(type="string")
-     * @Assert\NotBlank()
      * @Assert\Length(min="2", max="2")
      */
     public $countryCode;
