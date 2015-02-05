@@ -80,7 +80,6 @@ class Basket extends AbstractViewComponent
         $this->state->countryCodeUsedForTransaction = $countryCode;
 
         $this->updateLineItemsAndTotal( $countryCode );
-
     }
 
     /**

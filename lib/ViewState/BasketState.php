@@ -4,7 +4,6 @@ namespace PatternSeek\ECommerce\ViewState;
 
 use PatternSeek\ComponentView\ViewState\ViewState;
 use PatternSeek\ECommerce\BasketConfig;
-use PatternSeek\ECommerce\PaymentProviderConfig;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
