@@ -204,7 +204,7 @@
             "source": {
                 "type": "git",
                 "url": "/home/tolan/storage/workspace/patternseek-componentview",
-                "reference": "6d88c67b0e572b164c0e311c1e30ec0b80f28553"
+                "reference": "50363371cc09c6136d004a1967d9dd2857827027"
             },
             "require": {
                 "patternseek/structclass": "dev-master",
@@ -234,7 +234,7 @@
             "keywords": [
                 "framework"
             ],
-            "time": "2015-02-04 18:23:42"
+            "time": "2015-02-05 16:58:45"
         },
         {
             "name": "patternseek/structclass",

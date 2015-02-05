@@ -1,11 +1,15 @@
 {% if state.mode == 'view' %}
-    {{ state.addressLine1 }}<br>
+    {% if state.addressLine1 %}
+        {{ state.addressLine1 }}<br>
+    {% endif %}
 
     {% if state.addressLine2 %}
         {{ state.addressLine2 }}<br>
     {% endif %}
 
+    {% if state.townOrCity %}
     {{ state.townOrCity }}<br>
+    {% endif %}
 
     {% if state.stateOrRegion %}
         {{ state.stateOrRegion }}<br>
@@ -15,48 +19,55 @@
         {{ state.postCode }}<br>
     {% endif %}
 
-    {{ state.countryString }}
+    {% if state.countryString %}
+        {{ state.countryString }}
+        <br><br>
+    {% endif %}
 
-    <br><br>
     <a href="{{ this.exec.url( 'editMode' ) }}" class="edit">Edit address</a>
 
 {% else %}
     {% set formBody %}
-    <label>
-        Address line 1
-        <input type="text" name=addressLine1" value="{{ state.addressLine1 }}" class="required">
-    </label>
-    <label>
-        Address line 2
-        <input type="text" name="addressLine2" value="{{ state.addressLine2 }}">
-    </label>
-    <label>
-        Town or city
-        <input type="text" name="townOrCity" value="{{ state.townOrCity }}" class="required">
-    </label>
-    <label>
-        State or region
-        <input type="text" name="stateOrRegion" value="{{ state.stateOrRegion }}">
-    </label>
-    <label>
-        Postcode
-        <input type="text" name="postCode" value="{{ state.postCode }}">
-    </label>
-    <label>
-        Country
-        <select name="countryCode" class="required">
-            {% for code,name in this.getCountriesByISO() %}
-                <option
-                        value="{{ code|lower }}"
-                        {% if code|lower == state.countryCode %}
-                            selected="selected"
-                        {% endif %}
-                        >
-                    {{ country }}
-                </option>
-            {% endfor %}
-        </select>
-    </label>
+    <fieldset>
+        <legend>Billing address</legend>
+        <label>
+            Address line 1
+            <input type="text" name=addressLine1" value="{{ state.addressLine1 }}" class="required">
+        </label>
+        <label>
+            Address line 2
+            <input type="text" name="addressLine2" value="{{ state.addressLine2 }}">
+        </label>
+        <label>
+            Town or city
+            <input type="text" name="townOrCity" value="{{ state.townOrCity }}" class="required">
+        </label>
+        <label>
+            State or region
+            <input type="text" name="stateOrRegion" value="{{ state.stateOrRegion }}">
+        </label>
+        <label>
+            Postcode
+            <input type="text" name="postCode" value="{{ state.postCode }}">
+        </label>
+        <label>
+            Country
+            <select name="countryCode" class="required">
+                {% for code,name in this.getCountriesByISO() %}
+                    <option
+                            value="{{ code|lower }}"
+                            {% if code|lower == state.countryCode %}
+                                selected="selected"
+                            {% endif %}
+                            >
+                        {{ country }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+    </fieldset>
+
+    <input type="submit" value="Update address">
 
     {% endset %}
     {{ this.exec.wrapForm( "setAddress", "POST", formBody ) }}

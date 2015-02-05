@@ -50,14 +50,14 @@
         {% set validateFormBody %}
         <tr>
             <td>
-                VAT number
+                EU VAT number
             </td>
             <td colspan="3">
                 {% if state.vatNumber %}
                     <strong>{{ state.vatNumber }}</strong>
                     <br>
                 {% endif %}
-                <input type="text" name="vatNumber" placeholder="VAT number">
+                <input type="text" name="vatNumber" placeholder="EU VAT number">
                 <select name="countryCode">
                     {% for cc,country in this.getVatCountries() %}
                         <option value="{{ cc }}">{{ country }}</option>
