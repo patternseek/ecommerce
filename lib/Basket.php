@@ -211,7 +211,7 @@ class Basket extends AbstractViewComponent
     public function transactionSuccess( $ret )
     {
         $this->state->complete = true;
-        $this->transactionSuccessCallback( $ret );
+        return $this->transactionSuccessCallback->__invoke( $ret );
     }
 
     /**

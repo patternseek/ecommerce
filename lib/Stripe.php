@@ -56,7 +56,7 @@ class Stripe extends AbstractViewComponent
             $args
         );
 
-        $c = (object)$this->config;
+        $c = (object)$this->state->config;
         $stripeToken = $args[ 'stripeToken' ];
         $apiPrivKey = $this->state->testMode?$c->testApiPrivKey:$c->liveApiPrivKey;
         \Stripe::setApiKey( $apiPrivKey );
@@ -120,26 +120,20 @@ class Stripe extends AbstractViewComponent
 
          */
 
-        // FIXME handle exception properly.
-        // FIXME maybe return an exec on the basket like txnFailureHandler()
-
         // Create the charge on Stripe's servers - this will charge the user's card
         try{
             $charge = \Stripe_Charge::create(
                 [
-                    "amount" => $args->amount, // amount in cents/pence etc, again
+                    "amount" => $this->state->amount, // amount in cents/pence etc, again
                     "currency" => $c->currency,
                     "card" => $stripeToken,
-                    "description" => $args->description
+                    "description" => $this->state->description
                 ]
             );
         }catch( \Stripe_CardError $e ){
             $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
             return $this->parent->render();
         }
-
-        // FIXME handle complete transaction, pass txn data back to basket.
-        // FIXME maybe return an exec on the basket like txnSuccessHandler()
 
         $ret = [
             'chargeID' => $charge->id,

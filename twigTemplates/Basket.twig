@@ -70,7 +70,7 @@
 {% if not state.complete %}
     <div class="basketPaymentProviders">
         {% for provider in state.paymentProviderNames %}
-        {{ component( provider ) }}
+            {{ component( provider ) }}
     {% endfor %}
     </div>
 {% endif %}
