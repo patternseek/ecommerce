@@ -10,6 +10,7 @@
 
 namespace PatternSeek\ECommerce;
 
+use PatternSeek\ECommerce\ViewState\AddressState;
 use PatternSeek\StructClass\StructClass;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -101,6 +102,13 @@ class BasketConfig extends StructClass
     public $outro = '';
 
     /**
+     * @var AddressState
+     *
+     * @Assert\Type(type="PatternSeek\ECommerce\ViewState\AddressState")
+     */
+    public $billingAddress;
+
+    /**
      * Populate the StructClass's properties from an array
      * @param array $properties
      * @param bool $discardInvalidEntries If set to true, entries in $properties for which there is no corresponding class member will be discarded instead of generating an error
@@ -119,6 +127,9 @@ class BasketConfig extends StructClass
             $provConf = PaymentProviderConfig::fromArray( $provider );
             $base->paymentProviders[ ] = $provConf;
         }
+
+        $base->billingAddress = AddressState::fromArray( $properties[ 'billingAddress' ] );
+
         return $base;
     }
 }

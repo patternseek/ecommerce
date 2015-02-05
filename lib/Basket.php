@@ -351,6 +351,14 @@ class Basket extends AbstractViewComponent
                 ] );
             $this->state->paymentProviderNames[ ] = $providerConfig->name;
         }
+
+        // Billing address
+        $this->addOrUpdateChild(
+            'billingAddress', '\\PatternSeek\\ECommerce\\Address',
+            [ ],
+            [
+                'state' => $this->state->config->billingAddress
+            ] );
     }
 
     /**

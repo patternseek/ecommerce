@@ -31,7 +31,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'countryCode' => "GB",
             'briefDescription' => "Brief description of basket contents.",
             'intro' => "Optional intro HTML for page.",
-            'paymentProviderNames' => [
+            'paymentProviders' => [
                 'Stripe' => [
                     'name' => 'stripe',
                     'componentClass' => "\\PatternSeek\\ECommerce\\Stripe",
@@ -45,6 +45,14 @@ class BasketTest extends \PHPUnit_Framework_TestCase
                         'siteLogo' => '//example.com/logo.png'
                     ]
                 ]
+            ],
+            'billingAddress' => [
+                'addressLine1' => 'addressLine1',
+                'addressLine2' => 'addressLine2',
+                'townOrCity' => 'townOrCity',
+                'stateOrRegion' => 'stateOrRegion',
+                'postCode' => 'postCode',
+                'countryCode' => 'es',
             ]
         ];
         file_put_contents( "/tmp/cnf", yaml_emit( $configArray, YAML_UTF8_ENCODING ) );

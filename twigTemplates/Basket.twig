@@ -12,6 +12,8 @@
 
 {{ state.intro }}
 
+{{ component( 'billingAddress' ) }}
+
 <table class="basketTable">
     <thead>
     <th>Quantity</th>
@@ -43,27 +45,30 @@
             </td>
         </tr>
     {% endfor %}
-    {% set validateFormBody %}
-    <tr>
-        <td>
-            VAT number
-        </td>
-        <td colspan="3">
-            {% if state.vatNumber %}
-                <strong>{{ state.vatNumber }}</strong>
-                <br>
-            {% endif %}
-            <input type="text" name="vatNumber" placeholder="VAT number">
-            <select name="countryCode">
-                {% for cc,country in this.getVatCountries() %}
-                    <option value="{{ cc }}">{{ country }}</option>
-                {% endfor %}
-            </select>
-            <input type="submit" value="Update">
-        </td>
-    </tr>
-    {% endset %}
-    {{ this.exec.wrapForm( "validateVatNumber", "POST", validateFormBody ) }}
+
+    {% if not state.complete %}
+        {% set validateFormBody %}
+        <tr>
+            <td>
+                VAT number
+            </td>
+            <td colspan="3">
+                {% if state.vatNumber %}
+                    <strong>{{ state.vatNumber }}</strong>
+                    <br>
+                {% endif %}
+                <input type="text" name="vatNumber" placeholder="VAT number">
+                <select name="countryCode">
+                    {% for cc,country in this.getVatCountries() %}
+                        <option value="{{ cc }}">{{ country }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" value="Update">
+            </td>
+        </tr>
+        {% endset %}
+        {{ this.exec.wrapForm( "validateVatNumber", "POST", validateFormBody ) }}
+    {% endif %}
     </tbody>
 
 </table>
@@ -73,6 +78,8 @@
             {{ component( provider ) }}
     {% endfor %}
     </div>
+{% else %}
+    <span class="error">This invoice has already been paid</span>
 {% endif %}
 
 
