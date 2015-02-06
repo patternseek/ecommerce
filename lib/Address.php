@@ -25,72 +25,10 @@ class Address extends AbstractViewComponent
      */
     protected $state;
 
-    public function editModeHandler( $args )
-    {
-        $this->state->mode = 'edit';
-        return $this->renderRoot();
-    }
-
-    public function setAddressHandler( $args )
-    {
-        $this->state->addressLine1 = $args[ 'addressLine1' ];
-        $this->state->addressLine2 = $args[ 'addressLine2' ];
-        $this->state->townOrCity = $args[ 'townOrCity' ];
-        $this->state->stateOrRegion = $args[ 'stateOrRegion' ];
-        $this->state->postCode = $args[ 'postCode' ];
-        $this->state->countryCode = $args[ 'countryCode' ];
-        $this->state->countryString = $this->getCountriesByISO()[ $args[ 'countryCode' ] ];
-        $this->state->mode = 'view';
-        return $this->renderRoot();
-    }
-
-    /**
-     * Load or configure the component's template as necessary
-     *
-     * @return void
-     */
-    protected function initTemplate()
-    {
-        $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Address.twig" );
-        $this->template = new TwigTemplate( $this, $tplTwig );
-    }
-
-    /**
-     * Initialise $this->state with either a new ViewState or an appropriate subclass
-     * @return void
-     */
-    protected function initState()
-    {
-        $this->state = new AddressState();
-    }
-
-    /**
-     * Using $props and $this->state, optionally update state, optionally create child components via addOrUpdateChild().
-     * @param array $props
-     * @return void
-     */
-    protected function doUpdate( $props )
-    {
-        //
-    }
-
-    protected function initComponent( $initConfig )
-    {
-        $this->testInputs(
-            [
-                'state' => [ 'PatternSeek\\ECommerce\\ViewState\\AddressState' ]
-            ],
-            $initConfig
-        );
-        $this->state = $initConfig[ 'state' ];
-        $this->state->countryString = $this->getCountriesByISO()[ strtoupper( $this->state->countryCode ) ];
-        $this->state->mode = 'view';
-    }
-
     /**
      * @return array
      */
-    protected function getCountriesByISO()
+    public static function getCountriesByISO()
     {
         return [
             'AF' => "Afghanistan",
@@ -343,5 +281,70 @@ class Address extends AbstractViewComponent
             'ZM' => "Zambia",
             'ZW' => "Zimbabwe"
         ];
+    }
+
+    public function editModeHandler( $args )
+    {
+        $this->state->mode = 'edit';
+        return $this->renderRoot();
+    }
+
+    public function setAddressHandler( $args )
+    {
+        $this->state->addressLine1 = $args[ 'addressLine1' ];
+        $this->state->addressLine2 = $args[ 'addressLine2' ];
+        $this->state->townOrCity = $args[ 'townOrCity' ];
+        $this->state->stateOrRegion = $args[ 'stateOrRegion' ];
+        $this->state->postCode = $args[ 'postCode' ];
+        $this->state->countryCode = $args[ 'countryCode' ];
+        $this->state->countryString = $this->getCountriesByISO()[ $args[ 'countryCode' ] ];
+        $this->state->mode = 'view';
+        return $this->renderRoot();
+    }
+
+    /**
+     * Load or configure the component's template as necessary
+     *
+     * @return void
+     */
+    protected function initTemplate()
+    {
+        $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Address.twig" );
+        $this->template = new TwigTemplate( $this, $tplTwig );
+    }
+
+    /**
+     * Initialise $this->state with either a new ViewState or an appropriate subclass
+     * @return void
+     */
+    protected function initState()
+    {
+        $this->state = new AddressState();
+    }
+
+    /**
+     * Using $props and $this->state, optionally update state, optionally create child components via addOrUpdateChild().
+     * @param array $props
+     * @return void
+     */
+    protected function doUpdate( $props )
+    {
+        //
+    }
+
+    protected function initComponent( $initConfig )
+    {
+        $this->testInputs(
+            [
+                'state' => [ 'PatternSeek\\ECommerce\\ViewState\\AddressState' ]
+            ],
+            $initConfig
+        );
+        $this->state = $initConfig[ 'state' ];
+        $this->state->countryString = $this->getCountriesByISO()[ strtoupper( $this->state->countryCode ) ];
+        // Allow the caller to set mode, but default to 'view'
+        if (null === $this->state->mode) {
+            $this->state->mode = 'view';
+        }
     }
 }
