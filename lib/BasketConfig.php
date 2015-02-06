@@ -128,7 +128,9 @@ class BasketConfig extends StructClass
             $base->paymentProviders[ ] = $provConf;
         }
 
-        $base->billingAddress = AddressState::fromArray( $properties[ 'billingAddress' ] );
+        if ($properties[ 'billingAddress' ]) {
+            $base->billingAddress = AddressState::fromArray( $properties[ 'billingAddress' ] );
+        }
 
         return $base;
     }
