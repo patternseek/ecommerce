@@ -61,7 +61,7 @@
             Country
         </label>
         <select name="countryCode" class="required">
-            {% for code,name in this.getCountriesByISO() %}
+            {% for code,country in this.getCountriesByISO() %}
                 <option
                         value="{{ code|lower }}"
                         {% if code|lower == state.countryCode %}
