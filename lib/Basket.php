@@ -67,6 +67,14 @@ class Basket extends AbstractViewComponent
         }
 
         $this->state->config = $config;
+
+        // Set required billing address fields
+        $this->state->config->billingAddress->requiredFields = [
+            'addressLine1' => "Address line 1",
+            'postCode' => "Post code",
+            'countryCode' => "Country"
+        ];
+
         $this->state->vatRates = $initConfig[ 'vatRates' ];
         $this->state->intro = $config->intro;
         $this->state->outro = $config->outro;
@@ -171,6 +179,11 @@ class Basket extends AbstractViewComponent
             // Not enough country ID info to continue
             return false;
         }
+    }
+
+    public function addressReady( $isReady )
+    {
+        $this->state->addressReady = $isReady;
     }
 
     /**
@@ -333,32 +346,38 @@ class Basket extends AbstractViewComponent
 
         $this->transactionSuccessCallback = $props[ 'transactionSuccessCallback' ];
 
-        $this->state->paymentProviderNames = [ ];
-
-        foreach ($this->state->config->paymentProviders as $providerConfig) {
-            $this->addOrUpdateChild(
-                $providerConfig->name, $providerConfig->componentClass,
-                [
-                    'description' => $this->state->config->briefDescription,
-                    'amount' => $this->state->total
-                ],
-                [
-                    'config' => $providerConfig->conf,
-                    'cardMustMatchCountryCode' => $this->state->ipCountryCode,
-                    'buttonLabel' => null,
-                    'email' => null,
-                    'testMode' => $this->state->testMode
-                ] );
-            $this->state->paymentProviderNames[ ] = $providerConfig->name;
-        }
-
-        // Billing address
+        // Set up billing address
         $this->addOrUpdateChild(
             'billingAddress', '\\PatternSeek\\ECommerce\\Address',
             [ ],
             [
                 'state' => $this->state->config->billingAddress
             ] );
+
+        // Determine ready state. Currently just checking address is ready
+        $this->state->ready = $this->state->addressReady;
+
+        // Setup payment providers
+        $this->state->paymentProviderNames = [ ];
+        foreach ($this->state->config->paymentProviders as $providerConfig) {
+            $this->addOrUpdateChild(
+                $providerConfig->name, $providerConfig->componentClass,
+                [
+                    'description' => $this->state->config->briefDescription,
+                    'amount' => $this->state->total,
+                    'basketReady' => $this->state->ready,
+                    'transactionComplete' => $this->state->complete
+                ],
+                [
+                    'config' => $providerConfig->conf,
+                    'cardMustMatchCountryCode' => $this->state->ipCountryCode,
+                    'buttonLabel' => null,
+                    'email' => null,
+                    'testMode' => $this->state->testMode,
+                ] );
+            $this->state->paymentProviderNames[ ] = $providerConfig->name;
+        }
+
     }
 
     /**

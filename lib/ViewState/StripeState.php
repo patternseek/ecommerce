@@ -91,4 +91,18 @@ class StripeState extends ViewState
      */
     public $amount;
 
+    /**
+     * @var boolean
+     *
+     * @Assert\Type(type="boolean")
+     */
+    public $ready = false;
+
+    /**
+     * @var boolean
+     *
+     * @Assert\Type(type="boolean")
+     */
+    public $complete = false;
+
 }

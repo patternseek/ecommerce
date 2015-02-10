@@ -72,14 +72,16 @@
     </tbody>
 
 </table>
-{% if not state.complete %}
+{% if ( state.ready ) and (not state.complete) %}
     <div class="basketPaymentProviders">
         {% for provider in state.paymentProviderNames %}
             {{ component( provider ) }}
     {% endfor %}
     </div>
+{% elseif ( not state.ready ) and (not state.complete) %}
+<# ... #>
 {% else %}
-    <span class="error">This invoice has already been paid</span>
+    <span class="error">This transaction has been completed.</span>
 {% endif %}
 
 

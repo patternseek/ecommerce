@@ -70,4 +70,11 @@ class AddressState extends ViewState
      */
     public $mode = 'view';
 
+    /**
+     * @var string[]
+     *
+     * @Assert\Type(type='array')
+     */
+    public $requiredFields;
+
 }

@@ -49,6 +49,15 @@ class Stripe extends AbstractViewComponent
     public function submitFormHandler( $args )
     {
 
+        // Is the basket ready for a transaction? Or has the transaction
+        // already occurred? If not then refuse to process
+        // This is just a backup as the basket won't show the stripe button
+        // if it's not ready or the transaction is complete.
+        if (( !$this->state->ready ) || ( !$this->state->complete )) {
+            $this->parent->flashError( "The basket is not ready yet. Please ensure you've filled in all required fields." );
+            return $this->renderRoot();
+        }
+
         $this->testInputs(
             [
                 'stripeToken' => [ "string" ] // Required
@@ -141,6 +150,7 @@ class Stripe extends AbstractViewComponent
             'countryCode2' => $countryCode,
             'countryCode2Type' => $type
         ];
+        $this->state->complete = true;
         return $this->parent->transactionSuccess( $ret );
     }
 
@@ -205,13 +215,17 @@ class Stripe extends AbstractViewComponent
     {
         $this->testInputs(
             [
-                'amount' => [ 'double' ],                                           // Required
-                'description' => [ "string" ]                                      // Required
+                'amount' => [ 'double' ],
+                'description' => [ "string" ],
+                'basketReady' => [ 'boolean' ],
+                'transactionComplete' => [ 'boolean' ]
             ],
             $props
         );
         $this->state->amount = $props[ 'amount' ] * 100; // Stripe wants amount in cents
         $this->state->description = $props[ 'description' ];
+        $this->state->ready = $props[ 'basketReady' ];
+        $this->state->complete = $props[ 'transactionComplete' ];
 
         return (array)$this->state;
     }

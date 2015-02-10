@@ -144,4 +144,22 @@ class BasketState extends ViewState
      */
     public $paymentProviderNames;
 
+    /**
+     * @var boolean
+     *
+     * @Assert\Type(type="boolean")
+     */
+    public $ready;
+
+    /**
+     * @var boolean
+     *
+     * @Assert\Type(type="boolean")
+     */
+    public $addressReady;
+
+
+
+
+
 }

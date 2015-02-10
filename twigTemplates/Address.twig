@@ -35,32 +35,37 @@
         <label for="addressLine1">
             Address line 1
         </label>
-        <input type="text" name="addressLine1" value="{{ state.addressLine1 }}" class="required">
+        <input type="text" name="addressLine1" value="{{ state.addressLine1 }}"
+               class="{{ state.requiredFields['addressLine1']?'required':'' }}">
 
         <label for="addressLine2">
             Address line 2
         </label>
-        <input type="text" name="addressLine2" value="{{ state.addressLine2 }}">
+        <input type="text" name="addressLine2"
+               value="{{ state.addressLine2 }} class="{{ state.requiredFields['addressLine2']?'required':'' }}">
 
         <label for="townOrCity">
             Town or city
         </label>
-        <input type="text" name="townOrCity" value="{{ state.townOrCity }}" class="required">
+        <input type="text" name="townOrCity" value="{{ state.townOrCity }}"
+               class="{{ state.requiredFields['townOrCity']?'required':'' }}">
 
         <label for="stateOrRegion">
             State or region
         </label>
-        <input type="text" name="stateOrRegion" value="{{ state.stateOrRegion }}">
+        <input type="text" name="stateOrRegion"
+               value="{{ state.stateOrRegion }} class="{{ state.requiredFields['stateOrRegion']?'required':'' }}">
 
         <label for="postCode">
             Postcode
         </label>
-        <input type="text" name="postCode" value="{{ state.postCode }}">
+        <input type="text" name="postCode"
+               value="{{ state.postCode }} class="{{ state.requiredFields['postCode']?'required':'' }}">
 
         <label for="countryCode">
             Country
         </label>
-        <select name="countryCode" class="required">
+        <select name="countryCode" class="{{ state.requiredFields['countryCode']?'required':'' }}">
             {% for code,country in this.getCountriesByISO() %}
                 <option
                         value="{{ code|lower }}"

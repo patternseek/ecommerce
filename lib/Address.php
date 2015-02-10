@@ -15,10 +15,15 @@ use PatternSeek\ComponentView\Template\TwigTemplate;
 use PatternSeek\ECommerce\ViewState\AddressState;
 
 /**
- * Class Basket
+ * Class Address
  */
 class Address extends AbstractViewComponent
 {
+
+    /**
+     * @var \PatternSeek\ECommerce\Basket
+     */
+    protected $parent;
 
     /**
      * @var AddressState An object containing state elements
@@ -283,6 +288,17 @@ class Address extends AbstractViewComponent
         ];
     }
 
+    public function isReady()
+    {
+        $isReady = true;
+        foreach ($this->state->requiredFields as $field => $label) {
+            if (!$this->state[ $field ]) {
+                $isReady = false;
+            }
+        }
+        return $isReady;
+    }
+
     public function editModeHandler( $args )
     {
         $this->state->mode = 'edit';
@@ -291,6 +307,13 @@ class Address extends AbstractViewComponent
 
     public function setAddressHandler( $args )
     {
+        foreach ($this->state->requiredFields as $req => $label) {
+            if (!$args[ 'req' ]) {
+                $this->parent->setFlashError( $label . " is a required field." );
+                return $this->renderRoot();
+            }
+        }
+
         $this->state->addressLine1 = $args[ 'addressLine1' ];
         $this->state->addressLine2 = $args[ 'addressLine2' ];
         $this->state->townOrCity = $args[ 'townOrCity' ];
@@ -299,6 +322,9 @@ class Address extends AbstractViewComponent
         $this->state->countryCode = $args[ 'countryCode' ];
         $this->state->countryString = $this->getCountriesByISO()[ $args[ 'countryCode' ] ];
         $this->state->mode = 'view';
+
+        $this->parent->addressReady( $this->isReady() );
+
         return $this->renderRoot();
     }
 
@@ -329,7 +355,7 @@ class Address extends AbstractViewComponent
      */
     protected function doUpdate( $props )
     {
-        //
+        $this->parent->addressReady( $this->isReady() );
     }
 
     protected function initComponent( $initConfig )
