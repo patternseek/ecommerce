@@ -292,7 +292,7 @@ class Address extends AbstractViewComponent
     {
         $isReady = true;
         foreach ($this->state->requiredFields as $field => $label) {
-            if (!$this->state[ $field ]) {
+            if (!$this->state->$field) {
                 $isReady = false;
             }
         }
@@ -307,12 +307,7 @@ class Address extends AbstractViewComponent
 
     public function setAddressHandler( $args )
     {
-        foreach ($this->state->requiredFields as $req => $label) {
-            if (!$args[ 'req' ]) {
-                $this->parent->setFlashError( $label . " is a required field." );
-                return $this->renderRoot();
-            }
-        }
+
 
         $this->state->addressLine1 = $args[ 'addressLine1' ];
         $this->state->addressLine2 = $args[ 'addressLine2' ];
@@ -321,6 +316,14 @@ class Address extends AbstractViewComponent
         $this->state->postCode = $args[ 'postCode' ];
         $this->state->countryCode = $args[ 'countryCode' ];
         $this->state->countryString = $this->getCountriesByISO()[ $args[ 'countryCode' ] ];
+
+        foreach ($this->state->requiredFields as $req => $label) {
+            if (!$args->$req) {
+                $this->parent->setFlashError( $label . " is a required field." );
+                return $this->renderRoot();
+            }
+        }
+
         $this->state->mode = 'view';
 
         $this->parent->addressReady( $this->isReady() );
