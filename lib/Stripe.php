@@ -54,7 +54,7 @@ class Stripe extends AbstractViewComponent
         // This is just a backup as the basket won't show the stripe button
         // if it's not ready or the transaction is complete.
         if (( !$this->state->ready ) || ( !$this->state->complete )) {
-            $this->parent->flashError( "The basket is not ready yet. Please ensure you've filled in all required fields." );
+            $this->parent->setFlashError( "The basket is not ready yet. Please ensure you've filled in all required fields." );
             return $this->renderRoot();
         }
 
