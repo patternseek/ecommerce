@@ -318,7 +318,7 @@ class Address extends AbstractViewComponent
         $this->state->countryString = $this->getCountriesByISO()[ $args[ 'countryCode' ] ];
 
         foreach ($this->state->requiredFields as $req => $label) {
-            if (!$args->$req) {
+            if (!$args[ $req ]) {
                 $this->parent->setFlashError( $label . " is a required field." );
                 return $this->renderRoot();
             }

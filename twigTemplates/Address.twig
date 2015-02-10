@@ -1,3 +1,4 @@
+<div class="address">
 {% if state.mode == 'view' %}
     <h2>Billing address</h2>
     {% if state.addressLine1 %}
@@ -77,6 +78,7 @@
         <select name="countryCode"
                 class="{{ state.requiredFields['countryCode']?'required':'' }}">
             {% for code,country in this.getCountriesByISO() %}
+                <option value="">Select...</option>
                 <option
                         value="{{ code|lower }}"
                         {% if code|lower == state.countryCode %}
@@ -94,3 +96,4 @@
     {% endset %}
     {{ this.exec.wrapForm( "setAddress", "POST", formBody ) }}
 {% endif %}
+</div>

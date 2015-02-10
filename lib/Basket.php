@@ -85,7 +85,6 @@ class Basket extends AbstractViewComponent
 
         $this->state->ipCountryCode = $this->geoIPCountryCode();
         $countryCode = $this->determineCountryCode();
-        $this->state->countryCodeUsedForTransaction = $countryCode;
 
         $this->updateLineItemsAndTotal( $countryCode );
     }
@@ -174,7 +173,7 @@ class Basket extends AbstractViewComponent
             // to calculate the original vat?
             // TODO: If not then the basket could be recalculated here
             // TODO: and re-presented to the user
-            return ( $this->state->countryCodeUsedForTransaction == $winnerCCode );
+            return true;
         }else {
             // Not enough country ID info to continue
             return false;
@@ -184,6 +183,12 @@ class Basket extends AbstractViewComponent
     public function addressReady( $isReady )
     {
         $this->state->addressReady = $isReady;
+        $this->updatereadyState();
+    }
+
+    public function updateReadyState()
+    {
+        $this->state->ready = $this->state->addressReady;
     }
 
     /**
@@ -355,7 +360,7 @@ class Basket extends AbstractViewComponent
             ] );
 
         // Determine ready state. Currently just checking address is ready
-        $this->state->ready = $this->state->addressReady;
+        $this->updateReadyState();
 
         // Setup payment providers
         $this->state->paymentProviderNames = [ ];

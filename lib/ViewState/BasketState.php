@@ -104,14 +104,6 @@ class BasketState extends ViewState
      * @var string
      *
      * @Assert\Type(type="string")
-     * @Assert\Length(min = 2, max = 2)
-     */
-    public $countryCodeUsedForTransaction;
-
-    /**
-     * @var string
-     *
-     * @Assert\Type(type="string")
      */
     public $vatNumber;
 
