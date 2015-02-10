@@ -77,8 +77,8 @@
         </label>
         <select name="countryCode"
                 class="{{ state.requiredFields['countryCode']?'required':'' }}">
+            <option value="">Select...</option>
             {% for code,country in this.getCountriesByISO() %}
-                <option value="">Select...</option>
                 <option
                         value="{{ code|lower }}"
                         {% if code|lower == state.countryCode %}
