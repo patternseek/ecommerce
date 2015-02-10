@@ -359,6 +359,9 @@ class Address extends AbstractViewComponent
     protected function doUpdate( $props )
     {
         $this->parent->addressReady( $this->isReady() );
+        if (!$this->isReady()) {
+            $this->state->mode = 'edit';
+        }
     }
 
     protected function initComponent( $initConfig )
