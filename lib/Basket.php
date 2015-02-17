@@ -189,6 +189,15 @@ class Basket extends AbstractViewComponent
     {
         $this->state->complete = true;
         $ret[ 'vatNumberStatus' ] = $this->state->vatNumberStatus;
+        $ret[ 'vatNumberGiven' ] = $this->state->vatNumber;
+        $ret[ 'vatNumberGivenCountryCode' ] = $this->state->vatNumberCountryCode;
+        $ret[ 'transactionAmount' ] = $this->state->total;
+        $ret[ 'billingAddressCountryCode' ] = $this->state->addressCountryCode;
+        $ret[ 'ipCountryCode' ] = $this->state->ipCountryCode;
+        $ret[ 'vatCalculationBaseOnCountryCode' ] = $this->state->vatCalculatedBasedOnCountryCode;
+        $ret[ 'vatRateUsed' ] = $this->state->getVatRate( $this->state->vatCalculatedBasedOnCountryCode );
+        $ret[ 'time' ] = time();
+
         return $this->transactionSuccessCallback->__invoke( $ret );
     }
 
@@ -219,7 +228,7 @@ class Basket extends AbstractViewComponent
         if (!( $provisionalUserCountryCode = $this->state->getConfirmedCountryCode() )) {
             $provisionalUserCountryCode = $this->state->addressCountryCode;
         }
-        $provisionalRemoteRate = $this->getVatRate( $provisionalUserCountryCode );
+        $provisionalRemoteRate = $this->state->getVatRate( $provisionalUserCountryCode );
         $total = 0;
         $this->state->requireVATLocationProof = false;
         /** @var LineItem $lineItem */
@@ -253,19 +262,6 @@ class Basket extends AbstractViewComponent
                 * ( $lineItem->quantity?$lineItem->quantity:1 );
         }
         $this->state->total = (double)$total;
-    }
-
-    /**
-     * @param
-     * @return double
-     */
-    protected function getVatRate( $countryCode )
-    {
-        if (!isset( $this->state->vatRates[ $countryCode ] )) {
-            return 0.0;
-        }
-        return ( (double)$this->state->vatRates[ 'rates' ][ mb_strtoupper( $countryCode,
-                'UTF-8' ) ][ 'standard_rate' ] / 100 );
     }
 
     /**
@@ -324,6 +320,7 @@ class Basket extends AbstractViewComponent
             $this->state->paymentProviderNames[ ] = $providerConfig->name;
         }
 
+        $this->updateLineItemsAndTotal();
     }
 
     /**

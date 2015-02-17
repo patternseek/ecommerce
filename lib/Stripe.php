@@ -11,6 +11,7 @@ namespace PatternSeek\ECommerce;
 
 use PatternSeek\ComponentView\AbstractViewComponent;
 use PatternSeek\ComponentView\Template\TwigTemplate;
+use PatternSeek\ECommerce\StripeFacade\StripeFacade;
 use PatternSeek\ECommerce\ViewState\StripeState;
 
 /**
@@ -49,11 +50,13 @@ class Stripe extends AbstractViewComponent
     public function submitFormHandler( $args )
     {
 
+        $stripe = new StripeFacade();
+
         // Is the basket ready for a transaction? Or has the transaction
         // already occurred? If not then refuse to process
         // This is just a backup as the basket won't show the stripe button
         // if it's not ready or the transaction is complete.
-        if (( !$this->state->ready ) || ( !$this->state->complete )) {
+        if (( !$this->state->ready ) || ( $this->state->complete )) {
             $this->parent->setFlashError( "The basket is not ready yet. Please ensure you've filled in all required fields." );
             return $this->renderRoot();
         }
@@ -68,16 +71,16 @@ class Stripe extends AbstractViewComponent
         $c = (object)$this->state->config;
         $stripeToken = $args[ 'stripeToken' ];
         $apiPrivKey = $this->state->testMode?$c->testApiPrivKey:$c->liveApiPrivKey;
-        \Stripe::setApiKey( $apiPrivKey );
-        $tok = \Stripe_Token::retrieve( $stripeToken, $apiPrivKey );
+        $stripe->setApiKey( $apiPrivKey );
+        $tok = $stripe->tokenRetrieve( $stripeToken, $apiPrivKey );
         $countryCode = '';
         $type = "";
         if ($tok->type == 'card') {
-            $countryCode = mb_strtolower( $tok->card->country, "UTF-8" );
+            $countryCode = $tok->card->country;
             $type = "card";
         }
         if ($tok->type == 'bank_account') {
-            $countryCode = mb_strtolower( $tok->bank_account->country, 'UTF-8' );
+            $countryCode = $tok->bank_account->country;
             $type = "bank_account";
         }
 
@@ -132,7 +135,7 @@ class Stripe extends AbstractViewComponent
 
         // Create the charge on Stripe's servers - this will charge the user's card
         try{
-            $charge = \Stripe_Charge::create(
+            $charge = $stripe->chargeCreate(
                 [
                     "amount" => $this->state->amount, // amount in cents/pence etc, again
                     "currency" => $c->currency,
@@ -147,8 +150,8 @@ class Stripe extends AbstractViewComponent
 
         $ret = [
             'chargeID' => $charge->id,
-            'countryCode2' => $countryCode,
-            'countryCode2Type' => $type
+            'paymentCountryCode' => $countryCode,
+            'paymentType' => $type
         ];
         $this->state->complete = true;
         return $this->parent->transactionSuccess( $ret );
@@ -226,7 +229,6 @@ class Stripe extends AbstractViewComponent
         $this->state->description = $props[ 'description' ];
         $this->state->ready = $props[ 'basketReady' ];
         $this->state->complete = $props[ 'transactionComplete' ];
-
         return (array)$this->state;
     }
 }

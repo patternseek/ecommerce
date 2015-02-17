@@ -74,7 +74,7 @@ class BasketState extends ViewState
      * @var string
      *
      * @Assert\Type(type="string")
-     * @Assert\Length(min = 2, max = 2)
+     * @Assert\Regex(pattern="/^[A-Z]{2}$/", message="Must be two characters and upper case.")
      */
     public $addressCountryCode;
 
@@ -82,7 +82,7 @@ class BasketState extends ViewState
      * @var string
      *
      * @Assert\Type(type="string")
-     * @Assert\Length(min = 2, max = 2)
+     * @Assert\Regex(pattern="/^[A-Z]{2}$/", message="Must be two characters and upper case.")
      */
     public $ipCountryCode;
 
@@ -90,7 +90,7 @@ class BasketState extends ViewState
      * v * @var string
      *
      * @Assert\Type(type="string")
-     * @Assert\Length(min = 2, max = 2)
+     * @Assert\Regex(pattern="/^[A-Z]{2}$/", message="Must be two characters and upper case.")
      */
     public $cardCountryCode;
 
@@ -121,7 +121,7 @@ class BasketState extends ViewState
      * @var string
      *
      * @Assert\Type(type="string")
-     * @Assert\Length(min = 2, max = 2)
+     * @Assert\Regex(pattern="/^[A-Z]{2}$/", message="Must be two characters and upper case.")
      */
     public $vatNumberCountryCode;
 
@@ -204,6 +204,18 @@ class BasketState extends ViewState
         return false;
     }
 
-
+    /**
+     * @param
+     * @return double
+     */
+    public function getVatRate( $countryCode )
+    {
+        $ucCountryCode = mb_strtoupper( $countryCode,
+            'UTF-8' );
+        if (!isset( $this->vatRates[ 'rates' ][ $ucCountryCode ] )) {
+            return 0.0;
+        }
+        return ( (double)$this->vatRates[ 'rates' ][ $ucCountryCode ][ 'standard_rate' ] / 100 );
+    }
 
 }

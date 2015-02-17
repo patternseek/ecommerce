@@ -9,9 +9,12 @@
  */
 namespace PatternSeek\ECommerce\Test;
 
+use PatternSeek\ComponentView\ViewComponentResponse;
 use PatternSeek\ECommerce\Basket;
 use PatternSeek\ECommerce\BasketConfig;
 use PatternSeek\ECommerce\LineItem;
+use PatternSeek\ECommerce\StripeFacade\Stripe_TokenMock;
+use PatternSeek\ECommerce\StripeFacade\StripeFacade;
 
 /**
  * Class BasketTest
@@ -19,6 +22,8 @@ use PatternSeek\ECommerce\LineItem;
  */
 class BasketTest extends \PHPUnit_Framework_TestCase
 {
+
+    protected $successCallback;
 
     function testRender()
     {
@@ -52,7 +57,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
                 'townOrCity' => 'townOrCity',
                 'stateOrRegion' => 'stateOrRegion',
                 'postCode' => 'postCode',
-                'countryCode' => 'es',
+                'countryCode' => 'US',
                 'requiredFields' => [
                     'addressLine1' => "Address line 1",
                     'postCode' => "Post code",
@@ -88,15 +93,20 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         /** @var \PatternSeek\ECommerce\Basket $view */
         $view = new Basket( null, null, $initConfig );
 
-        $successCallback = function( $txnDetails ){ print_r( $txnDetails ); };
+        $successOutput = [ ];
+        $this->successCallback =
+            function ( $txnDetails ) use ( &$successOutput ){
+                $successOutput = $txnDetails;
+                return new ViewComponentResponse( "text/plain", ">>>Sample success page<<<" );
+            };
 
         $view->update(
             [
-                'transactionSuccessCallback'=>$successCallback
+                'transactionSuccessCallback' => $this->successCallback
             ]
         );
 
-        echo $view->render()->content;
+        $view->render();
 
         $state = $view->getStateForTesting();
         $this->assertTrue(
@@ -109,7 +119,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             $state->addressReady
         );
         $this->assertTrue(
-            $state->addressCountryCode == 'es'
+            $state->addressCountryCode == 'US'
         );
         $this->assertTrue(
             $state->readyForPaymentInfo()
@@ -121,16 +131,35 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
         $uns->update(
             [
-                'transactionSuccessCallback'=>$successCallback
+                'transactionSuccessCallback' => $this->successCallback
             ]
         );
 
-        // Check stripe method fails
-        $execOut = $uns->render( "stripe.submitForm", [ ] )->content;
+        $state = $view->getStateForTesting();
         $this->assertTrue(
-            false !== strstr( $execOut,
-                "The basket is not ready yet. Please ensure you've filled in all required fields" )
+            $state->readyForPaymentInfo()
         );
+
+        // Check stripe method fails
+        StripeFacade::$testMode = true;
+
+        /** @var Basket $uns */
+        $uns = unserialize( $ser );
+        $this->failOn3DifferentCountries( $uns );
+        /** @var Basket $uns */
+        $uns = unserialize( $ser );
+        $this->failOnOnlyIPandCardMatch( $uns );
+        /** @var Basket $uns */
+        $uns = unserialize( $ser );
+        $this->succeedOnSameAddressAndCardCountries( $uns, $successOutput );
+        /** @var Basket $uns */
+        $uns = unserialize( $ser );
+        $this->succeedOnAllCountriesMatch( $uns, $successOutput );
+
+
+
+
+
 
     }
 
@@ -145,5 +174,139 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         }
         $vatRates = json_decode( $ratesStr, true );
         return $vatRates;
+    }
+
+    /**
+     * @param $uns
+     */
+    protected function failOn3DifferentCountries( $uns )
+    {
+        Stripe_TokenMock::$typeSetting = 'card';
+        Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'ES' ];
+
+        $uns->update(
+            [
+                'transactionSuccessCallback' => $this->successCallback
+            ]
+        );
+        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+
+        // ES Card + US address + GB IP, shoud fail
+        $this->assertTrue(
+            false !== strstr( $execOut, "Sorry but we can't collect enough information about your location" )
+        );
+    }
+
+    /**
+     * @param $uns
+     */
+    protected function failOnOnlyIPandCardMatch( $uns )
+    {
+        Stripe_TokenMock::$typeSetting = 'card';
+        Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
+        $uns->update(
+            [
+                'transactionSuccessCallback' => $this->successCallback
+            ]
+        );
+        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+
+        // GB Card + US address + GB IP, shoud fail
+        $this->assertTrue(
+            false !== strstr( $execOut, "Sorry but we can't collect enough information about your location" )
+        );
+    }
+
+    /**
+     * @param Basket $uns
+     * @param $successOutput
+     * @throws \Exception
+     */
+    protected function succeedOnSameAddressAndCardCountries( $uns, &$successOutput )
+    {
+        // US card + US address + GB IP, should succeed
+        Stripe_TokenMock::$typeSetting = 'card';
+        Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
+        $uns->update(
+            [
+                'transactionSuccessCallback' => $this->successCallback
+            ]
+        );
+        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+        $this->assertTrue(
+            $execOut == ">>>Sample success page<<<"
+        );
+
+        $expected = [
+            'chargeID' => 'TestStripeID',
+            'paymentCountryCode' => 'US',
+            'paymentType' => 'card',
+            'vatNumberStatus' => 'notchecked',
+            'vatNumberGiven' => null,
+            'vatNumberGivenCountryCode' => null,
+            'transactionAmount' => 100,
+            'billingAddressCountryCode' => 'US',
+            'ipCountryCode' => 'GB',
+            'vatCalculationBaseOnCountryCode' => 'US',
+            'vatRateUsed' => 0,
+            'time' => $successOutput[ 'time' ]
+        ];
+
+        $this->assertTrue(
+            $successOutput == $expected
+        );
+    }
+
+    /**
+     * @param $uns
+     * @param $successOutput
+     */
+    protected function succeedOnAllCountriesMatch( $uns, &$successOutput )
+    {
+        // GB card + GB address + GB IP, should succeed
+        Stripe_TokenMock::$typeSetting = 'card';
+        Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
+        $uns->update(
+            [
+                'transactionSuccessCallback' => $this->successCallback
+            ]
+        );
+        $execOut = $uns->render( "billingAddress.setAddress", [
+                'addressLine1' => 'addressLine1',
+                'addressLine2' => 'addressLine2',
+                'townOrCity' => 'townOrCity',
+                'stateOrRegion' => 'stateOrRegion',
+                'postCode' => 'postCode',
+                'countryCode' => 'GB',
+            ]
+        )->content;
+
+        $uns->update(
+            [
+                'transactionSuccessCallback' => $this->successCallback
+            ]
+        );
+        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+
+        $this->assertTrue(
+            $execOut == ">>>Sample success page<<<"
+        );
+
+        $expected = [
+            'chargeID' => 'TestStripeID',
+            'paymentCountryCode' => 'GB',
+            'paymentType' => 'card',
+            'vatNumberStatus' => 'notchecked',
+            'vatNumberGiven' => null,
+            'vatNumberGivenCountryCode' => null,
+            'transactionAmount' => 120,
+            'billingAddressCountryCode' => 'GB',
+            'ipCountryCode' => 'GB',
+            'vatCalculationBaseOnCountryCode' => 'GB',
+            'vatRateUsed' => 0.20000000000000001,
+            'time' => $successOutput[ 'time' ]
+        ];
+
+        $this->assertTrue( $successOutput == $expected );
     }
 }

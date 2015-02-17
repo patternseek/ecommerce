@@ -28,7 +28,8 @@
         "patternseek/structclass": "dev-master",
         "symfony/validator": "*",
         "doctrine/annotations": "*",
-        "doctrine/cache": "*"
+        "doctrine/cache": "*",
+        "stripe/stripe-php": "~2.0"
     },
     "require-dev": {
         "phpunit/phpunit": "4.0.*"
