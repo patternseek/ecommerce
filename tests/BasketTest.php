@@ -53,6 +53,11 @@ class BasketTest extends \PHPUnit_Framework_TestCase
                 'stateOrRegion' => 'stateOrRegion',
                 'postCode' => 'postCode',
                 'countryCode' => 'es',
+                'requiredFields' => [
+                    'addressLine1' => "Address line 1",
+                    'postCode' => "Post code",
+                    'countryCode' => "Country"
+                ]
             ]
         ];
         file_put_contents( "/tmp/cnf", yaml_emit( $configArray, YAML_UTF8_ENCODING ) );
@@ -90,11 +95,28 @@ class BasketTest extends \PHPUnit_Framework_TestCase
                 'transactionSuccessCallback'=>$successCallback
             ]
         );
-        // TODO: Test something
 
         echo $view->render()->content;
 
+        $state = $view->getStateForTesting();
+        $this->assertTrue(
+            $state->requireVATLocationProof
+        );
+        $this->assertFalse(
+            $state->getConfirmedCountryCode()
+        );
+        $this->assertTrue(
+            $state->addressReady
+        );
+        $this->assertTrue(
+            $state->addressCountryCode == 'es'
+        );
+        $this->assertTrue(
+            $state->readyForPaymentInfo()
+        );
+
         $ser = serialize( $view );
+        /** @var Basket $uns */
         $uns = unserialize( $ser );
 
         $uns->update(
@@ -103,7 +125,12 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $uns->render();
+        // Check stripe method fails
+        $execOut = $uns->render( "stripe.submitForm", [ ] )->content;
+        $this->assertTrue(
+            false !== strstr( $execOut,
+                "The basket is not ready yet. Please ensure you've filled in all required fields" )
+        );
 
     }
 

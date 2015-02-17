@@ -326,7 +326,7 @@ class Address extends AbstractViewComponent
 
         $this->state->mode = 'view';
 
-        $this->parent->addressReady( $this->isReady() );
+        $this->parent->setAddressStatus( $this->isReady(), $this->state->countryCode );
 
         return $this->renderRoot();
     }
@@ -358,7 +358,7 @@ class Address extends AbstractViewComponent
      */
     protected function doUpdate( $props )
     {
-        $this->parent->addressReady( $this->isReady() );
+        $this->parent->setAddressStatus( $this->isReady(), $this->state->countryCode );
         if (!$this->isReady()) {
             $this->state->mode = 'edit';
         }

@@ -63,6 +63,7 @@ class BasketState extends ViewState
     public $total;
 
     /**
+     * Set to true if one or more LineItems require proof of the user's VAT location
      * @var boolean
      *
      * @Assert\Type(type="boolean")
@@ -86,7 +87,7 @@ class BasketState extends ViewState
     public $ipCountryCode;
 
     /**
-     * @var string
+     * v * @var string
      *
      * @Assert\Type(type="string")
      * @Assert\Length(min = 2, max = 2)
@@ -96,9 +97,11 @@ class BasketState extends ViewState
     /**
      * @var string
      *
-     * @Assert\Type(type="boolean")
+     * @Assert\Type(type="string")
+     * @Assert\Length(min = 2, max = 2)
      */
-    public $countryCodeConfirmed;
+    public $vatCalculatedBasedOnCountryCode;
+
 
     /**
      * @var string
@@ -110,9 +113,9 @@ class BasketState extends ViewState
     /**
      * @var string
      *
-     * @Assert\Choice(choices = {"valid", "invalid", "unknown"})
+     * @Assert\Choice(choices = {"valid", "invalid", "unknown", "notchecked"})
      */
-    public $vatNumberStatus;
+    public $vatNumberStatus = "notchecked";
 
     /**
      * @var string
@@ -141,16 +144,65 @@ class BasketState extends ViewState
      *
      * @Assert\Type(type="boolean")
      */
-    public $ready;
-
-    /**
-     * @var boolean
-     *
-     * @Assert\Type(type="boolean")
-     */
     public $addressReady;
 
+    /**
+     * Determine whether payment process is ready to begin.
+     * @return bool
+     */
+    public function readyForPaymentInfo()
+    {
+        return $this->addressReady;
+    }
 
+    /**
+     * Is the state of our vat information ok to allow the transaction to complete
+     * @return bool
+     */
+    public function vatInfoOk()
+    {
+        return (
+            $this->vatNumber
+            || ( !$this->requireVATLocationProof )
+            || (
+                ( $this->getConfirmedCountryCode() != false )
+                && ( $this->getConfirmedCountryCode() == $this->vatCalculatedBasedOnCountryCode )
+            )
+        );
+    }
+
+    /**
+     * Get either the confirmed country code, or failing that the address country code
+     * @return string Two letter country code, lower case
+     */
+    public function getConfirmedCountryCode()
+    {
+        if (
+            $this->ipCountryCode != null
+            && $this->addressCountryCode != null
+            && ( $this->ipCountryCode == $this->addressCountryCode )
+        ) {
+            return $this->ipCountryCode;
+        }
+
+        if (
+            $this->ipCountryCode != null
+            && $this->cardCountryCode != null
+            && ( $this->ipCountryCode == $this->cardCountryCode )
+        ) {
+            return $this->ipCountryCode;
+        }
+
+        if (
+            $this->addressCountryCode != null
+            && $this->cardCountryCode != null
+            && ( $this->addressCountryCode == $this->cardCountryCode )
+        ) {
+            return $this->addressCountryCode;
+        }
+
+        return false;
+    }
 
 
 

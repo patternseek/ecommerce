@@ -25,16 +25,7 @@ class Basket extends AbstractViewComponent
      * @var callable
      */
     public $transactionSuccessCallback;
-    /**
-     * Message to display when rendering component. Won't be serialised to will only be displayed once.
-     * @var string
-     */
-    public $flashMessage;
-    /**
-     * Error to display when rendering component. Won't be serialised to will only be displayed once.
-     * @var string
-     */
-    public $flashError;
+
     /**
      * @var BasketState
      */
@@ -84,9 +75,8 @@ class Basket extends AbstractViewComponent
         $this->state->addressCountryCode = null;
 
         $this->state->ipCountryCode = $this->geoIPCountryCode();
-        $countryCode = $this->determineCountryCode();
 
-        $this->updateLineItemsAndTotal( $countryCode );
+        $this->updateLineItemsAndTotal();
     }
 
     /**
@@ -147,51 +137,36 @@ class Basket extends AbstractViewComponent
                 $this->state->vatNumberCountryCode = $args[ 'countryCode' ];
             }
         }
-        $this->updateLineItemsAndTotal( $this->determineCountryCode() );
+        $this->updateLineItemsAndTotal();
 
         // Render full component
         return $this->renderRoot();
     }
 
     /**
+     * Provides a mechanism for a PaymentProvider component to check if it should charge the user
      * @param $cardCountryCode
      * @return bool
      */
     public function confirmValidTxnFunc( $cardCountryCode )
     {
-        if ($this->state->requireVATLocationProof == false) {
-            return true;
-        }
-        $cardCountryCode = mb_strtolower( $cardCountryCode, 'UTF-8' );
         $this->state->cardCountryCode = $cardCountryCode;
-        // Which country code do we have the most evidence for currently?
-        $winnerCCode = $this->determineCountryCode();
-        // Does the winner country code have at least
-        // two pieces of identifying information?
-        if (null !== $this->state->countryCodeConfirmed) {
-            // Does the winner country code match the country code used
-            // to calculate the original vat?
-            // TODO: If not then the basket could be recalculated here
-            // TODO: and re-presented to the user
-            return true;
-        }else {
-            // Not enough country ID info to continue
-            return false;
-        }
-    }
-
-    public function addressReady( $isReady )
-    {
-        $this->state->addressReady = $isReady;
-        $this->updatereadyState();
-    }
-
-    public function updateReadyState()
-    {
-        $this->state->ready = $this->state->addressReady;
+        return $this->state->vatInfoOk();
     }
 
     /**
+     * Allows the address component to indicate it's ready
+     * @param boolean $isReady
+     * @param string $countryCode
+     */
+    public function setAddressStatus( $isReady, $countryCode )
+    {
+        $this->state->addressReady = $isReady;
+        $this->state->addressCountryCode = $countryCode;
+    }
+
+    /**
+     * Returns a list of country names and ISO codes for EU countries
      * @return array
      */
     public function getVatCountries()
@@ -208,28 +183,21 @@ class Basket extends AbstractViewComponent
     }
 
     /**
-     * @param $string
-     */
-    public function setFlashMessage( $string )
-    {
-        $this->flashMessage = $string;
-    }
-
-    /**
-     * @param $string
-     */
-    public function setFlashError( $string )
-    {
-        $this->flashError = $string;
-    }
-
-    /**
      * @param $ret
      */
     public function transactionSuccess( $ret )
     {
         $this->state->complete = true;
+        $ret[ 'vatNumberStatus' ] = $this->state->vatNumberStatus;
         return $this->transactionSuccessCallback->__invoke( $ret );
+    }
+
+    /**
+     * Used for testing state methods
+     */
+    function getStateForTesting()
+    {
+        return $this->state;
     }
 
     /**
@@ -245,47 +213,18 @@ class Basket extends AbstractViewComponent
     }
 
     /**
-     * @return string Two letter country code, lower case
      */
-    protected function determineCountryCode()
+    protected function updateLineItemsAndTotal()
     {
-        $ipCountryCode = $this->state->ipCountryCode;
-        $cardCountryCode = $this->state->cardCountryCode;
-        $addressCountryCode = $this->state->addressCountryCode;
-
-        $cCodes = [ ];
-        foreach ([ $ipCountryCode, $cardCountryCode, $addressCountryCode ] as $cCode) {
-            if (null === $cCode) {
-                continue;
-            }
-            if (!isset( $cCodes[ $cCode ] )) {
-                $cCodes[ $cCode ] = 0;
-            }
-            $cCodes[ $cCode ] ++;
+        if (!( $provisionalUserCountryCode = $this->state->getConfirmedCountryCode() )) {
+            $provisionalUserCountryCode = $this->state->addressCountryCode;
         }
-        arsort( $cCodes );
-        $keys = array_keys( $cCodes );
-        $winnerCCode = $keys[ 0 ];
-        $winnerVotes = $cCodes[ $winnerCCode ];
-        if ($winnerVotes >= 2) {
-            $this->state->countryCodeConfirmed = $winnerCCode;
-        }else {
-            $this->state->countryCodeConfirmed = null;
-        }
-        return mb_strtolower( $winnerCCode, 'UTF-8' );
-    }
-
-    /**
-     * @param $userCountryCode
-     */
-    protected function updateLineItemsAndTotal( $userCountryCode )
-    {
-        $remoteRate = $this->getVatRate( $userCountryCode );
+        $provisionalRemoteRate = $this->getVatRate( $provisionalUserCountryCode );
         $total = 0;
         $this->state->requireVATLocationProof = false;
         /** @var LineItem $lineItem */
         foreach ($this->state->lineItems as $id => $lineItem) {
-            $lineItem->remoteVatJusrisdictionCountryCode = $userCountryCode;
+            $lineItem->remoteVatJusrisdictionCountryCode = $provisionalUserCountryCode;
 
             // VAT number either verified or there was a
             // technical error so it is allowed but marked for manual check
@@ -300,10 +239,12 @@ class Basket extends AbstractViewComponent
                 $lineItem->vatTypeCharged = 'local';
                 // Line item VAT jurisdiction is remote
             }else {
-                $this->state->requireVATLocationProof = true;
                 $lineItem->isB2b = false;
-                $lineItem->vatPerItem = round( $lineItem->netPrice * $remoteRate, 2 );
+                $lineItem->vatPerItem = round( $lineItem->netPrice * $provisionalRemoteRate, 2 );
                 $lineItem->vatTypeCharged = 'remote';
+
+                $this->state->requireVATLocationProof = true;
+                $this->state->vatCalculatedBasedOnCountryCode = $provisionalUserCountryCode;
             }
             $total
                 += ( $lineItem->netPrice
@@ -320,6 +261,9 @@ class Basket extends AbstractViewComponent
      */
     protected function getVatRate( $countryCode )
     {
+        if (!isset( $this->state->vatRates[ $countryCode ] )) {
+            return 0.0;
+        }
         return ( (double)$this->state->vatRates[ 'rates' ][ mb_strtoupper( $countryCode,
                 'UTF-8' ) ][ 'standard_rate' ] / 100 );
     }
@@ -359,9 +303,6 @@ class Basket extends AbstractViewComponent
                 'state' => $this->state->config->billingAddress
             ] );
 
-        // Determine ready state. Currently just checking address is ready
-        $this->updateReadyState();
-
         // Setup payment providers
         $this->state->paymentProviderNames = [ ];
         foreach ($this->state->config->paymentProviders as $providerConfig) {
@@ -370,7 +311,7 @@ class Basket extends AbstractViewComponent
                 [
                     'description' => $this->state->config->briefDescription,
                     'amount' => $this->state->total,
-                    'basketReady' => $this->state->ready,
+                    'basketReady' => $this->state->readyForPaymentInfo(),
                     'transactionComplete' => $this->state->complete
                 ],
                 [
