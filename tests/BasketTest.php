@@ -156,11 +156,6 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $uns = unserialize( $ser );
         $this->succeedOnAllCountriesMatch( $uns, $successOutput );
 
-
-
-
-
-
     }
 
     /**
