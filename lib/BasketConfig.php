@@ -62,6 +62,15 @@ class BasketConfig extends StructClass
     public $currencyCode;
 
     /**
+     * Currency symbol for the currency the basket should work in.
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $currencySymbol;
+
+    /**
      * Configuration for payment system providers
      * @var PaymentProviderConfig[]
      *

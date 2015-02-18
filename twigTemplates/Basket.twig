@@ -31,9 +31,9 @@
                     -
                 {% endif %}</td>
             <td>{{ lineItem.description }}</td>
-            <td>{{ lineItem.netPrice }}</td>
+            <td>{{ state.config.currencySymbol }}{{ lineItem.netPrice|number_format(2) }}</td>
             <td style="text-wrap: none;">
-                {{ lineItem.vatPerItem }}
+                {{ state.config.currencySymbol }}{{ lineItem.vatPerItem|number_format(2) }}
                 {% if lineItem.isB2b %}
                     ( Zero rated )
                 {% else %}

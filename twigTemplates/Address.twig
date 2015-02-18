@@ -40,7 +40,7 @@
                name="addressLine1"
                value="{{ state.addressLine1 }}"
                class="{{ state.requiredFields['addressLine1']?'required':'' }}">
-
+        <br>
         <label for="addressLine2">
             Address line 2
         </label>
@@ -48,14 +48,14 @@
                name="addressLine2"
                value="{{ state.addressLine2 }}"
                class="{{ state.requiredFields['addressLine2']?'required':'' }}">
-
+        <br>
         <label for="townOrCity">
             Town or city
         </label>
         <input type="text" name="townOrCity"
                value="{{ state.townOrCity }}"
                class="{{ state.requiredFields['townOrCity']?'required':'' }}">
-
+        <br>
         <label for="stateOrRegion">
             State or region
         </label>
@@ -63,7 +63,7 @@
                name="stateOrRegion"
                value="{{ state.stateOrRegion }}"
                class="{{ state.requiredFields['stateOrRegion']?'required':'' }}">
-
+        <br>
         <label for="postCode">
             Postcode
         </label>
@@ -71,7 +71,7 @@
                name="postCode"
                value="{{ state.postCode }}"
                class="{{ state.requiredFields['postCode']?'required':'' }}">
-
+        <br>
         <label for="countryCode">
             Country
         </label>
@@ -89,9 +89,9 @@
                 </option>
             {% endfor %}
         </select>
+        <br>
+        <input type="submit" value="Update address" class="updateAddress">
     </fieldset>
-
-    <input type="submit" value="Update address">
 
     {% endset %}
     {{ this.exec.wrapForm( "setAddress", "POST", formBody ) }}
