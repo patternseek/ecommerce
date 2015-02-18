@@ -32,7 +32,7 @@
                 {% endif %}</td>
             <td>{{ lineItem.description }}</td>
             <td>{{ state.config.currencySymbol }}{{ lineItem.netPrice|number_format(2) }}</td>
-            <td style="text-wrap: none;">
+            <td style="text-wrap: none;" nowrap>
                 {{ state.config.currencySymbol }}{{ lineItem.vatPerItem|number_format(2) }}
                 {% if lineItem.isB2b %}
                     ( Zero rated )
@@ -40,7 +40,17 @@
                     {% if lineItem.vatJurisdictionType == "local" %}
                         ( {{ state.config.countryCode|upper }} VAT )
                     {% else %}
-                        ( {{ lineItem.remoteVatJusrisdictionCountryCode|upper }} VAT )
+                        {% set isEU = false %}
+                        {% for cc,country in this.getVatCountries() %}
+                            {% if lineItem.remoteVatJusrisdictionCountryCode == cc %}
+                                {% set isEU = true %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if isEU %}
+                            ( {{ lineItem.remoteVatJusrisdictionCountryCode|upper }} VAT )
+                        {% else %}
+                            ( Non EU )
+                        {% endif %}
                     {% endif %}
                 {% endif %}
             </td>
