@@ -101,7 +101,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
                 return new ViewComponentResponse( "text/plain", ">>>Sample success page<<<" );
             };
 
-        $view->update(
+        $view->updateProps(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -130,7 +130,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         /** @var Basket $uns */
         $uns = unserialize( $ser );
 
-        $uns->update(
+        $uns->updateProps(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -180,7 +180,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         Stripe_TokenMock::$typeSetting = 'card';
         Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'ES' ];
 
-        $uns->update(
+        $uns->updateProps(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -200,7 +200,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     {
         Stripe_TokenMock::$typeSetting = 'card';
         Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
-        $uns->update(
+        $uns->updateProps(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -223,7 +223,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         // US card + US address + GB IP, should succeed
         Stripe_TokenMock::$typeSetting = 'card';
         Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
-        $uns->update(
+        $uns->updateProps(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -262,7 +262,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         // GB card + GB address + GB IP, should succeed
         Stripe_TokenMock::$typeSetting = 'card';
         Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
-        $uns->update(
+        $uns->updateProps(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -277,7 +277,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             ]
         )->content;
 
-        $uns->update(
+        $uns->updateProps(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]

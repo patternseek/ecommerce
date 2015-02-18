@@ -214,7 +214,7 @@ class Stripe extends AbstractViewComponent
      * @param $props
      * @return array Template props
      */
-    protected function doUpdate( $props )
+    protected function doUpdateState( $props )
     {
         $this->testInputs(
             [

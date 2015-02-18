@@ -278,7 +278,7 @@ class Basket extends AbstractViewComponent
      * @param $props
      * @return array Template props
      */
-    protected function doUpdate( $props )
+    protected function doUpdateState( $props )
     {
 
         // Callbacks must be provided on each update as they can't be serialised.

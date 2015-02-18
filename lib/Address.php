@@ -356,7 +356,7 @@ class Address extends AbstractViewComponent
      * @param array $props
      * @return void
      */
-    protected function doUpdate( $props )
+    protected function doUpdateState( $props )
     {
         $this->parent->setAddressStatus( $this->isReady(), $this->state->countryCode );
         if (!$this->isReady()) {
