@@ -314,8 +314,8 @@ class Address extends AbstractViewComponent
         $this->state->townOrCity = $args[ 'townOrCity' ];
         $this->state->stateOrRegion = $args[ 'stateOrRegion' ];
         $this->state->postCode = $args[ 'postCode' ];
-        $this->state->countryCode = $args[ 'countryCode' ];
-        $this->state->countryString = $this->getCountriesByISO()[ $args[ 'countryCode' ] ];
+        $this->state->countryCode = strtoupper( $args[ 'countryCode' ] );
+        $this->state->countryString = $this->getCountriesByISO()[ strtoupper($args[ 'countryCode' ]) ];
 
         foreach ($this->state->requiredFields as $req => $label) {
             if (!$args[ $req ]) {

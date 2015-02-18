@@ -81,7 +81,7 @@
             {% for code,country in this.getCountriesByISO() %}
                 <option
                         value="{{ code|lower }}"
-                        {% if code|lower == state.countryCode %}
+                        {% if code == state.countryCode %}
                             selected="selected"
                         {% endif %}
                         >
