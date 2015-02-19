@@ -13,11 +13,11 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "/home/tolan/storage/workspace/patternseek-componentview"
+            "url": "../patternseek-componentview"
         },
         {
             "type": "vcs",
-            "url": "/home/tolan/storage/workspace/patternseek-structclass"
+            "url": "../patternseek-structclass"
         }
     ],
     "require": {

@@ -302,7 +302,7 @@ class Address extends AbstractViewComponent
     public function editModeHandler( $args )
     {
         $this->state->mode = 'edit';
-        return $this->render();
+        return $this->renderRoot();
     }
 
     public function setAddressHandler( $args )

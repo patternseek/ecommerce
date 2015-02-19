@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "76263aa724da51b8b8f002098b674bee",
+    "hash": "909475020918b9fc14144e820ad822f6",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -203,8 +203,8 @@
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "/home/tolan/storage/workspace/patternseek-componentview",
-                "reference": "82649b4e2fa061a5fd65d90bfefcc46d2e7bc859"
+                "url": "../patternseek-componentview",
+                "reference": "9ac27a6db72f5221b7cba2bca4e589e38f1e45ea"
             },
             "require": {
                 "patternseek/structclass": "dev-master",
@@ -234,7 +234,7 @@
             "keywords": [
                 "framework"
             ],
-            "time": "2015-02-18 14:38:00"
+            "time": "2015-02-19 13:39:16"
         },
         {
             "name": "patternseek/structclass",
