@@ -1,4 +1,4 @@
-<div class="address">
+<div class="address" id="component-{{ this.handle }}">
 {% if state.mode == 'view' %}
     <h2>Billing address</h2>
     {% if state.addressLine1 %}
@@ -27,6 +27,7 @@
     {% endif %}
 
     <a href="{{ this.exec.url( 'editMode' ) }}" class="edit">Edit address</a>
+    {{ this.exec.replaceElementUsingLink( 'editMode', [], "component-{{ this.handle }}", "Edit address (replace)" ) }}
 
 {% else %}
     {% set formBody %}
