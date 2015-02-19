@@ -95,6 +95,6 @@
     </fieldset>
 
     {% endset %}
-    {{ this.exec.wrapForm( "setAddress", "POST", formBody ) }}
+    {{ this.exec.replaceElementUsingForm( "setAddress", "POST", formBody, "component-"~ this.handle, "addressUpdate" ) }}
 {% endif %}
 </div>
