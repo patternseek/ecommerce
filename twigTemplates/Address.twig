@@ -26,8 +26,7 @@
         <br><br>
     {% endif %}
 
-    <a href="{{ this.exec.url( 'editMode' ) }}" class="edit">Edit address</a>
-    {{ this.exec.replaceElementUsingLink( 'editMode', [], "component-basket" , "Edit address (replace)" ) }}
+    {{ this.exec.replaceElementUsingLink( 'editMode', [], "component-"~ this.handle , "Edit address" ) }}
 
 {% else %}
     {% set formBody %}
@@ -95,6 +94,6 @@
     </fieldset>
 
     {% endset %}
-    {{ this.exec.replaceElementUsingForm( "setAddress", "POST", formBody, "component-"~ this.handle, "addressUpdate" ) }}
+    {{ this.exec.replaceElementUsingForm( "setAddress", "POST", formBody, "component-basket", "addressUpdate" ) }}
 {% endif %}
 </div>
