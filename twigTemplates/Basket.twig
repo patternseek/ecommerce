@@ -16,12 +16,6 @@
 {{ component( 'billingAddress' ) }}
 
 <table class="basketTable">
-    <thead>
-    <th>Quantity</th>
-    <th>Description</th>
-    <th>Net per item</th>
-    <th>VAT per item</th>
-    </thead>
     <tbody>
     {% for lineItem in state.lineItems %}
         <tr>
@@ -58,12 +52,12 @@
     {% endfor %}
 
     {% if not state.complete %}
-        {% set validateFormBody %}
         <tr>
             <td>
                 EU VAT number
             </td>
             <td colspan="3">
+                {% set validateFormBody %}
                 {% if state.vatNumber %}
                     <strong>{{ state.vatNumber }}</strong>
                     <br>
@@ -71,23 +65,30 @@
                 <input type="text" name="vatNumber" placeholder="EU VAT number">
                 <select name="countryCode">
                     {% for cc,country in this.getVatCountries() %}
-                        <option value="{{ cc }}">{{ country }}</option>
+                        <option value="{{ cc }}"
+                                {% if cc == state.config.countryCode|upper %}selected="selected"{% endif %}>{{ country }}</option>
                     {% endfor %}
                 </select>
                 <input type="submit" value="Update">
+                {% endset %}
+                {{ this.exec.replaceElementUsingForm( "validateVatNumber", "POST", validateFormBody, "component-basket", "vatNumberUpdate" ) }}
             </td>
         </tr>
-        {% endset %}
-        {{ this.exec.wrapForm( "validateVatNumber", "POST", validateFormBody ) }}
     {% endif %}
     </tbody>
+    <thead>
+    <th>Quantity</th>
+    <th>Description</th>
+    <th>Net per item</th>
+    <th>VAT per item</th>
+    </thead>
 
 </table>
     {% if ( state.readyForPaymentInfo() ) and (not state.complete) %}
     <div class="basketPaymentProviders">
         {% for provider in state.paymentProviderNames %}
             {{ component( provider ) }}
-    {% endfor %}
+        {% endfor %}
     </div>
     {% elseif ( not state.readyForPaymentInfo() ) and (not state.complete) %}
     {# ... #}

@@ -1,32 +1,44 @@
 <div class="address" id="component-{{ this.handle }}">
 {% if state.mode == 'view' %}
-    <h2>Billing address</h2>
-    {% if state.addressLine1 %}
-        {{ state.addressLine1 }}<br>
-    {% endif %}
+    {% set formBody %}
+    <fieldset>
+        <legend>Billing address</legend>
 
-    {% if state.addressLine2 %}
-        {{ state.addressLine2 }}<br>
-    {% endif %}
-
-    {% if state.townOrCity %}
-    {{ state.townOrCity }}<br>
-    {% endif %}
-
-    {% if state.stateOrRegion %}
-        {{ state.stateOrRegion }}<br>
-    {% endif %}
-
-    {% if state.postCode %}
-        {{ state.postCode }}<br>
-    {% endif %}
-
-    {% if state.countryString %}
+        <label for="addressLine1">
+            Address line 1
+        </label>
+        {{ state.addressLine1 }}
+        <br>
+        <label for="addressLine2">
+            Address line 2
+        </label>
+        {{ state.addressLine2 }}
+        <br>
+        <label for="townOrCity">
+            Town or city
+        </label>
+        {{ state.townOrCity }}
+        <br>
+        <label for="stateOrRegion">
+            State or region
+        </label>
+        {{ state.stateOrRegion }}
+        <br>
+        <label for="postCode">
+            Postcode
+        </label>
+        {{ state.postCode }}
+        <br>
+        <label for="countryCode">
+            Country
+        </label>
         {{ state.countryString }}
-        <br><br>
-    {% endif %}
-
-    {{ this.exec.replaceElementUsingLink( 'editMode', [], "component-"~ this.handle , "Edit address" ) }}
+        <br>
+        <input type="submit" value="Edit address" class="editAddress">
+    </fieldset>
+    {% endset %}
+    {#{ this.exec.replaceElementUsingLink( 'editMode', [], "component-"~ this.handle , "Edit address" ) }#}
+    {{ this.exec.replaceElementUsingForm( "editMode", "POST", formBody, "component-"~ this.handle, "addressEdit" ) }}
 
 {% else %}
     {% set formBody %}
