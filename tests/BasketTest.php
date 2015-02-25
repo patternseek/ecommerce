@@ -15,6 +15,7 @@ use PatternSeek\ECommerce\BasketConfig;
 use PatternSeek\ECommerce\LineItem;
 use PatternSeek\ECommerce\StripeFacade\Stripe_TokenMock;
 use PatternSeek\ECommerce\StripeFacade\StripeFacade;
+use PatternSeek\ECommerce\Transaction;
 
 /**
  * Class BasketTest
@@ -96,8 +97,9 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
         $successOutput = [ ];
         $this->successCallback =
-            function ( $txnDetails ) use ( &$successOutput ){
-                $successOutput = $txnDetails;
+            function ( Transaction $txnDetails ) use ( &$successOutput ){
+                $successOutput = (array)$txnDetails;
+                unset( $successOutput[ 'validationError' ] );
                 return new ViewComponentResponse( "text/plain", ">>>Sample success page<<<" );
             };
 
@@ -232,7 +234,6 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(
             $execOut == ">>>Sample success page<<<"
         );
-
         $expected = [
             'chargeID' => 'TestStripeID',
             'paymentCountryCode' => 'US',

@@ -45,7 +45,7 @@ class Stripe extends AbstractViewComponent
      * @param $args
      * @return array
      * @throws \Exception
-     * @throws \Stripe_CardError
+     * @throws \Stripe\Error\Card
      */
     public function submitFormHandler( $args )
     {
@@ -143,16 +143,16 @@ class Stripe extends AbstractViewComponent
                     "description" => $this->state->description
                 ]
             );
-        }catch( \Stripe_CardError $e ){
+        }catch( \Stripe\Error\Card $e ){
             $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
             return $this->parent->render();
         }
 
-        $ret = [
-            'chargeID' => $charge->id,
-            'paymentCountryCode' => $countryCode,
-            'paymentType' => $type
-        ];
+        $ret = new Transaction();
+        $ret->chargeID = $charge->id;
+        $ret->paymentCountryCode = $countryCode;
+        $ret->paymentType = $type;
+
         $this->state->complete = true;
         return $this->parent->transactionSuccess( $ret );
     }

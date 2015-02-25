@@ -183,22 +183,28 @@ class Basket extends AbstractViewComponent
     }
 
     /**
-     * @param $ret
+     * @param Transaction $txn
      */
-    public function transactionSuccess( $ret )
+    public function transactionSuccess( Transaction $txn )
     {
         $this->state->complete = true;
-        $ret[ 'vatNumberStatus' ] = $this->state->vatNumberStatus;
-        $ret[ 'vatNumberGiven' ] = $this->state->vatNumber;
-        $ret[ 'vatNumberGivenCountryCode' ] = $this->state->vatNumberCountryCode;
-        $ret[ 'transactionAmount' ] = $this->state->total;
-        $ret[ 'billingAddressCountryCode' ] = $this->state->addressCountryCode;
-        $ret[ 'ipCountryCode' ] = $this->state->ipCountryCode;
-        $ret[ 'vatCalculationBaseOnCountryCode' ] = $this->state->vatCalculatedBasedOnCountryCode;
-        $ret[ 'vatRateUsed' ] = $this->state->getVatRate( $this->state->vatCalculatedBasedOnCountryCode );
-        $ret[ 'time' ] = time();
 
-        return $this->transactionSuccessCallback->__invoke( $ret );
+        $txn->vatNumberStatus = $this->state->vatNumberStatus;
+        $txn->vatNumberGiven = $this->state->vatNumber;
+        $txn->vatNumberGivenCountryCode = $this->state->vatNumberCountryCode;
+        $txn->transactionAmount = $this->state->total;
+        $txn->billingAddressCountryCode = $this->state->addressCountryCode;
+        $txn->ipCountryCode = $this->state->ipCountryCode;
+        $txn->vatCalculationBaseOnCountryCode = $this->state->vatCalculatedBasedOnCountryCode;
+        $txn->vatRateUsed = $this->state->getVatRate( $this->state->vatCalculatedBasedOnCountryCode );
+        $txn->time = time();
+        try{
+            $txn->validate();
+        }catch( \Exception $e ){
+            $txn->validationError = $e->getMessage();
+        }
+
+        return $this->transactionSuccessCallback->__invoke( $txn );
     }
 
     /**
