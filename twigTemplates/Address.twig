@@ -4,6 +4,54 @@
     <fieldset>
         <legend>Billing address</legend>
 
+        {% for field,label in
+        {
+        'addressLine1':'Address line 1',
+        'addressLine2':'Address line 2',
+        'townOrCity':'Town or city',
+        'stateOrRegion':'State or region',
+        'postCode':'Address line 1'
+        } %}
+            <label for="{{ field }}" class="{{ state.requiredFields[field]?'required':'' }}">
+                {{ label }}
+            </label>
+
+            <input type="text"
+                   name="addressLine1"
+                   value="{{ attribute( state, field ) }}"
+                   class="{{ state.requiredFields[field]?'required':'' }}">
+            <br>
+        {% endfor %}
+
+        <label for="countryCode">
+            Country
+        </label>
+        <select name="countryCode"
+                class="{{ state.requiredFields['countryCode']?'required':'' }}">
+            <option value="">Select...</option>
+            {% for code,country in this.getCountriesByISO() %}
+                <option
+                        value="{{ code|lower }}"
+                        {% if code == state.countryCode %}
+                            selected="selected"
+                        {% endif %}
+                        >
+                    {{ country }}
+                </option>
+            {% endfor %}
+        </select>
+        <br>
+        <input type="submit" value="Update address" class="updateAddress">
+    </fieldset>
+    {% endset %}
+    {#{ this.exec.replaceElementUsingLink( 'editMode', [], "component-"~ this.handle , "Edit address" ) }#}
+    {{ this.exec.replaceElementUsingForm( "editMode", "POST", formBody, "component-"~ this.handle, "addressEdit" ) }}
+
+{% else %}
+    {% set formBody %}
+    <fieldset>
+        <legend>Billing address</legend>
+
         <label for="addressLine1">
             Address line 1
         </label>
@@ -35,74 +83,6 @@
         {{ state.countryString }}
         <br>
         <input type="submit" value="Edit address" class="editAddress">
-    </fieldset>
-    {% endset %}
-    {#{ this.exec.replaceElementUsingLink( 'editMode', [], "component-"~ this.handle , "Edit address" ) }#}
-    {{ this.exec.replaceElementUsingForm( "editMode", "POST", formBody, "component-"~ this.handle, "addressEdit" ) }}
-
-{% else %}
-    {% set formBody %}
-    <fieldset>
-        <legend>Billing address</legend>
-
-        <label for="addressLine1">
-            Address line 1
-        </label>
-        <input type="text"
-               name="addressLine1"
-               value="{{ state.addressLine1 }}"
-               class="{{ state.requiredFields['addressLine1']?'required':'' }}">
-        <br>
-        <label for="addressLine2">
-            Address line 2
-        </label>
-        <input type="text"
-               name="addressLine2"
-               value="{{ state.addressLine2 }}"
-               class="{{ state.requiredFields['addressLine2']?'required':'' }}">
-        <br>
-        <label for="townOrCity">
-            Town or city
-        </label>
-        <input type="text" name="townOrCity"
-               value="{{ state.townOrCity }}"
-               class="{{ state.requiredFields['townOrCity']?'required':'' }}">
-        <br>
-        <label for="stateOrRegion">
-            State or region
-        </label>
-        <input type="text"
-               name="stateOrRegion"
-               value="{{ state.stateOrRegion }}"
-               class="{{ state.requiredFields['stateOrRegion']?'required':'' }}">
-        <br>
-        <label for="postCode">
-            Postcode
-        </label>
-        <input type="text"
-               name="postCode"
-               value="{{ state.postCode }}"
-               class="{{ state.requiredFields['postCode']?'required':'' }}">
-        <br>
-        <label for="countryCode">
-            Country
-        </label>
-        <select name="countryCode"
-                class="{{ state.requiredFields['countryCode']?'required':'' }}">
-            <option value="">Select...</option>
-            {% for code,country in this.getCountriesByISO() %}
-                <option
-                        value="{{ code|lower }}"
-                        {% if code == state.countryCode %}
-                            selected="selected"
-                        {% endif %}
-                        >
-                    {{ country }}
-                </option>
-            {% endfor %}
-        </select>
-        <br>
-        <input type="submit" value="Update address" class="updateAddress">
     </fieldset>
 
     {% endset %}
