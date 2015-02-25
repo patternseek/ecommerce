@@ -1,17 +1,18 @@
 <div id="component-basket">
-{% if this.flashMessage %}
-    <strong>{{ this.flashMessage }}</strong>
+    {{ state.intro }}
+
+    {% if this.flashMessage %}
+        <strong class="message">{{ this.flashMessage }}</strong>
     <br>
 {% endif %}
-{% if this.flashError %}
+    {% if this.flashError %}
     <strong class="error">{{ this.flashError }}</strong>
     <br>
 {% endif %}
-{% if state.testMode %}
+    {% if state.testMode %}
     <br><strong>TEST MODE</strong><br>
 {% endif %}
 
-{{ state.intro }}
 
 {{ component( 'billingAddress' ) }}
 
