@@ -39,7 +39,7 @@
     </fieldset>
     {% endset %}
     {#{ this.exec.replaceElementUsingLink( 'editMode', [], "component-"~ this.handle , "Edit address" ) }#}
-    {{ this.exec.replaceElementUsingForm( "editMode", "POST", formBody, "component-"~ this.handle, "addressEdit" ) }}
+    {{ this.exec.replaceElementUsingForm( "editMode", "POST", formBody, "component-basket", "addressEdit" ) }}
 
 {% else %}
     {% set formBody %}
