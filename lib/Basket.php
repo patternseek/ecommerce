@@ -305,6 +305,8 @@ class Basket extends AbstractViewComponent
                 'state' => $this->state->config->billingAddress
             ] );
 
+        $this->updateLineItemsAndTotal();
+
         // Setup payment providers
         $this->state->paymentProviderNames = [ ];
         foreach ($this->state->config->paymentProviders as $providerConfig) {
@@ -326,7 +328,6 @@ class Basket extends AbstractViewComponent
             $this->state->paymentProviderNames[ ] = $providerConfig->name;
         }
 
-        $this->updateLineItemsAndTotal();
     }
 
     /**

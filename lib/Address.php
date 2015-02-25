@@ -290,6 +290,9 @@ class Address extends AbstractViewComponent
 
     public function isReady()
     {
+        if ($this->state->mode == 'edit') {
+            return false;
+        }
         $isReady = true;
         foreach ($this->state->requiredFields as $field => $label) {
             if (!$this->state->$field) {
@@ -307,8 +310,6 @@ class Address extends AbstractViewComponent
 
     public function setAddressHandler( $args )
     {
-
-
         $this->state->addressLine1 = $args[ 'addressLine1' ];
         $this->state->addressLine2 = $args[ 'addressLine2' ];
         $this->state->townOrCity = $args[ 'townOrCity' ];
@@ -358,8 +359,9 @@ class Address extends AbstractViewComponent
      */
     protected function doUpdateState( $props )
     {
-        $this->parent->setAddressStatus( $this->isReady(), $this->state->countryCode );
-        if (!$this->isReady()) {
+        $ready = $this->isReady();
+        $this->parent->setAddressStatus( $ready, $this->state->countryCode );
+        if (!$ready) {
             $this->state->mode = 'edit';
         }
     }
