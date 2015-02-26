@@ -282,7 +282,7 @@ class Basket extends AbstractViewComponent
             $this->state->transactionDetail .= implode( ', ',
                     [
                         ( $lineItem->quantity?$lineItem->quantity:'-' ),
-                        $lineItem->description,
+                        str_replace( "\n", " ", $lineItem->description ),
                         $lineItem->netPrice,
                         $lineItem->vatPerItem,
                         $lineItem->vatTypeCharged
