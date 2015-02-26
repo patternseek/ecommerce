@@ -77,4 +77,20 @@ class AddressState extends ViewState
      */
     public $requiredFields;
 
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return implode( "\n",
+            [
+                $this->addressLine1,
+                $this->addressLine2,
+                $this->townOrCity,
+                $this->stateOrRegion,
+                $this->postCode,
+                $this->countryString
+            ]
+        );
+    }
 }

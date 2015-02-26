@@ -158,11 +158,13 @@ class Basket extends AbstractViewComponent
      * Allows the address component to indicate it's ready
      * @param boolean $isReady
      * @param string $countryCode
+     * @param $addressString
      */
-    public function setAddressStatus( $isReady, $countryCode )
+    public function setAddressStatus( $isReady, $countryCode, $addressString )
     {
         $this->state->addressReady = $isReady;
         $this->state->addressCountryCode = $countryCode;
+        $this->state->addressAsString = $addressString;
     }
 
     /**
@@ -197,6 +199,9 @@ class Basket extends AbstractViewComponent
         $txn->ipCountryCode = $this->state->ipCountryCode;
         $txn->vatCalculationBaseOnCountryCode = $this->state->vatCalculatedBasedOnCountryCode;
         $txn->vatRateUsed = $this->state->getVatRate( $this->state->vatCalculatedBasedOnCountryCode );
+        $txn->billingAddress = $this->state->addressAsString;
+        $txn->transactionDescription = $this->state->config->briefDescription;
+        $txn->transactionDetail = $this->state->transactionDetail;
         $txn->time = time();
         try{
             $txn->validate();
@@ -237,6 +242,14 @@ class Basket extends AbstractViewComponent
         $provisionalRemoteRate = $this->state->getVatRate( $provisionalUserCountryCode );
         $total = 0;
         $this->state->requireVATLocationProof = false;
+        $this->state->transactionDetail = implode( ', ',
+                [
+                    "Quantity",
+                    "Description",
+                    "Net per item",
+                    "VAT per item",
+                    "VAT type"
+                ] ) . "\n";
         /** @var LineItem $lineItem */
         foreach ($this->state->lineItems as $id => $lineItem) {
             $lineItem->remoteVatJusrisdictionCountryCode = $provisionalUserCountryCode;
@@ -266,6 +279,14 @@ class Basket extends AbstractViewComponent
                     + ( $lineItem->vatPerItem?$lineItem->vatPerItem:0 )
                 )
                 * ( $lineItem->quantity?$lineItem->quantity:1 );
+            $this->state->transactionDetail .= implode( ', ',
+                    [
+                        ( $lineItem->quantity?$lineItem->quantity:'-' ),
+                        $lineItem->description,
+                        $lineItem->netPrice,
+                        $lineItem->vatPerItem,
+                        $lineItem->vatTypeCharged
+                    ] ) . "\n";
         }
         $this->state->total = (double)$total;
     }

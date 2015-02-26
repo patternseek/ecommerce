@@ -19,6 +19,45 @@ class Transaction extends StructClass
      *
      * @Assert\NotBlank()
      * @Assert\Type(type="string")
+     */
+    public $clientName;
+
+    /**
+     * @var string
+     *
+     * @Assert\NotBlank()
+     * @Assert\Type(type="string")
+     */
+    public $billingAddress;
+
+    /**
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $clientEmail;
+
+    /**
+     * @var string
+     *
+     * @Assert\NotBlank()
+     * @Assert\Type(type="string")
+     */
+    public $transactionDescription;
+
+    /**
+     * @var string
+     *
+     * @Assert\NotBlank()
+     * @Assert\Type(type="string")
+     */
+    public $transactionDetail;
+
+    /**
+     * @var string
+     *
+     * @Assert\NotBlank()
+     * @Assert\Type(type="string")
      * @Assert\Choice(choices = {"valid", "invalid", "unknown", "notchecked"})
      */
     public $vatNumberStatus;

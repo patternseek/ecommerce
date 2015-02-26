@@ -147,6 +147,20 @@ class BasketState extends ViewState
     public $addressReady;
 
     /**
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $addressAsString;
+
+    /**
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $transactionDetail;
+
+    /**
      * Determine whether payment process is ready to begin.
      * @return bool
      */

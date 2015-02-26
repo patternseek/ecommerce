@@ -235,6 +235,11 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             $execOut == ">>>Sample success page<<<"
         );
         $expected = [
+            'clientName' => '',
+            'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited States",
+            'clientEmail' => '',
+            'transactionDescription' => 'Brief description of basket contents.',
+            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some event ticket, 100, 0, remote\n",
             'chargeID' => 'TestStripeID',
             'paymentCountryCode' => 'US',
             'paymentType' => 'card',
@@ -248,7 +253,6 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'vatRateUsed' => 0,
             'time' => $successOutput[ 'time' ]
         ];
-
         $this->assertTrue(
             $successOutput == $expected
         );
@@ -290,6 +294,11 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         );
 
         $expected = [
+            'clientName' => '',
+            'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited Kingdom",
+            'clientEmail' => '',
+            'transactionDescription' => 'Brief description of basket contents.',
+            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some event ticket, 100, 20, remote\n",
             'chargeID' => 'TestStripeID',
             'paymentCountryCode' => 'GB',
             'paymentType' => 'card',
