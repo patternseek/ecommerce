@@ -17,7 +17,6 @@ class Transaction extends StructClass
     /**
      * @var string
      *
-     * @Assert\NotBlank()
      * @Assert\Type(type="string")
      */
     public $clientName;

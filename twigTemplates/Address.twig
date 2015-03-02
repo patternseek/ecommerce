@@ -1,4 +1,13 @@
 <div class="address" id="component-{{ this.handle }}">
+    {% if this.flashMessage %}
+        <strong class="message">{{ this.flashMessage }}</strong>
+        <br>
+    {% endif %}
+    {% if this.flashError %}
+        <strong class="error">{{ this.flashError }}</strong>
+        <br>
+    {% endif %}
+
 {% if state.mode == 'view' %}
     {% set formBody %}
     <fieldset>

@@ -13,9 +13,6 @@
     <br><strong>TEST MODE</strong><br>
 {% endif %}
 
-
-{{ component( 'billingAddress' ) }}
-
 <table class="basketTable">
     <tbody>
     {% for lineItem in state.lineItems %}
@@ -85,18 +82,22 @@
     </thead>
 
 </table>
-    {% if ( state.readyForPaymentInfo() ) and (not state.complete) %}
-    <div class="basketPaymentProviders">
-        {% for provider in state.paymentProviderNames %}
-            {{ component( provider ) }}
-        {% endfor %}
-    </div>
-    {% elseif ( not state.readyForPaymentInfo() ) and (not state.complete) %}
-    {# ... #}
-{% else %}
-    <span class="error">This transaction has been completed.</span>
-{% endif %}
 
+    {{ component( 'billingAddress' ) }}
+
+    {% if ( state.readyForPaymentInfo() ) and (not state.complete) %}
+        <div class="basketPaymentProviders">
+            {% for provider in state.paymentProviderNames %}
+                {{ component( provider ) }}
+            {% endfor %}
+        </div>
+    {% elseif ( not state.readyForPaymentInfo() ) and (not state.complete) %}
+        {# ... #}
+    {% else %}
+        <span class="error">This transaction has been completed.</span>
+    {% endif %}
+
+    <br clear="both">
 
 {{ state.outro }}
 </div>
