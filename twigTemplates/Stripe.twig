@@ -27,12 +27,12 @@
 
         <input type="hidden" id="cc-exp-month" data-stripe="exp-month">
         <input type="hidden" id="cc-exp-year" data-stripe="exp-year">
-        <input type="hidden" data-stripe="exp-address_line1" value="{{ state.address.addressLine1 }}">
-        <input type="hidden" data-stripe="exp-address_line2" value="{{ state.address.addressLine2 }}">
-        <input type="hidden" data-stripe="exp-address_city" value="{{ state.address.townOrCity }}">
-        <input type="hidden" data-stripe="exp-address_state" value="{{ state.address.stateOrRegion }}">
-        <input type="hidden" data-stripe="exp-address_zip" value="{{ state.address.postCode }}">
-        <input type="hidden" data-stripe="exp-address_country" value="{{ state.address.countryString }}">
+        <input type="hidden" data-stripe="address_line1" value="{{ state.address.addressLine1 }}">
+        <input type="hidden" data-stripe="address_line2" value="{{ state.address.addressLine2 }}">
+        <input type="hidden" data-stripe="address_city" value="{{ state.address.townOrCity }}">
+        <input type="hidden" data-stripe="address_state" value="{{ state.address.stateOrRegion }}">
+        <input type="hidden" data-stripe="address_zip" value="{{ state.address.postCode }}">
+        <input type="hidden" data-stripe="address_country" value="{{ state.address.countryString }}">
 
 
         <input type="submit" value="Submit Payment">
