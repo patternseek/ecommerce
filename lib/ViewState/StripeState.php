@@ -105,4 +105,11 @@ class StripeState extends ViewState
      */
     public $complete = false;
 
+    /**
+     * @var \Patternseek\Ecommerce\ViewState\AddressState
+     *
+     * @Assert\Type(type="\Patternseek\Ecommerce\ViewState\AddressState")
+     */
+    public $address;
+
 }

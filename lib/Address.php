@@ -332,6 +332,11 @@ class Address extends AbstractViewComponent
         return $this->renderRoot();
     }
 
+    function getState()
+    {
+        return $this->state;
+    }
+
     /**
      * Load or configure the component's template as necessary
      *

@@ -1,18 +1,18 @@
 <div class="address" id="component-{{ this.handle }}">
-    {% if this.flashMessage %}
-        <strong class="message">{{ this.flashMessage }}</strong>
-        <br>
-    {% endif %}
-    {% if this.flashError %}
-        <strong class="error">{{ this.flashError }}</strong>
-        <br>
-    {% endif %}
-
-{% if state.mode == 'view' %}
-    {% set formBody %}
     <fieldset>
         <legend>Billing address</legend>
 
+        {% if this.flashMessage %}
+            <strong class="message">{{ this.flashMessage }}</strong>
+            <br>
+        {% endif %}
+        {% if this.flashError %}
+            <strong class="error">{{ this.flashError }}</strong>
+            <br>
+        {% endif %}
+
+{% if state.mode == 'view' %}
+    {% set formBody %}
         <label for="addressLine1">
             Address line 1
         </label>
@@ -45,16 +45,12 @@
         {{ state.countryString }}
         <br>
         <input type="submit" value="Edit address" class="editAddress">
-    </fieldset>
     {% endset %}
     {#{ this.exec.replaceElementUsingLink( 'editMode', [], "component-"~ this.handle , "Edit address" ) }#}
     {{ this.exec.replaceElementUsingForm( "editMode", "POST", formBody, "component-basket", "addressEdit" ) }}
 
 {% else %}
     {% set formBody %}
-    <fieldset>
-        <legend>Billing address</legend>
-
         <label for="addressLine1" class="{{ state.requiredFields['addressLine1']?'required':'' }}">
             Address line 1
         </label>
@@ -113,9 +109,8 @@
         </select>
         <br>
         <input type="submit" value="Update address" class="updateAddress">
-    </fieldset>
-
     {% endset %}
     {{ this.exec.replaceElementUsingForm( "setAddress", "POST", formBody, "component-basket", "addressUpdate" ) }}
 {% endif %}
+    </fieldset>
 </div>

@@ -221,7 +221,8 @@ class Stripe extends AbstractViewComponent
                 'amount' => [ 'double' ],
                 'description' => [ "string" ],
                 'basketReady' => [ 'boolean' ],
-                'transactionComplete' => [ 'boolean' ]
+                'transactionComplete' => [ 'boolean' ],
+                'address' => [ 'PatternSeek\ECommerce\ViewState\AddressState' ]
             ],
             $props
         );
@@ -229,6 +230,8 @@ class Stripe extends AbstractViewComponent
         $this->state->description = $props[ 'description' ];
         $this->state->ready = $props[ 'basketReady' ];
         $this->state->complete = $props[ 'transactionComplete' ];
+        $this->state->address = $props[ 'address' ];
+
         return (array)$this->state;
     }
 }

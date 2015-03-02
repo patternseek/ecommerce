@@ -337,7 +337,8 @@ class Basket extends AbstractViewComponent
                     'description' => $this->state->config->briefDescription,
                     'amount' => $this->state->total,
                     'basketReady' => $this->state->readyForPaymentInfo(),
-                    'transactionComplete' => $this->state->complete
+                    'transactionComplete' => $this->state->complete,
+                    'address' => $this->childComponents[ 'billingAddress' ]->getState()
                 ],
                 [
                     'config' => $providerConfig->conf,
