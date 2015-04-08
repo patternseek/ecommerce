@@ -171,7 +171,7 @@ class Basket extends AbstractViewComponent
      * Returns a list of country names and ISO codes for EU countries
      * @return array
      */
-    public function getVatCountries()
+    public function getEUVatCountries()
     {
         $ret = [ ];
         foreach ($this->state->vatRates[ 'rates' ] as $cc => $info) {
@@ -252,33 +252,26 @@ class Basket extends AbstractViewComponent
                 ] ) . "\n";
         /** @var LineItem $lineItem */
         foreach ($this->state->lineItems as $id => $lineItem) {
-            $lineItem->remoteVatJusrisdictionCountryCode = $provisionalUserCountryCode;
-
             // VAT number either verified or there was a
             // technical error so it is allowed but marked for manual check
-            if (null !== $this->state->vatNumber) {
-                $lineItem->isB2b = true;
-                $lineItem->vatTypeCharged = 'b2b';
-                $lineItem->vatPerItem = 0.0;
-                // Line item VAT jurisdiction is local
-            }elseif ($lineItem->vatJurisdictionType == 'local') {
-                $lineItem->isB2b = false;
-                $lineItem->vatPerItem = round( $lineItem->netPrice * $this->state->config->localVatRate, 2 );
-                $lineItem->vatTypeCharged = 'local';
-                // Line item VAT jurisdiction is remote
-            }else {
-                $lineItem->isB2b = false;
-                $lineItem->vatPerItem = round( $lineItem->netPrice * $provisionalRemoteRate, 2 );
-                $lineItem->vatTypeCharged = 'remote';
+            $lineItem->isB2b = ( null !== $this->state->vatNumber );
 
+            if ($provisionalUserCountryCode == $this->state->config->countryCode) {
+                $lineItem->enjoyedInLocationType = 'local';
+            }elseif (in_array( $provisionalUserCountryCode, array_keys( $this->getEUVatCountries() ) )) {
+                $lineItem->enjoyedInLocationType = 'eu';
+            }else {
+                $lineItem->enjoyedInLocationType = 'row';
+            }
+            $lineItem->calculateVat( $this->state->config->localVatRate, $provisionalRemoteRate );
+
+            if ($lineItem->productType == "electronicservices") {
                 $this->state->requireVATLocationProof = true;
                 $this->state->vatCalculatedBasedOnCountryCode = $provisionalUserCountryCode;
             }
-            $total
-                += ( $lineItem->netPrice
-                    + ( $lineItem->vatPerItem?$lineItem->vatPerItem:0 )
-                )
-                * ( $lineItem->quantity?$lineItem->quantity:1 );
+
+            $lineItemTotal = $lineItem->getTotal();
+            $total += $lineItemTotal;
             $this->state->transactionDetail .= implode( ', ',
                     [
                         ( $lineItem->quantity?$lineItem->quantity:'-' ),
@@ -287,6 +280,8 @@ class Basket extends AbstractViewComponent
                         $lineItem->vatPerItem,
                         $lineItem->vatTypeCharged
                     ] ) . "\n";
+
+            $lineItem->validate();
         }
         $this->state->total = (double)$total;
     }

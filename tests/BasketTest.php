@@ -26,91 +26,133 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
     protected $successCallback;
 
-    function testRender()
+    public function testElectronicServiceToUKConsumer()
     {
-
-        // This would usually come from a config source
-        $configArray = [
-            'localVatRate' => 0.20,
-            'remoteIp' => "212.58.244.20", // A BBC server in the UK
-            'currencyCode' => "GBP",
-            'currencySymbol' => "£",
-            'countryCode' => "GB",
-            'briefDescription' => "Brief description of basket contents.",
-            'intro' => "Optional intro HTML for page.",
-            'paymentProviders' => [
-                'Stripe' => [
-                    'name' => 'stripe',
-                    'componentClass' => "\\PatternSeek\\ECommerce\\Stripe",
-                    'conf' => [
-                        'testApiPubKey' => 'pk_test_abc123',
-                        'testApiPrivKey' => 'sk_test_abc123',
-                        'liveApiPubKey' => 'pk_live_abc123',
-                        'liveApiPrivKey' => 'sk_live_abc123',
-                        'siteName' => 'example.com',
-                        'currency' => 'GBP',
-                        'siteLogo' => '//example.com/logo.png'
-                    ]
-                ]
-            ],
-            'billingAddress' => [
-                'addressLine1' => 'addressLine1',
-                'addressLine2' => 'addressLine2',
-                'townOrCity' => 'townOrCity',
-                'stateOrRegion' => 'stateOrRegion',
-                'postCode' => 'postCode',
-                'countryCode' => 'US',
-                'requiredFields' => [
-                    'addressLine1' => "Address line 1",
-                    'postCode' => "Post code",
-                    'countryCode' => "Country"
-                ]
-            ]
-        ];
-        file_put_contents( "/tmp/cnf", yaml_emit( $configArray, YAML_UTF8_ENCODING ) );
-
-        /** @var BasketConfig $config */
-        $config = BasketConfig::fromArray( $configArray );
-
-        $config->intro = "An intro";
-        $config->outro = "An outro";
-
-        $config->validate();
-
-        $vatRates = $this->getVatRates();
-
-        $lineItem = new LineItem();
-        $lineItem->description = "Some event ticket";
-        $lineItem->netPrice = 100;
-        $lineItem->quantity = null;
-        $lineItem->vatJurisdictionType = "remote";
-
-        $initConfig = [
-            'config' => $config,
-            'vatRates' => $vatRates,
-            'lineItems' => [ $lineItem ],
-            'testMode' => true
-        ];
-
-        /** @var \PatternSeek\ECommerce\Basket $view */
-        $view = new Basket( null, null, $initConfig );
-
+        $billingAddress = $this->getUKAddress();
+        $lineItem = $this->getElectronicServiceLineItem();
         $successOutput = [ ];
-        $this->successCallback =
-            function ( Transaction $txnDetails ) use ( &$successOutput ){
-                $successOutput = (array)$txnDetails;
-                unset( $successOutput[ 'validationError' ] );
-                return new ViewComponentResponse( "text/plain", ">>>Sample success page<<<" );
-            };
-
-        $view->updateProps(
-            [
-                'transactionSuccessCallback' => $this->successCallback
-            ]
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $state = $view->getStateForTesting();
+        $this->assertTrue(
+            $state->requireVATLocationProof
         );
+        $this->assertTrue(
+            $state->getConfirmedCountryCode() == "GB" // UK address, UK IP
+        );
+        $this->assertTrue(
+            $state->vatInfoOk() // Confirmed country code
+        );
+        $this->assertTrue(
+            $state->addressReady
+        );
+        $this->assertTrue(
+            $state->addressCountryCode == 'GB'
+        );
+        $this->assertTrue(
+            $state->readyForPaymentInfo() // Currently just checks address is ready
+        );
+        $this->assertEquals( 120.00, $state->total ); // 20% VAT to UK consumer of e-service
+    }
 
-        $view->render();
+    public function testNormalServiceToUKConsumer()
+    {
+        $billingAddress = $this->getUKAddress();
+        $lineItem = $this->getNormalServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $state = $view->getStateForTesting();
+        $this->assertFalse(
+            $state->requireVATLocationProof // Not needed for normal services
+        );
+        $this->assertTrue(
+            $state->getConfirmedCountryCode() == "GB" // UK address, UK IP
+        );
+        $this->assertTrue(
+            $state->vatInfoOk() // Confirmed country code
+        );
+        $this->assertTrue(
+            $state->addressReady
+        );
+        $this->assertTrue(
+            $state->addressCountryCode == 'GB'
+        );
+        $this->assertTrue(
+            $state->readyForPaymentInfo() // Currently just checks address is ready
+        );
+        $this->assertEquals( 120.00, $state->total ); // 20% VAT to UK consumer of e-service
+    }
 
+    public function testElectronicServiceToEUConsumer()
+    {
+        $billingAddress = $this->getEUAddress();
+        $lineItem = $this->getElectronicServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $state = $view->getStateForTesting();
+        $this->assertTrue(
+            $state->requireVATLocationProof
+        );
+        $this->assertFalse(
+            $state->getConfirmedCountryCode() // ES address, UK IP
+        );
+        $this->assertFalse(
+            $state->vatInfoOk() // No confirmed country code
+        );
+        $this->assertTrue(
+            $state->addressReady
+        );
+        $this->assertTrue(
+            $state->addressCountryCode == 'ES'
+        );
+        $this->assertTrue(
+            $state->readyForPaymentInfo() // Currently just checks address is ready
+        );
+        $this->assertEquals( 121.00, $state->total ); // 21% VAT to Spanish consumer of e-service
+    }
+
+    public function testNormalServiceToEUConsumer()
+    {
+        $billingAddress = $this->getEUAddress();
+        $lineItem = $this->getNormalServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $state = $view->getStateForTesting();
+        $this->assertFalse(
+            $state->requireVATLocationProof // Not needed for normal services
+        );
+        $this->assertFalse(
+            $state->getConfirmedCountryCode() // ES address, UK IP
+        );
+        $this->assertTrue(
+            $state->vatInfoOk() // No confirmation needed for normal services
+        );
+        $this->assertTrue(
+            $state->addressReady
+        );
+        $this->assertTrue(
+            $state->addressCountryCode == 'ES'
+        );
+        $this->assertTrue(
+            $state->readyForPaymentInfo() // Currently just checks address is ready
+        );
+        $this->assertEquals( 120.00, $state->total ); // 20% VAT charged at vendor rate (UK) for normal service
+    }
+
+    /**
+     * ROW businesses and consumers are indistinguishable
+     * to us as non EU businesses have no EU VAT number.
+     */
+    public function testElectronicServiceToROWConsumerOrBusiness()
+    {
+        $billingAddress = $this->getUSAddress();
+        $lineItem = $this->getElectronicServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertTrue(
             $state->requireVATLocationProof
@@ -127,12 +169,192 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(
             $state->readyForPaymentInfo()
         );
+        $this->assertFalse(
+            $state->vatInfoOk()
+        );
 
-        $ser = serialize( $view );
-        /** @var Basket $uns */
-        $uns = unserialize( $ser );
+        $this->assertEquals( 100.00, $state->total ); // No VAT to US consumer
+    }
 
-        $uns->updateProps(
+    /**
+     * ROW businesses and consumers are indistinguishable
+     * to us as non EU businesses have no EU VAT number.
+     */
+    public function testNormalServiceToROWConsumerOrBusiness()
+    {
+        $billingAddress = $this->getUSAddress();
+        $lineItem = $this->getNormalServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $state = $view->getStateForTesting();
+        $this->assertFalse(
+            $state->requireVATLocationProof // Not needed for normal services
+        );
+        $this->assertFalse(
+            $state->getConfirmedCountryCode()
+        );
+        $this->assertTrue(
+            $state->addressReady
+        );
+        $this->assertTrue(
+            $state->addressCountryCode == 'US'
+        );
+        $this->assertTrue(
+            $state->readyForPaymentInfo()
+        );
+        $this->assertTrue(
+            $state->vatInfoOk() // No confirmation needed for normal services
+        );
+        $this->assertEquals( 100.00, $state->total ); // No VAT to US consumer
+    }
+
+    public function testElectronicServiceToUKBusiness()
+    {
+        $billingAddress = $this->getUKAddress();
+        $lineItem = $this->getElectronicServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+
+        $view->render( "validateVatNumber", [ "countryCode" => "GB", "vatNumber" => "333289454" ] ); //BBC VAT number
+
+        $state = $view->getStateForTesting();
+        $this->assertTrue(
+            $state->requireVATLocationProof
+        );
+        $this->assertTrue(
+            $state->getConfirmedCountryCode() == "GB" // UK address, UK IP
+        );
+        $this->assertTrue(
+            $state->vatInfoOk() // Confirmed country code
+        );
+        $this->assertTrue(
+            $state->addressReady
+        );
+        $this->assertTrue(
+            $state->addressCountryCode == 'GB'
+        );
+        $this->assertTrue(
+            $state->readyForPaymentInfo() // Currently just checks address is ready
+        );
+        $this->assertEquals( 120.00, $state->total ); // 20% VAT to UK consumer of e-service
+    }
+
+    public function testNormalServiceToUKBusiness()
+    {
+        $billingAddress = $this->getUKAddress();
+        $lineItem = $this->getNormalServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+
+        $view->render( "validateVatNumber", [ "countryCode" => "GB", "vatNumber" => "333289454" ] ); //BBC VAT number
+
+        $state = $view->getStateForTesting();
+        $this->assertFalse(
+            $state->requireVATLocationProof // Not needed for normal services
+        );
+        $this->assertTrue(
+            $state->getConfirmedCountryCode() == "GB" // UK address, UK IP
+        );
+        $this->assertTrue(
+            $state->vatInfoOk() // Confirmed country code
+        );
+        $this->assertTrue(
+            $state->addressReady
+        );
+        $this->assertTrue(
+            $state->addressCountryCode == 'GB'
+        );
+        $this->assertTrue(
+            $state->readyForPaymentInfo() // Currently just checks address is ready
+        );
+        $this->assertEquals( 120.00, $state->total ); // 20% VAT to UK consumer of e-service
+    }
+
+    public function testElectronicServiceToEUBusiness()
+    {
+        $billingAddress = $this->getEUAddress();
+        $lineItem = $this->getElectronicServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+
+        $view->render( "validateVatNumber",
+            [ "countryCode" => "ES", "vatNumber" => "A28015865" ] ); //Telefonica Spain VAT number
+
+        $state = $view->getStateForTesting();
+        $this->assertTrue(
+            $state->requireVATLocationProof
+        );
+        $this->assertFalse(
+            $state->getConfirmedCountryCode() // ES address, UK IP
+        );
+        $this->assertTrue(
+            $state->vatInfoOk() // No need to record location info for a business (despite address and IP not matching)
+        );
+        $this->assertTrue(
+            $state->addressReady
+        );
+        $this->assertTrue(
+            $state->addressCountryCode == 'ES'
+        );
+        $this->assertTrue(
+            $state->readyForPaymentInfo() // Currently just checks address is ready
+        );
+        $this->assertEquals( 100.00,
+            $state->total ); // 0% VAT to Spanish (non GB, but in EU) business due to intra-community declarations
+    }
+
+    public function testNormalServiceToEUBusiness()
+    {
+        $billingAddress = $this->getEUAddress();
+        $lineItem = $this->getNormalServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+
+        $view->render( "validateVatNumber",
+            [ "countryCode" => "ES", "vatNumber" => "A28015865" ] ); //Telefonica Spain VAT number
+
+        $state = $view->getStateForTesting();
+        $this->assertFalse(
+            $state->requireVATLocationProof // Not needed for normal services
+        );
+        $this->assertFalse(
+            $state->getConfirmedCountryCode() // ES address, UK IP
+        );
+        $this->assertTrue(
+            $state->vatInfoOk() // No need to record location info for a business (despite address and IP not matching)
+        );
+        $this->assertTrue(
+            $state->addressReady
+        );
+        $this->assertTrue(
+            $state->addressCountryCode == 'ES'
+        );
+        $this->assertTrue(
+            $state->readyForPaymentInfo() // Currently just checks address is ready
+        );
+        $this->assertEquals( 100.00,
+            $state->total ); // 0% VAT to Spanish (non GB, but in EU) business due to intra-community declarations
+    }
+
+    function testUnserializeAndStripeFailures()
+    {
+        $billingAddress = $this->getUSAddress();
+        $lineItem = $this->getElectronicServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $state = $view->getStateForTesting();
+
+        $serialised = serialize( $view );
+        /** @var Basket $unserialised */
+        $unserialised = unserialize( $serialised );
+
+        $unserialised->updateProps(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -147,17 +369,17 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         StripeFacade::$testMode = true;
 
         /** @var Basket $uns */
-        $uns = unserialize( $ser );
-        $this->failOn3DifferentCountries( $uns );
+        $unserialised = unserialize( $serialised );
+        $this->failOn3DifferentCountries( $unserialised );
         /** @var Basket $uns */
-        $uns = unserialize( $ser );
-        $this->failOnOnlyIPandCardMatch( $uns );
+        $unserialised = unserialize( $serialised );
+        $this->failOnOnlyIPandCardMatch( $unserialised );
         /** @var Basket $uns */
-        $uns = unserialize( $ser );
-        $this->succeedOnSameAddressAndCardCountries( $uns, $successOutput );
+        $unserialised = unserialize( $serialised );
+        $this->succeedOnSameAddressAndCardCountries( $unserialised, $successOutput );
         /** @var Basket $uns */
-        $uns = unserialize( $ser );
-        $this->succeedOnAllCountriesMatch( $uns, $successOutput );
+        $unserialised = unserialize( $serialised );
+        $this->succeedOnAllCountriesMatch( $unserialised, $successOutput );
 
     }
 
@@ -175,7 +397,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param $uns
+     * @param Basket $uns
      */
     protected function failOn3DifferentCountries( $uns )
     {
@@ -196,7 +418,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param $uns
+     * @param Basket $uns
      */
     protected function failOnOnlyIPandCardMatch( $uns )
     {
@@ -239,7 +461,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited States",
             'clientEmail' => '',
             'transactionDescription' => 'Brief description of basket contents.',
-            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some event ticket, 100, 0, remote\n",
+            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some online service, 100, 0, zero\n",
             'chargeID' => 'TestStripeID',
             'paymentCountryCode' => 'US',
             'paymentType' => 'card',
@@ -253,13 +475,11 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'vatRateUsed' => 0,
             'time' => $successOutput[ 'time' ]
         ];
-        $this->assertTrue(
-            $successOutput == $expected
-        );
+        $this->assertEquals( $expected, $successOutput );
     }
 
     /**
-     * @param $uns
+     * @param Basket $uns
      * @param $successOutput
      */
     protected function succeedOnAllCountriesMatch( $uns, &$successOutput )
@@ -298,7 +518,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited Kingdom",
             'clientEmail' => '',
             'transactionDescription' => 'Brief description of basket contents.',
-            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some event ticket, 100, 20, remote\n",
+            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some online service, 100, 20, customer\n",
             'chargeID' => 'TestStripeID',
             'paymentCountryCode' => 'GB',
             'paymentType' => 'card',
@@ -313,6 +533,166 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'time' => $successOutput[ 'time' ]
         ];
 
-        $this->assertTrue( $successOutput == $expected );
+        $this->assertEquals( $expected, $successOutput );
+    }
+
+    /**
+     * @param LineItem $lineItem
+     * @param $successOutput
+     * @param $billingAddress
+     * @return array
+     * @throws \Exception
+     */
+    private function prepareBasket( LineItem $lineItem, &$successOutput, $billingAddress )
+    {
+        // This would usually come from a config source
+        $configArray = [
+            'localVatRate' => 0.20,
+            'remoteIp' => "212.58.244.20", // A BBC server in the UK
+            'currencyCode' => "GBP",
+            'currencySymbol' => "£",
+            'countryCode' => "GB",
+            'briefDescription' => "Brief description of basket contents.",
+            'intro' => "Optional intro HTML for page.",
+            'paymentProviders' => [
+                'Stripe' => [
+                    'name' => 'stripe',
+                    'componentClass' => "\\PatternSeek\\ECommerce\\Stripe",
+                    'conf' => [
+                        'testApiPubKey' => 'pk_test_abc123',
+                        'testApiPrivKey' => 'sk_test_abc123',
+                        'liveApiPubKey' => 'pk_live_abc123',
+                        'liveApiPrivKey' => 'sk_live_abc123',
+                        'siteName' => 'example.com',
+                        'currency' => 'GBP',
+                        'siteLogo' => '//example.com/logo.png'
+                    ]
+                ]
+            ],
+            'billingAddress' => $billingAddress
+        ];
+        file_put_contents( "/tmp/cnf", yaml_emit( $configArray, YAML_UTF8_ENCODING ) );
+
+        /** @var BasketConfig $config */
+        $config = BasketConfig::fromArray( $configArray );
+
+        $config->intro = "An intro";
+        $config->outro = "An outro";
+
+        $config->validate();
+
+        $vatRates = $this->getVatRates();
+
+        $initConfig = [
+            'config' => $config,
+            'vatRates' => $vatRates,
+            'lineItems' => [ $lineItem ],
+            'testMode' => true
+        ];
+
+        /** @var \PatternSeek\ECommerce\Basket $view */
+        $view = new Basket( null, null, $initConfig );
+
+        $this->successCallback =
+            function ( Transaction $txnDetails ) use ( &$successOutput ){
+                $successOutput = (array)$txnDetails;
+                unset( $successOutput[ 'validationError' ] );
+                return new ViewComponentResponse( "text/plain", ">>>Sample success page<<<" );
+            };
+
+        $view->updateProps(
+            [
+                'transactionSuccessCallback' => $this->successCallback
+            ]
+        );
+
+        $view->render();
+        return $view;
+    }
+
+    /**
+     * @return array
+     */
+    private function getUSAddress()
+    {
+        return [
+            'addressLine1' => 'addressLine1',
+            'addressLine2' => 'addressLine2',
+            'townOrCity' => 'townOrCity',
+            'stateOrRegion' => 'stateOrRegion',
+            'postCode' => 'postCode',
+            'countryCode' => 'US',
+            'requiredFields' => [
+                'addressLine1' => "Address line 1",
+                'postCode' => "Post code",
+                'countryCode' => "Country"
+            ]
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    private function getEUAddress()
+    {
+        return [
+            'addressLine1' => 'addressLine1',
+            'addressLine2' => 'addressLine2',
+            'townOrCity' => 'townOrCity',
+            'stateOrRegion' => 'stateOrRegion',
+            'postCode' => 'postCode',
+            'countryCode' => 'ES',
+            'requiredFields' => [
+                'addressLine1' => "Address line 1",
+                'postCode' => "Post code",
+                'countryCode' => "Country"
+            ]
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    private function getUKAddress()
+    {
+        return [
+            'addressLine1' => 'addressLine1',
+            'addressLine2' => 'addressLine2',
+            'townOrCity' => 'townOrCity',
+            'stateOrRegion' => 'stateOrRegion',
+            'postCode' => 'postCode',
+            'countryCode' => 'GB',
+            'requiredFields' => [
+                'addressLine1' => "Address line 1",
+                'postCode' => "Post code",
+                'countryCode' => "Country"
+            ]
+        ];
+    }
+
+    /**
+     * @return LineItem
+     */
+    private function getElectronicServiceLineItem()
+    {
+        $lineItem = new LineItem();
+        $lineItem->description = "Some online service";
+        $lineItem->netPrice = 100.00;
+        $lineItem->quantity = null;
+        $lineItem->productType = "electronicservices";
+        return $lineItem;
+    }
+
+    /**
+     * @return LineItem
+     */
+    private function getNormalServiceLineItem()
+    {
+        $lineItem = new LineItem();
+        $lineItem->description = "Some non-online service";
+        $lineItem->netPrice = 100.00;
+        $lineItem->quantity = null;
+        $lineItem->productType = "normalservices";
+        return $lineItem;
     }
 }
