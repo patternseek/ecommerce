@@ -11,7 +11,7 @@
 namespace PatternSeek\ECommerce;
 
 use PatternSeek\ComponentView\AbstractViewComponent;
-use PatternSeek\ComponentView\Template\TwigTemplate;
+use PatternSeek\ComponentView\Template\TwigTemplateString;
 use PatternSeek\ECommerce\ViewState\AddressState;
 
 /**
@@ -345,7 +345,7 @@ class Address extends AbstractViewComponent
     protected function initTemplate()
     {
         $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Address.twig" );
-        $this->template = new TwigTemplate( $this, $tplTwig );
+        $this->template = new TwigTemplateString( $this, $tplTwig );
     }
 
     /**
