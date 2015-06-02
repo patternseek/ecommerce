@@ -1,11 +1,11 @@
 <div id="component-basket">
     {{ state.intro }}
 
-    {% if this.flashMessage %}
+{% if this.flashMessage %}
         <strong class="message">{{ this.flashMessage }}</strong>
     <br>
 {% endif %}
-    {% if this.flashError %}
+{% if this.flashError %}
     <strong class="error">{{ this.flashError }}</strong>
     <br>
 {% endif %}
