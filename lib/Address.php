@@ -354,7 +354,7 @@ class Address extends AbstractViewComponent
      */
     protected function initState()
     {
-        $this->state = new AddressState();
+        // Done in update
     }
 
     /**
@@ -364,6 +364,23 @@ class Address extends AbstractViewComponent
      */
     protected function doUpdateState( $props )
     {
+        $this->testInputs(
+            [
+                'state' => [ 'PatternSeek\\ECommerce\\ViewState\\AddressState' ]
+            ],
+            $props
+        );
+        // Init
+        if( ! isset( $this->state ) ){
+            $this->state = $props[ 'state' ];
+            $this->state->countryString = static::getCountriesByISO()[ strtoupper( $this->state->countryCode ) ];
+            // Allow the caller to set mode, but default to 'view'
+            if (null === $this->state->mode) {
+                $this->state->mode = 'view';
+            }    
+        }
+        
+        // Update
         $ready = $this->isReady();
         $this->parent->setAddressStatus( $ready, $this->state->countryCode, $this->state->__toString() );
         if (!$ready) {
@@ -371,19 +388,4 @@ class Address extends AbstractViewComponent
         }
     }
 
-    protected function initComponent( $initConfig )
-    {
-        $this->testInputs(
-            [
-                'state' => [ 'PatternSeek\\ECommerce\\ViewState\\AddressState' ]
-            ],
-            $initConfig
-        );
-        $this->state = $initConfig[ 'state' ];
-        $this->state->countryString = $this->getCountriesByISO()[ strtoupper( $this->state->countryCode ) ];
-        // Allow the caller to set mode, but default to 'view'
-        if (null === $this->state->mode) {
-            $this->state->mode = 'view';
-        }
-    }
 }

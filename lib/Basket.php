@@ -314,10 +314,8 @@ class Basket extends AbstractViewComponent
         // Set up billing address
         $this->addOrUpdateChild(
             'billingAddress', '\\PatternSeek\\ECommerce\\Address',
-            [ ],
-            [
-                'state' => $this->state->config->billingAddress
-            ] );
+            [  'state' => $this->state->config->billingAddress ]
+        );
 
         $this->updateLineItemsAndTotal();
 
