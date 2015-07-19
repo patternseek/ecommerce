@@ -26,6 +26,7 @@
         "ext-mbstring": "*",
         "patternseek/componentview": "dev-master",
         "patternseek/structclass": "dev-master",
+        "patternseek/dependencyinjector": "dev-master",
         "symfony/validator": "*",
         "doctrine/annotations": "*",
         "doctrine/cache": "*",

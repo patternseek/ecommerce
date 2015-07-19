@@ -14,6 +14,11 @@ class BasketState extends ViewState
 {
 
     /**
+     * @var bool
+     */
+    public $initialised = false;
+    
+    /**
      * @var BasketConfig
      *
      * @Assert\Type(type="PatternSeek\ECommerce\BasketConfig")

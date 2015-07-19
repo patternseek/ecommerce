@@ -31,15 +31,7 @@ class Basket extends AbstractViewComponent
      */
     protected $state;
 
-    /**
-     * Called after the page creating this view has
-     * finished adding items and so on.
-     * @param $initConfig
-     * @return void
-     * @throws \Exception
-     * @internal param BasketConfig $config
-     */
-    public function initComponent( $initConfig )
+    public function init( $props )
     {
         $this->testInputs(
             [
@@ -48,12 +40,12 @@ class Basket extends AbstractViewComponent
                 'lineItems' => [ 'array' ],
                 'testMode' => [ 'boolean' ]
             ],
-            $initConfig
+            $props
         );
 
-        $config = $initConfig[ 'config' ];
+        $config = $props[ 'config' ];
 
-        foreach ($initConfig[ 'lineItems' ] as $lineItem) {
+        foreach ($props[ 'lineItems' ] as $lineItem) {
             $this->state->lineItems[ ] = $lineItem;
         }
 
@@ -66,10 +58,10 @@ class Basket extends AbstractViewComponent
             'countryCode' => "Country"
         ];
 
-        $this->state->vatRates = $initConfig[ 'vatRates' ];
+        $this->state->vatRates = $props[ 'vatRates' ];
         $this->state->intro = $config->intro;
         $this->state->outro = $config->outro;
-        $this->state->testMode = $initConfig[ 'testMode' ];
+        $this->state->testMode = $props[ 'testMode' ];
 
         $this->state->cardCountryCode = null;
         $this->state->addressCountryCode = null;
@@ -77,6 +69,8 @@ class Basket extends AbstractViewComponent
         $this->state->ipCountryCode = $this->geoIPCountryCode();
 
         $this->updateLineItemsAndTotal();
+        
+        $this->state->initialised = true;
     }
 
     /**
@@ -302,6 +296,10 @@ class Basket extends AbstractViewComponent
      */
     protected function doUpdateState( $props )
     {
+        
+        if( ! $this->state->initialised ){
+            $this->init( $props );
+        }
 
         // Callbacks must be provided on each update as they can't be serialised.
         $this->testInputs(

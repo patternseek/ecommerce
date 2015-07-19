@@ -10,12 +10,14 @@
 namespace PatternSeek\ECommerce\Test;
 
 use PatternSeek\ComponentView\ViewComponentResponse;
+use PatternSeek\DependencyInjector\DependencyInjector;
 use PatternSeek\ECommerce\Basket;
 use PatternSeek\ECommerce\BasketConfig;
 use PatternSeek\ECommerce\LineItem;
 use PatternSeek\ECommerce\StripeFacade\Stripe_TokenMock;
 use PatternSeek\ECommerce\StripeFacade\StripeFacade;
 use PatternSeek\ECommerce\Transaction;
+use Pimple\Container;
 
 /**
  * Class BasketTest
@@ -24,6 +26,10 @@ use PatternSeek\ECommerce\Transaction;
 class BasketTest extends \PHPUnit_Framework_TestCase
 {
 
+    function setup(){
+        DependencyInjector::init( new Container() );
+    }
+    
     protected $successCallback;
 
     public function testElectronicServiceToUKConsumer()
@@ -583,15 +589,15 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
         $vatRates = $this->getVatRates();
 
-        $initConfig = [
-            'config' => $config,
-            'vatRates' => $vatRates,
-            'lineItems' => [ $lineItem ],
-            'testMode' => true
-        ];
+//        $initConfig = [
+//            'config' => $config,
+//            'vatRates' => $vatRates,
+//            'lineItems' => [ $lineItem ],
+//            'testMode' => true
+//        ];
 
         /** @var \PatternSeek\ECommerce\Basket $view */
-        $view = new Basket( null, null, $initConfig );
+        $view = new Basket( null, null, [] );
 
         $this->successCallback =
             function ( Transaction $txnDetails ) use ( &$successOutput ){
@@ -602,6 +608,11 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
         $view->updateProps(
             [
+                'config' => $config,
+                'vatRates' => $vatRates,
+                'lineItems' => [ $lineItem ],
+                'testMode' => true,
+                
                 'transactionSuccessCallback' => $this->successCallback
             ]
         );
