@@ -163,7 +163,7 @@ class Stripe extends AbstractViewComponent
      */
     protected function initState()
     {
-        $this->state = new StripeState();
+        // initialised in update
     }
 
     /**
@@ -178,44 +178,16 @@ class Stripe extends AbstractViewComponent
     }
 
     /**
-     * @param $initConfig
-     * @return mixed
-     *
-     */
-    protected function initComponent( $initConfig )
-    {
-        $this->testInputs(
-            [
-                'config' => [ "array" ],  // Required, entries should be PatternSeek\ECommerce\PaymentProviderConfig
-                'buttonLabel' => [ 'string', null ],                                 // Optional, default null
-                'email' => [ 'string', null ],                                       // Optional, default null
-                'testMode' => [ 'boolean' ]                                        // Required
-            ],
-            $initConfig
-        );
-
-        $c = (object)$initConfig[ 'config' ];
-
-        if (null !== $initConfig[ 'buttonLabel' ]) {
-            $initConfig[ 'buttonLabelHTML' ] = "data-label=\"{$c->buttonLabel}\"";
-        }
-
-        $initConfig[ 'apiPubKey' ] = $initConfig[ 'testMode' ]?$c->testApiPubKey:$c->liveApiPubKey;
-
-        if (null !== $initConfig[ 'email' ]) {
-            $initConfig[ 'emailHTML' ] = "data-email=\"{$initConfig['email']}\"";
-        }
-
-        $this->state = StripeState::fromArray( $initConfig );
-    }
-
-    /**
      * Using $this->state, optionally update state, optionally create child components via addOrUpdateChild(), return template props
      * @param $props
      * @return array Template props
      */
     protected function doUpdateState( $props )
     {
+        if( null == $this->state ){
+            $this->init( $props );
+        }
+        
         $this->testInputs(
             [
                 'amount' => [ 'double' ],
@@ -233,5 +205,32 @@ class Stripe extends AbstractViewComponent
         $this->state->address = $props[ 'address' ];
 
         return (array)$this->state;
+    }
+
+    protected function init( $props )
+    {
+        $this->testInputs(
+            [
+                'config' => [ "array" ],  // Required, entries should be PatternSeek\ECommerce\PaymentProviderConfig
+                'buttonLabel' => [ 'string', null ],                                 // Optional, default null
+                'email' => [ 'string', null ],                                       // Optional, default null
+                'testMode' => [ 'boolean' ]                                        // Required
+            ],
+            $props
+        );
+
+        $c = (object)$props[ 'config' ];
+
+        if (null !== $props[ 'buttonLabel' ]) {
+            $props[ 'buttonLabelHTML' ] = "data-label=\"{$c->buttonLabel}\"";
+        }
+
+        $props[ 'apiPubKey' ] = $props[ 'testMode' ]?$c->testApiPubKey:$c->liveApiPubKey;
+
+        if (null !== $props[ 'email' ]) {
+            $props[ 'emailHTML' ] = "data-email=\"{$props['email']}\"";
+        }
+
+        $this->state = StripeState::fromArray( $props, true );
     }
 }

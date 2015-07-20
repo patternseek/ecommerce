@@ -325,19 +325,18 @@ class Basket extends AbstractViewComponent
             $this->addOrUpdateChild(
                 $providerConfig->name, $providerConfig->componentClass,
                 [
-                    'description' => $this->state->config->briefDescription,
-                    'amount' => $this->state->total,
-                    'basketReady' => $this->state->readyForPaymentInfo(),
-                    'transactionComplete' => $this->state->complete,
-                    'address' => $this->childComponents[ 'billingAddress' ]->getState()
-                ],
-                [
                     'config' => $providerConfig->conf,
                     'cardMustMatchCountryCode' => $this->state->ipCountryCode,
                     'buttonLabel' => null,
                     'email' => null,
                     'testMode' => $this->state->testMode,
-                ] );
+                    
+                    'description' => $this->state->config->briefDescription,
+                    'amount' => $this->state->total,
+                    'basketReady' => $this->state->readyForPaymentInfo(),
+                    'transactionComplete' => $this->state->complete,
+                    'address' => $this->childComponents[ 'billingAddress' ]->getState()
+                ]);
             $this->state->paymentProviderNames[ ] = $providerConfig->name;
         }
 
