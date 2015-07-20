@@ -182,7 +182,7 @@ class Stripe extends AbstractViewComponent
      * @param $props
      * @return array Template props
      */
-    protected function doUpdateState( $props )
+    protected function update( $props )
     {
         if( null == $this->state ){
             $this->init( $props );
@@ -207,7 +207,7 @@ class Stripe extends AbstractViewComponent
         return (array)$this->state;
     }
 
-    protected function init( $props )
+    private function init( $props )
     {
         $this->testInputs(
             [

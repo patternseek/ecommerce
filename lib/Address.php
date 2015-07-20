@@ -362,7 +362,7 @@ class Address extends AbstractViewComponent
      * @param array $props
      * @return void
      */
-    protected function doUpdateState( $props )
+    protected function update( $props )
     {
         $this->testInputs(
             [

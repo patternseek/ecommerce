@@ -294,7 +294,7 @@ class Basket extends AbstractViewComponent
      * @param $props
      * @return array Template props
      */
-    protected function doUpdateState( $props )
+    protected function update( $props )
     {
         
         if( ! $this->state->initialised ){
