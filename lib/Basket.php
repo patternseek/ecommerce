@@ -11,7 +11,7 @@
 namespace PatternSeek\ECommerce;
 
 use PatternSeek\ComponentView\AbstractViewComponent;
-use PatternSeek\ComponentView\Template\TwigTemplateString;
+use PatternSeek\ComponentView\Template\TwigTemplate;
 use PatternSeek\ComponentView\ViewComponentResponse;
 use PatternSeek\ECommerce\ViewState\BasketState;
 
@@ -351,6 +351,6 @@ class Basket extends AbstractViewComponent
     {
         $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Basket.twig" );
 
-        $this->template = new TwigTemplateString( $this, $tplTwig );
+        $this->template = new TwigTemplate( $this, null, $tplTwig );
     }
 }
