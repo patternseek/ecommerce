@@ -294,7 +294,7 @@ class Basket extends AbstractViewComponent
     }
 
     /**
-     * Using $this->state, optionally update state, optionally create child components via addOrUpdateChild(), return template props
+     * Update $this->state
      * @param $props
      * @return array Template props
      */
@@ -315,31 +315,15 @@ class Basket extends AbstractViewComponent
 
         $this->transactionSuccessCallback = $props[ 'transactionSuccessCallback' ];
 
-        // Set up billing address
-        $this->addOrUpdateChild(
-            'billingAddress', '\\PatternSeek\\ECommerce\\Address', [ 'state' => $this->state->config->billingAddress ]
+        // Set up billing address.
+        // This is done here instead of in-template because
+        // it does things we need for updateLineItemsAndTotal() below.
+        $this->state->renderedBillingAddress = $this->childComponent(
+            'billingAddress', '\\PatternSeek\\ECommerce\\Address', 
+            [ 'state' => $this->state->config->billingAddress ]
         );
 
         $this->updateLineItemsAndTotal();
-
-        // Setup payment providers
-        $this->state->paymentProviderNames = [ ];
-        foreach ($this->state->config->paymentProviders as $providerConfig) {
-            $this->addOrUpdateChild(
-                $providerConfig->name, $providerConfig->componentClass, [
-                'config' => $providerConfig->conf,
-                'buttonLabel' => null,
-                'email' => null,
-                'testMode' => $this->state->testMode,
-                'description' => $this->state->config->briefDescription,
-                'amount' => $this->state->total,
-                'basketReady' => $this->state->readyForPaymentInfo(),
-                'transactionComplete' => $this->state->complete,
-                'address' => $this->childComponents[ 'billingAddress' ]->getState()
-            ] );
-            $this->state->paymentProviderNames[ ] = $providerConfig->name;
-        }
-
     }
 
     /**

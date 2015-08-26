@@ -46,8 +46,8 @@
         <br>
         <input type="submit" value="Edit address" class="editAddress">
     {% endset %}
-    {#{ this.exec.replaceElementUsingLink( 'editMode', [], "component-"~ this.handle , "Edit address" ) }#}
-    {{ this.exec.replaceElementUsingForm( "editMode", "POST", formBody, "component-basket", "addressEdit" ) }}
+    {#{ exec.replaceElementUsingLink( 'editMode', [], "component-"~ this.handle , "Edit address" ) }#}
+    {{ exec.replaceElementUsingForm( "editMode", "POST", formBody, "component-basket", "addressEdit" ) }}
 
 {% else %}
     {% set formBody %}
@@ -110,7 +110,7 @@
         <br>
         <input type="submit" value="Update address" class="updateAddress">
     {% endset %}
-    {{ this.exec.replaceElementUsingForm( "setAddress", "POST", formBody, "component-basket", "addressUpdate" ) }}
+    {{ exec.replaceElementUsingForm( "setAddress", "POST", formBody, "component-basket", "addressUpdate" ) }}
 {% endif %}
     </fieldset>
 </div>

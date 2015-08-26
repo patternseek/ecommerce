@@ -204,7 +204,7 @@
             "source": {
                 "type": "git",
                 "url": "../patternseek-componentview",
-                "reference": "57b6183b5e2fc40ddeea29738ab9c9c7cab7dbdc"
+                "reference": "96f4d54301f9a96691554ca344c05d200873b1af"
             },
             "require": {
                 "patternseek/dependencyinjector": "dev-master",
@@ -236,7 +236,7 @@
             "keywords": [
                 "framework"
             ],
-            "time": "2015-08-26 18:36:03"
+            "time": "2015-08-26 21:19:36"
         },
         {
             "name": "patternseek/dependencyinjector",

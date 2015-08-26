@@ -138,13 +138,6 @@ class BasketState extends ViewState
     public $complete = false;
 
     /**
-     * @var string[]
-     *
-     * @Assert\Type(type="array")
-     */
-    public $paymentProviderNames;
-
-    /**
      * @var boolean
      *
      * @Assert\Type(type="boolean")
@@ -164,6 +157,12 @@ class BasketState extends ViewState
      * @Assert\Type(type="string")
      */
     public $transactionDetail;
+
+    /**
+     * The address sub-component's rendered output.
+     * @var string
+     */
+    public $renderedBillingAddress;
 
     /**
      * Determine whether payment process is ready to begin.

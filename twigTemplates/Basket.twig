@@ -69,7 +69,7 @@
                 </select>
                 <input type="submit" value="Update">
                 {% endset %}
-                {{ this.exec.replaceElementUsingForm( "validateVatNumber", "POST", validateFormBody, "component-basket", "vatNumberUpdate" ) }}
+                {{ exec.replaceElementUsingForm( "validateVatNumber", "POST", validateFormBody, "component-basket", "vatNumberUpdate" ) }}
             </td>
         </tr>
     {% endif %}
@@ -83,12 +83,26 @@
 
 </table>
 
-    {{ component( 'billingAddress' ) }}
-
+    {{ state.renderedBillingAddress }}
+    
     {% if ( state.readyForPaymentInfo() ) and (not state.complete) %}
         <div class="basketPaymentProviders">
-            {% for provider in state.paymentProviderNames %}
-                {{ component( provider ) }}
+            {% for providerConfig in state.config.paymentProviders %}
+                {{ this.childComponent( 
+                    providerConfig.name,
+                    providerConfig.componentClass,
+                    {
+                        'config' :              providerConfig.conf,
+                        'buttonLabel' :         null,
+                        'email' :               null,
+                        'testMode' :            state.testMode,
+                        'description' :         state.config.briefDescription,
+                        'amount' :              state.total,
+                        'basketReady' :         state.readyForPaymentInfo(),
+                        'transactionComplete' : state.complete,
+                        'address' :             this.childComponents.billingAddress.getState()
+                    }
+                ) }}
             {% endfor %}
         </div>
     {% elseif ( not state.readyForPaymentInfo() ) and (not state.complete) %}
@@ -96,7 +110,7 @@
     {% else %}
         <span class="error">This transaction has been completed.</span>
     {% endif %}
-
+    
     <br clear="both">
 
 {{ state.outro }}

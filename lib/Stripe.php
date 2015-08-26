@@ -178,7 +178,7 @@ class Stripe extends AbstractViewComponent
     }
 
     /**
-     * Using $this->state, optionally update state, optionally create child components via addOrUpdateChild(), return template props
+     * Update $this->state
      * @param $props
      * @return array Template props
      */
