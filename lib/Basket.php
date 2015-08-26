@@ -223,7 +223,11 @@ class Basket extends AbstractViewComponent
         if (!extension_loaded( 'geoip' )) {
             throw new \Exception( "There is a configuration error in the application. The GeoIP extension is not loaded." );
         }
-        return geoip_country_code_by_name( $this->state->config->remoteIp );
+        $countryCode = geoip_country_code_by_name( $this->state->config->remoteIp );
+        if( false === $countryCode ){
+            return null;
+        }
+        return $countryCode;
     }
 
     /**
@@ -326,7 +330,6 @@ class Basket extends AbstractViewComponent
                 $providerConfig->name, $providerConfig->componentClass,
                 [
                     'config' => $providerConfig->conf,
-                    'cardMustMatchCountryCode' => $this->state->ipCountryCode,
                     'buttonLabel' => null,
                     'email' => null,
                     'testMode' => $this->state->testMode,

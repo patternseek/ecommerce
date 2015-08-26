@@ -62,13 +62,6 @@ class StripeState extends ViewState
      */
     public $apiPubKey;
 
-    /**
-     * @var string
-     *
-     * @Assert\Type(type="string")
-     * @Assert\Length(min="2", max="2")
-     */
-    public $cardMustMatchCountryCode;
 
     /**
      * @var string
