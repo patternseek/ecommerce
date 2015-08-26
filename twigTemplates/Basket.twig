@@ -33,7 +33,7 @@
                         ( {{ state.config.countryCode|upper }} VAT )
                     {% else %}
                         {% set isEU = false %}
-                        {% for cc,country in this.getVatCountries() %}
+                        {% for cc,country in this.getEUVatCountries() %}
                             {% if lineItem.remoteVatJusrisdictionCountryCode == cc %}
                                 {% set isEU = true %}
                             {% endif %}
@@ -62,7 +62,7 @@
                 {% endif %}
                 <input type="text" name="vatNumber" placeholder="EU VAT number">
                 <select name="countryCode">
-                    {% for cc,country in this.getVatCountries() %}
+                    {% for cc,country in this.getEUVatCountries() %}
                         <option value="{{ cc }}"
                                 {% if cc == state.config.countryCode|upper %}selected="selected"{% endif %}>{{ country }}</option>
                     {% endfor %}
