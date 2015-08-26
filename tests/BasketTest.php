@@ -597,7 +597,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 //        ];
 
         /** @var \PatternSeek\ECommerce\Basket $view */
-        $view = new Basket( null, null, [] );
+        $view = new Basket();
 
         $this->successCallback =
             function ( Transaction $txnDetails ) use ( &$successOutput ){

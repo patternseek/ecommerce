@@ -317,8 +317,7 @@ class Basket extends AbstractViewComponent
 
         // Set up billing address
         $this->addOrUpdateChild(
-            'billingAddress', '\\PatternSeek\\ECommerce\\Address',
-            [  'state' => $this->state->config->billingAddress ]
+            'billingAddress', '\\PatternSeek\\ECommerce\\Address', [ 'state' => $this->state->config->billingAddress ]
         );
 
         $this->updateLineItemsAndTotal();
@@ -327,19 +326,17 @@ class Basket extends AbstractViewComponent
         $this->state->paymentProviderNames = [ ];
         foreach ($this->state->config->paymentProviders as $providerConfig) {
             $this->addOrUpdateChild(
-                $providerConfig->name, $providerConfig->componentClass,
-                [
-                    'config' => $providerConfig->conf,
-                    'buttonLabel' => null,
-                    'email' => null,
-                    'testMode' => $this->state->testMode,
-                    
-                    'description' => $this->state->config->briefDescription,
-                    'amount' => $this->state->total,
-                    'basketReady' => $this->state->readyForPaymentInfo(),
-                    'transactionComplete' => $this->state->complete,
-                    'address' => $this->childComponents[ 'billingAddress' ]->getState()
-                ]);
+                $providerConfig->name, $providerConfig->componentClass, [
+                'config' => $providerConfig->conf,
+                'buttonLabel' => null,
+                'email' => null,
+                'testMode' => $this->state->testMode,
+                'description' => $this->state->config->briefDescription,
+                'amount' => $this->state->total,
+                'basketReady' => $this->state->readyForPaymentInfo(),
+                'transactionComplete' => $this->state->complete,
+                'address' => $this->childComponents[ 'billingAddress' ]->getState()
+            ] );
             $this->state->paymentProviderNames[ ] = $providerConfig->name;
         }
 
