@@ -53,14 +53,8 @@
                 {% endif %}
             </td>
         </tr>
-    </tbody>
-</table>
-<table class="basketTable">
-    <thead>
-    </thead>
-    <tbody>
     {% endfor %}
-        <tr>
+        <tr class="topseperator">
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td><strong>TOTAL VAT</strong></td>
@@ -72,14 +66,9 @@
             <td><strong>TOTAL</strong></td>
             <td>{{ state.config.currencySymbol }}{{ state.total|number_format(2) }}</td>
         </tr>
-    </tbody>
-</table>
-<table class="basketTable">
-    <thead>
-    </thead>
-    <tbody>
+
     {% if not state.complete %}
-        <tr>
+        <tr class="topseperator">
             <td>
                 EU VAT number
             </td>
@@ -103,6 +92,8 @@
         </tr>
     {% endif %}
     </tbody>
+
+
 </table>
 
     {{ state.renderedBillingAddress }}
