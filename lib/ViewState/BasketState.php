@@ -68,6 +68,13 @@ class BasketState extends ViewState
     public $total;
 
     /**
+     * @var double
+     *
+     * @Assert\Type(type="double")
+     */
+    public $vatTotal;
+
+    /**
      * Set to true if one or more LineItems require proof of the user's VAT location
      * @var boolean
      *
@@ -163,6 +170,7 @@ class BasketState extends ViewState
      * @var string
      */
     public $renderedBillingAddress;
+    
 
     /**
      * Determine whether payment process is ready to begin.

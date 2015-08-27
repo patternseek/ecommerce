@@ -247,6 +247,7 @@ class Basket extends AbstractViewComponent
         }
         $provisionalRemoteRate = $this->state->getVatRate( $provisionalUserCountryCode );
         $total = 0;
+        $vatTotal = 0;
         $this->state->requireVATLocationProof = false;
         $this->state->transactionDetail = implode( ', ',
                 [
@@ -278,6 +279,7 @@ class Basket extends AbstractViewComponent
 
             $lineItemTotal = $lineItem->getTotal();
             $total += $lineItemTotal;
+            $vatTotal += $lineItem->getTotalVAT();
             $this->state->transactionDetail .= implode( ', ',
                     [
                         ( $lineItem->quantity?$lineItem->quantity:'-' ),
@@ -290,6 +292,7 @@ class Basket extends AbstractViewComponent
             $lineItem->validate();
         }
         $this->state->total = (double)$total;
+        $this->state->vatTotal = (double)$vatTotal;
     }
 
     /**
