@@ -15,6 +15,11 @@ class BasketState extends ViewState
 {
 
     /**
+     * @var string
+     */
+    public $successMessage;
+    
+    /**
      * @var bool
      */
     public $initialised = false;

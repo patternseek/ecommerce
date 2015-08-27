@@ -198,7 +198,8 @@ class Basket extends AbstractViewComponent
             $txn->validationError = $e->getMessage();
         }
 
-        return $this->state->transactionSuccessCallback->__invoke( $txn, $this );
+        $this->state->successMessage = $this->state->transactionSuccessCallback->__invoke( $txn, $this )->content;
+        return $this->renderRoot();
     }
 
     /**

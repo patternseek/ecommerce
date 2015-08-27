@@ -479,7 +479,8 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'time' => $successOutput[ 'time' ]
         ];
         ksort( $expected );
-        $this->assertEquals( var_export( $expected, true ), $execOut  );
+        $expectedString = "<div id=\"component-basket\">\n    ".var_export( $expected, true )."\n</div>";
+        $this->assertEquals( $expectedString, $execOut  );
 
     }
 
@@ -534,7 +535,8 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'time' => null
         ];
         ksort( $expected );
-        $this->assertEquals( var_export( $expected, true ), $execOut  );
+        $expectedString = "<div id=\"component-basket\">\n    ".var_export( $expected, true )."\n</div>";
+        $this->assertEquals( $expectedString, $execOut  );
 
     }
 
