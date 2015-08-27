@@ -331,6 +331,7 @@ class Address extends AbstractViewComponent
         $this->parent->setAddressStatus( $this->isReady(), $this->state->countryCode, $this->state->__toString() );
 
         $this->parent->updateAddressOutput();
+        
         return $this->parent->render();
     }
 

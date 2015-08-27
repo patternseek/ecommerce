@@ -14,6 +14,7 @@ use PatternSeek\ComponentView\AbstractViewComponent;
 use PatternSeek\ComponentView\Template\TwigTemplate;
 use PatternSeek\ComponentView\ViewComponentResponse;
 use PatternSeek\ECommerce\ViewState\BasketState;
+use Psr\Log\LogLevel;
 
 /**
  * Class Basket
@@ -154,6 +155,9 @@ class Basket extends AbstractViewComponent
         $this->state->addressReady = $isReady;
         $this->state->addressCountryCode = $countryCode;
         $this->state->addressAsString = $addressString;
+        
+        $this->updateLineItemsAndTotal();
+        
     }
 
     /**
@@ -269,6 +273,8 @@ class Basket extends AbstractViewComponent
                 $lineItem->enjoyedInLocationType = 'row';
             }
             $lineItem->calculateVat( $this->state->config->localVatRate, $provisionalRemoteRate );
+            
+            $this->log( "Line item after VAT calculation: ".var_export( $lineItem, true ), LogLevel::DEBUG );
 
             if ($lineItem->productType == "electronicservices") {
                 $this->state->requireVATLocationProof = true;
