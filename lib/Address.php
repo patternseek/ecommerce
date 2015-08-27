@@ -322,7 +322,7 @@ class Address extends AbstractViewComponent
         foreach ($this->state->requiredFields as $req => $label) {
             if (!$args[ $req ]) {
                 $this->setFlashError( $label . " is a required field." );
-                return $this->renderRoot();
+                return $this->parent->render();
             }
         }
 

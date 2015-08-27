@@ -129,7 +129,7 @@ class Basket extends AbstractViewComponent
         $this->updateLineItemsAndTotal();
 
         // Render full component
-        return $this->renderRoot();
+        return $this->render();
     }
 
     /**
@@ -199,6 +199,7 @@ class Basket extends AbstractViewComponent
         }
 
         $this->state->successMessage = $this->state->transactionSuccessCallback->__invoke( $txn, $this )->content;
+        // Render full component, including parent of basket, if any.
         return $this->renderRoot();
     }
 
