@@ -22,11 +22,6 @@ class Basket extends AbstractViewComponent
 {
 
     /**
-     * @var callable
-     */
-    public $transactionSuccessCallback;
-
-    /**
      * @var BasketState
      */
     protected $state;
@@ -203,7 +198,7 @@ class Basket extends AbstractViewComponent
             $txn->validationError = $e->getMessage();
         }
 
-        return $this->transactionSuccessCallback->__invoke( $txn );
+        return $this->state->transactionSuccessCallback->__invoke( $txn, $this );
     }
 
     /**
@@ -316,15 +311,16 @@ class Basket extends AbstractViewComponent
             $this->init( $props );
         }
 
-        // Callbacks must be provided on each update as they can't be serialised.
         $this->testInputs(
             [
-                'transactionSuccessCallback' => [ 'callable' ]
+                'transactionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\TransactionSuccessCallback', null ]
             ],
             $props
         );
 
-        $this->transactionSuccessCallback = $props[ 'transactionSuccessCallback' ];
+        if( $props['transactionSuccessCallback'] instanceof TransactionSuccessCallback  ){
+            $this->state->transactionSuccessCallback = $props[ 'transactionSuccessCallback' ];
+        }
 
         // Set up billing address and store its html
         // This is done here instead of in-template because

@@ -459,13 +459,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             ]
         );
         $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
-        $this->assertTrue(
-            $execOut == ">>>Sample success page<<<"
-        );
         $expected = [
-            'clientName' => '',
+            'clientName' => null,
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited States",
-            'clientEmail' => '',
+            'clientEmail' => null,
             'transactionDescription' => 'Brief description of basket contents.',
             'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some online service, 100, 0, zero\n",
             'chargeID' => 'TestStripeID',
@@ -481,7 +478,9 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'vatRateUsed' => 0,
             'time' => $successOutput[ 'time' ]
         ];
-        $this->assertEquals( $expected, $successOutput );
+        ksort( $expected );
+        $this->assertEquals( var_export( $expected, true ), $execOut  );
+
     }
 
     /**
@@ -515,14 +514,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         );
         $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
 
-        $this->assertTrue(
-            $execOut == ">>>Sample success page<<<"
-        );
-
         $expected = [
-            'clientName' => '',
+            'clientName' => null,
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited Kingdom",
-            'clientEmail' => '',
+            'clientEmail' => null,
             'transactionDescription' => 'Brief description of basket contents.',
             'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some online service, 100, 20, customer\n",
             'chargeID' => 'TestStripeID',
@@ -536,10 +531,11 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'ipCountryCode' => 'GB',
             'vatCalculationBaseOnCountryCode' => 'GB',
             'vatRateUsed' => 0.20000000000000001,
-            'time' => $successOutput[ 'time' ]
+            'time' => null
         ];
+        ksort( $expected );
+        $this->assertEquals( var_export( $expected, true ), $execOut  );
 
-        $this->assertEquals( $expected, $successOutput );
     }
 
     /**
@@ -599,12 +595,8 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         /** @var \PatternSeek\ECommerce\Basket $view */
         $view = new Basket();
 
-        $this->successCallback =
-            function ( Transaction $txnDetails ) use ( &$successOutput ){
-                $successOutput = (array)$txnDetails;
-                unset( $successOutput[ 'validationError' ] );
-                return new ViewComponentResponse( "text/plain", ">>>Sample success page<<<" );
-            };
+        $this->successCallback = new TestSuccess(); 
+            
 
         $view->updateProps(
             [

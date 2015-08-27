@@ -4,6 +4,7 @@ namespace PatternSeek\ECommerce\ViewState;
 
 use PatternSeek\ComponentView\ViewState\ViewState;
 use PatternSeek\ECommerce\BasketConfig;
+use PatternSeek\ECommerce\TransactionSuccessCallback;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -170,8 +171,12 @@ class BasketState extends ViewState
      * @var string
      */
     public $renderedBillingAddress;
-    
 
+    /**
+     * @var TransactionSuccessCallback
+     */
+    public $transactionSuccessCallback;
+    
     /**
      * Determine whether payment process is ready to begin.
      * @return bool
