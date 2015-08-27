@@ -305,6 +305,7 @@ class Address extends AbstractViewComponent
     public function editModeHandler( $args )
     {
         $this->state->mode = 'edit';
+        $this->parent->updateAddressOutput();
         return $this->parent->render();
     }
 
@@ -329,6 +330,7 @@ class Address extends AbstractViewComponent
 
         $this->parent->setAddressStatus( $this->isReady(), $this->state->countryCode, $this->state->__toString() );
 
+        $this->parent->updateAddressOutput();
         return $this->parent->render();
     }
 
@@ -366,7 +368,7 @@ class Address extends AbstractViewComponent
     {
         $this->testInputs(
             [
-                'state' => [ 'PatternSeek\\ECommerce\\ViewState\\AddressState' ]
+                'state' => [ 'PatternSeek\\ECommerce\\ViewState\\AddressState', null ]
             ],
             $props
         );

@@ -214,6 +214,14 @@ class Basket extends AbstractViewComponent
         return $this->state;
     }
 
+    public function updateAddressOutput()
+    {
+        $this->state->renderedBillingAddress = $this->childComponent(
+            'billingAddress', '\\PatternSeek\\ECommerce\\Address',
+            [ 'state' => $this->state->config->billingAddress ]
+        );
+    }
+
     /**
      * @return string
      * @throws \Exception
@@ -315,13 +323,12 @@ class Basket extends AbstractViewComponent
 
         $this->transactionSuccessCallback = $props[ 'transactionSuccessCallback' ];
 
-        // Set up billing address.
+        // Set up billing address and store its html
         // This is done here instead of in-template because
         // it does things we need for updateLineItemsAndTotal() below.
-        $this->state->renderedBillingAddress = $this->childComponent(
-            'billingAddress', '\\PatternSeek\\ECommerce\\Address', 
-            [ 'state' => $this->state->config->billingAddress ]
-        );
+        // Unfortunately this means this method also has to be called 
+        // from Address when any of its Handler methods are called.
+        $this->updateAddressOutput();
 
         $this->updateLineItemsAndTotal();
     }
