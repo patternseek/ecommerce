@@ -89,7 +89,7 @@ class Stripe extends AbstractViewComponent
         // to calculate the original VAT?
         if (!$this->parent->confirmValidTxnFunc( $countryCode )) {
             $this->parent->setFlashError( "Sorry but we can't collect enough information about your location to comply with EU VAT legislation with the information we have available. You have not been charged. Please contact us to arrange a manual payment." );
-            return $this->parent->render();
+            return $this->renderRoot();
         }
 
         /*
@@ -145,7 +145,7 @@ class Stripe extends AbstractViewComponent
             );
         }catch( \Stripe\Error\Card $e ){
             $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
-            return $this->parent->render();
+            return $this->renderRoot();
         }
 
         $ret = new Transaction();

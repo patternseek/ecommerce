@@ -49,7 +49,7 @@
         if (response.error) {
             // Show the errors on the form
             form.find('.payment-errors').html(response.error.message + "<br><br>");
-            form.find('button').prop('disabled', false);
+            form.find('input[type="submit"]').removeProp('disabled');
         } else {
             // token contains id, last4, and card type
             var token = response.id;
