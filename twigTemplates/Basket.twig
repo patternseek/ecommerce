@@ -53,6 +53,12 @@
                 {% endif %}
             </td>
         </tr>
+    </tbody>
+</table>
+<table class="basketTable">
+    <thead>
+    </thead>
+    <tbody>
     {% endfor %}
         <tr>
             <td>&nbsp;</td>
@@ -66,7 +72,12 @@
             <td><strong>TOTAL</strong></td>
             <td>{{ state.config.currencySymbol }}{{ state.total|number_format(2) }}</td>
         </tr>
-
+    </tbody>
+</table>
+<table class="basketTable">
+    <thead>
+    </thead>
+    <tbody>
     {% if not state.complete %}
         <tr>
             <td>
@@ -92,8 +103,6 @@
         </tr>
     {% endif %}
     </tbody>
-
-
 </table>
 
     {{ state.renderedBillingAddress }}
