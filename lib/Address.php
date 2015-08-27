@@ -305,7 +305,7 @@ class Address extends AbstractViewComponent
     public function editModeHandler( $args )
     {
         $this->state->mode = 'edit';
-        return $this->renderRoot();
+        return $this->parent->render();
     }
 
     public function setAddressHandler( $args )
@@ -329,7 +329,7 @@ class Address extends AbstractViewComponent
 
         $this->parent->setAddressStatus( $this->isReady(), $this->state->countryCode, $this->state->__toString() );
 
-        return $this->renderRoot();
+        return $this->parent->render();
     }
 
     function getState()
