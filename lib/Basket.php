@@ -175,6 +175,7 @@ class Basket extends AbstractViewComponent
 
     /**
      * @param Transaction $txn
+     * @return ViewComponentResponse
      */
     public function transactionSuccess( Transaction $txn )
     {
