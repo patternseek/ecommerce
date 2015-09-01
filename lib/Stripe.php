@@ -58,7 +58,10 @@ class Stripe extends AbstractViewComponent
         // if it's not ready or the transaction is complete.
         if (( !$this->state->ready ) || ( $this->state->complete )) {
             $this->parent->setFlashError( "The basket is not ready yet. Please ensure you've filled in all required fields." );
-            return $this->renderRoot();
+
+            $root = $this->getRootComponent();
+            $root->updateState();
+            return $root->render();
         }
 
         $this->testInputs(
@@ -89,7 +92,10 @@ class Stripe extends AbstractViewComponent
         // to calculate the original VAT?
         if (!$this->parent->confirmValidTxnFunc( $countryCode )) {
             $this->parent->setFlashError( "Sorry but we can't collect enough information about your location to comply with EU VAT legislation with the information we have available. You have not been charged. Please contact us to arrange a manual payment." );
-            return $this->renderRoot();
+
+            $root = $this->getRootComponent();
+            $root->updateState();
+            return $root->render();
         }
 
         /*
@@ -145,7 +151,10 @@ class Stripe extends AbstractViewComponent
             );
         }catch( \Stripe\Error\Card $e ){
             $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
-            return $this->renderRoot();
+
+            $root = $this->getRootComponent();
+            $root->updateState();
+            return $root->render();
         }
 
         $ret = new Transaction();
@@ -177,13 +186,10 @@ class Stripe extends AbstractViewComponent
         $this->template = new TwigTemplate( $this, null, $tplTwig );
     }
 
-    /**
-     * Update $this->state
-     * @param $props
-     * @return array Template props
-     */
-    protected function update( $props )
+    protected function updateState()
     {
+        $props = $this->props;
+        
         if( null == $this->state ){
             $this->init( $props );
         }

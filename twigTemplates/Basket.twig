@@ -80,27 +80,13 @@
     
     
     </table>
-    
-        {{ state.renderedBillingAddress }}
+
+    {{ this.renderChild('billingAddress') }}
         
         {% if ( state.readyForPaymentInfo() ) and (not state.complete) %}
             <div class="basketPaymentProviders">
                 {% for providerConfig in state.config.paymentProviders %}
-                    {{ this.childComponent( 
-                        providerConfig.name,
-                        providerConfig.componentClass,
-                        {
-                            'config' :              providerConfig.conf,
-                            'buttonLabel' :         null,
-                            'email' :               null,
-                            'testMode' :            state.testMode,
-                            'description' :         state.config.briefDescription,
-                            'amount' :              state.total,
-                            'basketReady' :         state.readyForPaymentInfo(),
-                            'transactionComplete' : state.complete,
-                            'address' :             this.childComponents.billingAddress.getState()
-                        }
-                    ) }}
+                    {{ this.renderChild( providerConfig.name ) }}
                 {% endfor %}
             </div>
         {% elseif ( not state.readyForPaymentInfo() ) and (not state.complete) %}

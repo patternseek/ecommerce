@@ -9,14 +9,12 @@
  */
 namespace PatternSeek\ECommerce\Test;
 
-use PatternSeek\ComponentView\ViewComponentResponse;
 use PatternSeek\DependencyInjector\DependencyInjector;
 use PatternSeek\ECommerce\Basket;
 use PatternSeek\ECommerce\BasketConfig;
 use PatternSeek\ECommerce\LineItem;
 use PatternSeek\ECommerce\StripeFacade\Stripe_TokenMock;
 use PatternSeek\ECommerce\StripeFacade\StripeFacade;
-use PatternSeek\ECommerce\Transaction;
 use Pimple\Container;
 
 /**
@@ -360,7 +358,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         /** @var Basket $unserialised */
         $unserialised = unserialize( $serialised );
 
-        $unserialised->updateProps(
+        $unserialised->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -410,7 +408,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         Stripe_TokenMock::$typeSetting = 'card';
         Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'ES' ];
 
-        $uns->updateProps(
+        $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -430,7 +428,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     {
         Stripe_TokenMock::$typeSetting = 'card';
         Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
-        $uns->updateProps(
+        $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -453,7 +451,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         // US card + US address + GB IP, should succeed
         Stripe_TokenMock::$typeSetting = 'card';
         Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
-        $uns->updateProps(
+        $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -466,6 +464,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'transactionDescription' => 'Brief description of basket contents.',
             'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some online service, 100, 0, zero\n",
             'chargeID' => 'TestStripeID',
+            'vatAmount' => 0,
             'paymentCountryCode' => 'US',
             'paymentType' => 'card',
             'vatNumberStatus' => 'notchecked',
@@ -493,7 +492,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         // GB card + GB address + GB IP, should succeed
         Stripe_TokenMock::$typeSetting = 'card';
         Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
-        $uns->updateProps(
+        $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -508,7 +507,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             ]
         )->content;
 
-        $uns->updateProps(
+        $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
@@ -526,6 +525,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'paymentType' => 'card',
             'vatNumberStatus' => 'notchecked',
             'vatNumberGiven' => null,
+            'vatAmount' => 20,
             'vatNumberGivenCountryCode' => null,
             'transactionAmount' => 120,
             'billingAddressCountryCode' => 'GB',
@@ -597,10 +597,9 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         /** @var \PatternSeek\ECommerce\Basket $view */
         $view = new Basket();
 
-        $this->successCallback = new TestSuccess(); 
-            
+        $this->successCallback = new TestSuccess();
 
-        $view->updateProps(
+        $view->updateView(
             [
                 'config' => $config,
                 'vatRates' => $vatRates,

@@ -153,4 +153,12 @@ class Transaction extends StructClass
      */
     public $paymentType;
 
+    /**
+     * @var double
+     *
+     * @Assert\NotBlank()
+     * @Assert\Type(type="double")
+     */
+    public $vatAmount;
+
 }

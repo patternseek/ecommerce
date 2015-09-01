@@ -130,6 +130,7 @@ class Basket extends AbstractViewComponent
         $this->updateLineItemsAndTotal();
 
         // Render full component
+        $this->updateState();
         return $this->render();
     }
 
@@ -189,6 +190,7 @@ class Basket extends AbstractViewComponent
         $txn->vatNumberGiven = $this->state->vatNumber;
         $txn->vatNumberGivenCountryCode = $this->state->vatNumberCountryCode;
         $txn->transactionAmount = $this->state->total;
+        $txn->vatAmount = $this->state->vatTotal;
         $txn->billingAddressCountryCode = $this->state->addressCountryCode;
         $txn->ipCountryCode = $this->state->ipCountryCode;
         $txn->vatCalculationBaseOnCountryCode = $this->state->vatCalculatedBasedOnCountryCode;
@@ -205,7 +207,9 @@ class Basket extends AbstractViewComponent
 
         $this->state->successMessage = $this->state->transactionSuccessCallback->__invoke( $txn, $this )->content;
         // Render full component, including parent of basket, if any.
-        return $this->renderRoot();
+        $root = $this->getRootComponent();
+        $root->updateState();
+        return $root->render();
     }
 
     /**
@@ -214,14 +218,6 @@ class Basket extends AbstractViewComponent
     function getStateForTesting()
     {
         return $this->state;
-    }
-
-    public function updateAddressOutput()
-    {
-        $this->state->renderedBillingAddress = $this->childComponent(
-            'billingAddress', '\\PatternSeek\\ECommerce\\Address',
-            [ 'state' => $this->state->config->billingAddress ]
-        );
     }
 
     /**
@@ -279,6 +275,9 @@ class Basket extends AbstractViewComponent
             if ($lineItem->productType == "electronicservices") {
                 $this->state->requireVATLocationProof = true;
                 $this->state->vatCalculatedBasedOnCountryCode = $provisionalUserCountryCode;
+            }else {
+                $this->state->requireVATLocationProof = false;
+                $this->state->vatCalculatedBasedOnCountryCode = $this->state->config->countryCode; // Vendor country
             }
 
             $lineItemTotal = $lineItem->getTotal();
@@ -308,14 +307,10 @@ class Basket extends AbstractViewComponent
         $this->state = new BasketState();
     }
 
-    /**
-     * Update $this->state
-     * @param $props
-     * @return array Template props
-     */
-    protected function update( $props )
+    protected function updateState()
     {
-        
+        $props = $this->props;
+
         if( ! $this->state->initialised ){
             $this->init( $props );
         }
@@ -331,13 +326,29 @@ class Basket extends AbstractViewComponent
             $this->state->transactionSuccessCallback = $props[ 'transactionSuccessCallback' ];
         }
 
-        // Set up billing address and store its html
-        // This is done here instead of in-template because
-        // it does things we need for updateLineItemsAndTotal() below.
-        // Unfortunately this means this method also has to be called 
-        // from Address when any of its Handler methods are called.
-        $this->updateAddressOutput();
+        $this->addOrUpdateChild(
+            'billingAddress', '\\PatternSeek\\ECommerce\\Address',
+            [ 'state' => $this->state->config->billingAddress ]
+        );
 
+        foreach ($this->state->config->paymentProviders as $providerConfig) {
+            $this->addOrUpdateChild(
+                $providerConfig->name,
+                $providerConfig->componentClass,
+                [
+                    'config' => $providerConfig->conf,
+                    'buttonLabel' => null,
+                    'email' => null,
+                    'testMode' => $this->state->testMode,
+                    'description' => $this->state->config->briefDescription,
+                    'amount' => $this->state->total,
+                    'basketReady' => $this->state->readyForPaymentInfo(),
+                    'transactionComplete' => $this->state->complete,
+                    'address' => $this->childComponents[ 'billingAddress' ]->getState()
+                ]
+            );
+        }
+        
         $this->updateLineItemsAndTotal();
     }
 

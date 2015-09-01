@@ -305,7 +305,8 @@ class Address extends AbstractViewComponent
     public function editModeHandler( $args )
     {
         $this->state->mode = 'edit';
-        $this->parent->updateAddressOutput();
+
+        $this->parent->updateState();
         return $this->parent->render();
     }
 
@@ -322,6 +323,8 @@ class Address extends AbstractViewComponent
         foreach ($this->state->requiredFields as $req => $label) {
             if (!$args[ $req ]) {
                 $this->setFlashError( $label . " is a required field." );
+
+                $this->parent->updateState();
                 return $this->parent->render();
             }
         }
@@ -330,8 +333,7 @@ class Address extends AbstractViewComponent
 
         $this->parent->setAddressStatus( $this->isReady(), $this->state->countryCode, $this->state->__toString() );
 
-        $this->parent->updateAddressOutput();
-        
+        $this->parent->updateState();
         return $this->parent->render();
     }
 
@@ -360,13 +362,10 @@ class Address extends AbstractViewComponent
         // Done in update
     }
 
-    /**
-     * Using $props and $this->state, optionally update state, optionally create child components via addOrUpdateChild().
-     * @param array $props
-     * @return void
-     */
-    protected function update( $props )
+    protected function updateState()
     {
+        $props = $this->props;
+
         $this->testInputs(
             [
                 'state' => [ 'PatternSeek\\ECommerce\\ViewState\\AddressState', null ]

@@ -23,7 +23,7 @@ namespace PatternSeek\ECommerce;
  * } 
  * 
  * $callback = new TransactionSuccessCallback( ['neededVariable'=>$neededVariable, 'otherVariable'=>$other ] );
- * Then pass to the Basket component via the 'transactionSuccessCallback' property of the updateProps() method. 
+ * Then pass to the Basket component via the 'transactionSuccessCallback' property of the updateView() method (or via addOrUpdateChild() if it's a child of another component). 
  * 
  * Note that the $variables property will have been serialised so won't maintain references to live variables.
  * If the Basket is embedded in anothe ViewComponent then fresh data can be fetched from that via $basket->getParent()
