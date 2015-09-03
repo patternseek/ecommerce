@@ -89,6 +89,8 @@ class Basket extends AbstractViewComponent
 
         $args[ 'vatNumber' ] = str_replace( ' ', '', $args[ 'vatNumber' ] );
 
+        $args[ 'vatNumber' ] = strtoupper( $args[ 'vatNumber' ] );
+
         $this->state->vatNumber = null;
         $this->state->vatNumberStatus = null;
         $this->state->vatNumberCountryCode = null;
