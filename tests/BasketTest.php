@@ -286,7 +286,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
 
         $view->render( "validateVatNumber",
-            [ "countryCode" => "ES", "vatNumber" => "A28015865" ] ); //Telefonica Spain VAT number
+            [ "countryCode" => "ES", "vatNumber" => "a28015865" ] ); //Telefonica Spain VAT number
 
         $state = $view->getStateForTesting();
         $this->assertTrue(
@@ -321,7 +321,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
 
         $view->render( "validateVatNumber",
-            [ "countryCode" => "ES", "vatNumber" => "A28015865" ] ); //Telefonica Spain VAT number
+            [
+                "countryCode" => "ES",
+                "vatNumber" => "a28015865"
+            ] ); //Telefonica Spain VAT number, deliberately lower case, would be rejected if not uppercased by Basket
 
         $state = $view->getStateForTesting();
         $this->assertFalse(
