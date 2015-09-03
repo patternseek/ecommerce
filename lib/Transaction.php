@@ -12,7 +12,19 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Transaction extends StructClass
 {
 
+    /**
+     * @var string
+     * @Assert\Type(type="string")
+     */
     public $validationError;
+
+    /**
+     * Whether the transaction is a live or test transaction.
+     *
+     * @var boolean
+     * @Assert\Type(type="boolean")
+     */
+    public $testMode;
 
     /**
      * @var string

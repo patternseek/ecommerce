@@ -188,6 +188,7 @@ class Basket extends AbstractViewComponent
     {
         $this->state->complete = true;
 
+        $txn->testMode = $this->state->testMode;
         $txn->vatNumberStatus = $this->state->vatNumberStatus;
         $txn->vatNumberGiven = $this->state->vatNumber;
         $txn->vatNumberGivenCountryCode = $this->state->vatNumberCountryCode;
