@@ -208,11 +208,19 @@ class BasketState extends ViewState
     }
 
     /**
-     * Get either the confirmed country code
+     * Get the confirmed country code. Based on IP, billing address and card country for B2C or
+     * ROW B2B, VAT number country for B2B within EU
+     * 
      * @return string Two letter country code, lower case
      */
     public function getConfirmedUserCountryCode()
     {
+
+        // If we have a valid (or not checked due to VIES being down) VAT number then that is authoritative
+        if ($vatCC = $this->validVatNumberCC()) {
+            return $vatCC;
+        }
+
         if (
             $this->ipCountryCode != null
             && $this->addressCountryCode != null
@@ -252,6 +260,20 @@ class BasketState extends ViewState
             return 0.0;
         }
         return ( (double)$this->vatRates[ 'rates' ][ $ucCountryCode ][ 'standard_rate' ] / 100 );
+    }
+
+    /**
+     * Get VAT country code if valid or unchecked due to technical issues with VIES, else FALSE
+     *
+     * @return bool|string
+     */
+    private function validVatNumberCC()
+    {
+        if ($this->vatNumber && $this->vatNumberCountryCode && ( ( $this->vatNumberStatus == "valid" ) || ( $this->vatNumberStatus == "notchecked" ) )) {
+            return $this->vatNumberCountryCode;
+        }else {
+            return false;
+        }
     }
 
 }

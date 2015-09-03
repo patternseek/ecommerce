@@ -292,8 +292,9 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(
             $state->requireUserLocationProof
         );
-        $this->assertFalse(
-            $state->getConfirmedUserCountryCode() // ES address, UK IP
+        $this->assertEquals(
+            "ES",
+            $state->getConfirmedUserCountryCode() // B2B with valid VAT number, so VAT number CC is authoritative
         );
         $this->assertTrue(
             $state->vatInfoOk() // No need to record location info for a business (despite address and IP not matching)
@@ -326,8 +327,9 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse(
             $state->requireUserLocationProof // Not needed for normal services
         );
-        $this->assertFalse(
-            $state->getConfirmedUserCountryCode() // ES address, UK IP
+        $this->assertEquals(
+            "ES",
+            $state->getConfirmedUserCountryCode() // B2B with valid VAT number, so VAT number CC is authoritative
         );
         $this->assertTrue(
             $state->vatInfoOk() // No need to record location info for a business (despite address and IP not matching)
