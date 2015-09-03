@@ -39,10 +39,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertTrue(
-            $state->requireVATLocationProof
+            $state->requireUserLocationProof
         );
         $this->assertTrue(
-            $state->getConfirmedCountryCode() == "GB" // UK address, UK IP
+            $state->getConfirmedUserCountryCode() == "GB" // UK address, UK IP
         );
         $this->assertTrue(
             $state->vatInfoOk() // Confirmed country code
@@ -68,10 +68,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertFalse(
-            $state->requireVATLocationProof // Not needed for normal services
+            $state->requireUserLocationProof // Not needed for normal services
         );
         $this->assertTrue(
-            $state->getConfirmedCountryCode() == "GB" // UK address, UK IP
+            $state->getConfirmedUserCountryCode() == "GB" // UK address, UK IP
         );
         $this->assertTrue(
             $state->vatInfoOk() // Confirmed country code
@@ -97,10 +97,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertTrue(
-            $state->requireVATLocationProof
+            $state->requireUserLocationProof
         );
         $this->assertFalse(
-            $state->getConfirmedCountryCode() // ES address, UK IP
+            $state->getConfirmedUserCountryCode() // ES address, UK IP
         );
         $this->assertFalse(
             $state->vatInfoOk() // No confirmed country code
@@ -126,10 +126,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertFalse(
-            $state->requireVATLocationProof // Not needed for normal services
+            $state->requireUserLocationProof // Not needed for normal services
         );
         $this->assertFalse(
-            $state->getConfirmedCountryCode() // ES address, UK IP
+            $state->getConfirmedUserCountryCode() // ES address, UK IP
         );
         $this->assertTrue(
             $state->vatInfoOk() // No confirmation needed for normal services
@@ -159,10 +159,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertTrue(
-            $state->requireVATLocationProof
+            $state->requireUserLocationProof
         );
         $this->assertFalse(
-            $state->getConfirmedCountryCode()
+            $state->getConfirmedUserCountryCode()
         );
         $this->assertTrue(
             $state->addressReady
@@ -193,10 +193,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertFalse(
-            $state->requireVATLocationProof // Not needed for normal services
+            $state->requireUserLocationProof // Not needed for normal services
         );
         $this->assertFalse(
-            $state->getConfirmedCountryCode()
+            $state->getConfirmedUserCountryCode()
         );
         $this->assertTrue(
             $state->addressReady
@@ -225,10 +225,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
         $state = $view->getStateForTesting();
         $this->assertTrue(
-            $state->requireVATLocationProof
+            $state->requireUserLocationProof
         );
         $this->assertTrue(
-            $state->getConfirmedCountryCode() == "GB" // UK address, UK IP
+            $state->getConfirmedUserCountryCode() == "GB" // UK address, UK IP
         );
         $this->assertTrue(
             $state->vatInfoOk() // Confirmed country code
@@ -257,10 +257,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
         $state = $view->getStateForTesting();
         $this->assertFalse(
-            $state->requireVATLocationProof // Not needed for normal services
+            $state->requireUserLocationProof // Not needed for normal services
         );
         $this->assertTrue(
-            $state->getConfirmedCountryCode() == "GB" // UK address, UK IP
+            $state->getConfirmedUserCountryCode() == "GB" // UK address, UK IP
         );
         $this->assertTrue(
             $state->vatInfoOk() // Confirmed country code
@@ -290,10 +290,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
         $state = $view->getStateForTesting();
         $this->assertTrue(
-            $state->requireVATLocationProof
+            $state->requireUserLocationProof
         );
         $this->assertFalse(
-            $state->getConfirmedCountryCode() // ES address, UK IP
+            $state->getConfirmedUserCountryCode() // ES address, UK IP
         );
         $this->assertTrue(
             $state->vatInfoOk() // No need to record location info for a business (despite address and IP not matching)
@@ -324,10 +324,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
         $state = $view->getStateForTesting();
         $this->assertFalse(
-            $state->requireVATLocationProof // Not needed for normal services
+            $state->requireUserLocationProof // Not needed for normal services
         );
         $this->assertFalse(
-            $state->getConfirmedCountryCode() // ES address, UK IP
+            $state->getConfirmedUserCountryCode() // ES address, UK IP
         );
         $this->assertTrue(
             $state->vatInfoOk() // No need to record location info for a business (despite address and IP not matching)
@@ -462,7 +462,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited States",
             'clientEmail' => null,
             'transactionDescription' => 'Brief description of basket contents.',
-            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some online service, 100, 0, zero\n",
+            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type, Enjoyed in location type, Product type\n-, Some online service, 100, 0, zero, row, electronicservices\n",
             'chargeID' => 'TestStripeID',
             'vatAmount' => 0,
             'paymentCountryCode' => 'US',
@@ -473,8 +473,6 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'transactionAmount' => 100,
             'billingAddressCountryCode' => 'US',
             'ipCountryCode' => 'GB',
-            'vatCalculationBaseOnCountryCode' => 'US',
-            'vatRateUsed' => 0,
             'time' => $successOutput[ 'time' ]
         ];
         ksort( $expected );
@@ -519,7 +517,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited Kingdom",
             'clientEmail' => null,
             'transactionDescription' => 'Brief description of basket contents.',
-            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type\n-, Some online service, 100, 20, customer\n",
+            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type, Enjoyed in location type, Product type\n-, Some online service, 100, 20, customer, local, electronicservices\n",
             'chargeID' => 'TestStripeID',
             'paymentCountryCode' => 'GB',
             'paymentType' => 'card',
@@ -530,8 +528,6 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'transactionAmount' => 120,
             'billingAddressCountryCode' => 'GB',
             'ipCountryCode' => 'GB',
-            'vatCalculationBaseOnCountryCode' => 'GB',
-            'vatRateUsed' => 0.20000000000000001,
             'time' => null
         ];
         ksort( $expected );

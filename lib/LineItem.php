@@ -94,7 +94,7 @@ class LineItem extends StructClass
                 $this->enjoyedInLocationType
             );
         $this->vatPerItem =
-            $this->getVatRate(
+            $this->getVat(
                 $this->vatTypeCharged,
                 $this->netPrice,
                 $vendorVatRate,
@@ -196,7 +196,7 @@ class LineItem extends StructClass
      * @internal param bool $isB2b B2B transaction if true, B2C if not.
      * @internal param string $enjoyedInLocation Where the goods are sent or the service is consumed, one of 'local','eu','row'. 'row' being Rest Of World
      */
-    private function getVatRate( $vatType, $itemPrice, $vendorRate, $customerRate )
+    private function getVat( $vatType, $itemPrice, $vendorRate, $customerRate )
     {
         switch ($vatType) {
             case "customer":
@@ -207,6 +207,5 @@ class LineItem extends StructClass
                 return 0.0;
         }
     }
-
 
 }

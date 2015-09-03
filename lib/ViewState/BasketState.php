@@ -86,7 +86,7 @@ class BasketState extends ViewState
      *
      * @Assert\Type(type="boolean")
      */
-    public $requireVATLocationProof;
+    public $requireUserLocationProof;
 
     /**
      * @var string
@@ -118,7 +118,7 @@ class BasketState extends ViewState
      * @Assert\Type(type="string")
      * @Assert\Length(min = 2, max = 2)
      */
-    public $vatCalculatedBasedOnCountryCode;
+    public $provisionalUserCountryCode;
 
 
     /**
@@ -199,19 +199,19 @@ class BasketState extends ViewState
     {
         return (
             $this->vatNumber
-            || ( !$this->requireVATLocationProof )
+            || ( !$this->requireUserLocationProof )
             || (
-                ( $this->getConfirmedCountryCode() != false )
-                && ( $this->getConfirmedCountryCode() == $this->vatCalculatedBasedOnCountryCode )
+                ( $this->getConfirmedUserCountryCode() != false )
+                && ( $this->getConfirmedUserCountryCode() == $this->provisionalUserCountryCode )
             )
         );
     }
 
     /**
-     * Get either the confirmed country code, or failing that the address country code
+     * Get either the confirmed country code
      * @return string Two letter country code, lower case
      */
-    public function getConfirmedCountryCode()
+    public function getConfirmedUserCountryCode()
     {
         if (
             $this->ipCountryCode != null

@@ -193,8 +193,6 @@ class Basket extends AbstractViewComponent
         $txn->vatAmount = $this->state->vatTotal;
         $txn->billingAddressCountryCode = $this->state->addressCountryCode;
         $txn->ipCountryCode = $this->state->ipCountryCode;
-        $txn->vatCalculationBaseOnCountryCode = $this->state->vatCalculatedBasedOnCountryCode;
-        $txn->vatRateUsed = $this->state->getVatRate( $this->state->vatCalculatedBasedOnCountryCode );
         $txn->billingAddress = $this->state->addressAsString;
         $txn->transactionDescription = $this->state->config->briefDescription;
         $txn->transactionDetail = $this->state->transactionDetail;
@@ -240,20 +238,22 @@ class Basket extends AbstractViewComponent
      */
     protected function updateLineItemsAndTotal()
     {
-        if (!( $provisionalUserCountryCode = $this->state->getConfirmedCountryCode() )) {
+        if (!( $provisionalUserCountryCode = $this->state->getConfirmedUserCountryCode() )) {
             $provisionalUserCountryCode = $this->state->addressCountryCode;
         }
         $provisionalRemoteRate = $this->state->getVatRate( $provisionalUserCountryCode );
         $total = 0;
         $vatTotal = 0;
-        $this->state->requireVATLocationProof = false;
+        $this->state->requireUserLocationProof = false;
         $this->state->transactionDetail = implode( ', ',
                 [
                     "Quantity",
                     "Description",
                     "Net per item",
                     "VAT per item",
-                    "VAT type"
+                    "VAT type",
+                    "Enjoyed in location type",
+                    "Product type"
                 ] ) . "\n";
         /** @var LineItem $lineItem */
         foreach ($this->state->lineItems as $id => $lineItem) {
@@ -272,12 +272,9 @@ class Basket extends AbstractViewComponent
             
             $this->log( "Line item after VAT calculation: ".var_export( $lineItem, true ), LogLevel::DEBUG );
 
+            $this->state->provisionalUserCountryCode = $provisionalUserCountryCode;
             if ($lineItem->productType == "electronicservices") {
-                $this->state->requireVATLocationProof = true;
-                $this->state->vatCalculatedBasedOnCountryCode = $provisionalUserCountryCode;
-            }else {
-                $this->state->requireVATLocationProof = false;
-                $this->state->vatCalculatedBasedOnCountryCode = $this->state->config->countryCode; // Vendor country
+                $this->state->requireUserLocationProof = true;
             }
 
             $lineItemTotal = $lineItem->getTotal();
@@ -289,7 +286,9 @@ class Basket extends AbstractViewComponent
                         str_replace( "\n", " ", $lineItem->description ),
                         $lineItem->netPrice,
                         $lineItem->vatPerItem,
-                        $lineItem->vatTypeCharged
+                        $lineItem->vatTypeCharged,
+                        $lineItem->enjoyedInLocationType,
+                        $lineItem->productType
                     ] ) . "\n";
 
             $lineItem->validate();

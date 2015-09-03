@@ -109,24 +109,7 @@ class Transaction extends StructClass
      * @Assert\Type(type="string")
      * @Assert\Regex(pattern="/^[A-Z]{2}$/", message="Must be two characters and upper case.")
      */
-    public $vatCalculationBaseOnCountryCode;
-
-    /**
-     * @var string
-     *
-     * @Assert\NotBlank()
-     * @Assert\Type(type="string")
-     * @Assert\Regex(pattern="/^[A-Z]{2}$/", message="Must be two characters and upper case.")
-     */
     public $paymentCountryCode;
-
-    /**
-     * @var double
-     *
-     * @Assert\NotBlank()
-     * @Assert\Type(type="double")
-     */
-    public $vatRateUsed;
 
     /**
      * @var integer
