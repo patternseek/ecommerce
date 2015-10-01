@@ -467,7 +467,19 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited States",
             'clientEmail' => null,
             'transactionDescription' => 'Brief description of basket contents.',
-            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type, Enjoyed in location type, Product type\n-, Some online service, 100, 0, zero, row, electronicservices\n",
+            'transactionDetailLegacy' => null,
+            'transactionDetailRaw' => '[
+    {
+        "description": "Some online service",
+        "netPrice": 100,
+        "vatPerItem": 0,
+        "vatTypeCharged": "zero",
+        "isB2b": false,
+        "quantity": null,
+        "productType": "electronicservices",
+        "enjoyedInLocationType": "row"
+    }
+]',
             'chargeID' => 'TestStripeID',
             'vatAmount' => 0,
             'paymentCountryCode' => 'US',
@@ -523,7 +535,19 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited Kingdom",
             'clientEmail' => null,
             'transactionDescription' => 'Brief description of basket contents.',
-            'transactionDetail' => "Quantity, Description, Net per item, VAT per item, VAT type, Enjoyed in location type, Product type\n-, Some online service, 100, 20, customer, local, electronicservices\n",
+            'transactionDetailLegacy' => null,
+            'transactionDetailRaw' => '[
+    {
+        "description": "Some online service",
+        "netPrice": 100,
+        "vatPerItem": 20,
+        "vatTypeCharged": "customer",
+        "isB2b": false,
+        "quantity": null,
+        "productType": "electronicservices",
+        "enjoyedInLocationType": "local"
+    }
+]',
             'chargeID' => 'TestStripeID',
             'paymentCountryCode' => 'GB',
             'paymentType' => 'card',

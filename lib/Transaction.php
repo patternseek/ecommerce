@@ -57,13 +57,25 @@ class Transaction extends StructClass
     public $transactionDescription;
 
     /**
+     * New transaction detail format, JSON string
+     * 
      * @var string
      *
      * @Assert\NotBlank()
      * @Assert\Type(type="string")
      */
-    public $transactionDetail;
+    public $transactionDetailRaw;
 
+    /**
+     * Old format transaction detail, CSV format
+     *
+     * @var string
+     *
+     * @Assert\NotBlank()
+     * @Assert\Type(type="string")
+     */
+    public $transactionDetailLegacy;
+    
     /**
      * @var string
      *
@@ -155,5 +167,52 @@ class Transaction extends StructClass
      * @Assert\Type(type="double")
      */
     public $vatAmount;
+
+    /**
+     * Get transaction details as array
+     *
+     * @return mixed
+     */
+    public function getTransactionDetail()
+    {
+        return json_decode( $this->transactionDetailRaw, true );
+    }
+
+    /**
+     * Set transaction details as array
+     */
+    public function setTransactionDetail( array $transactionDetail )
+    {
+        $this->transactionDetailRaw = json_encode( $transactionDetail, JSON_PRETTY_PRINT );
+    }
+
+    /**
+     * Convert from old CSV style transaction details to new JSON string format.
+     * @return boolean True if the transaction was upgraded, false if it was already in the new format.
+     */
+    public function upgradeTransactionDetail()
+    {
+        if (!is_array( $this->getTransactionDetail() )) {
+            $lines = explode( "\n", $this->transactionDetailLegacy );
+            // First line is header.
+            array_shift( $lines );
+            $newDetails = [ ];
+            foreach ($lines as $line) {
+                $tmp = [ ];
+                $tmp[ 'quantity' ] = ( $line[ 0 ] == '-' )?null:$line[ 0 ];
+                $tmp[ 'description' ] = $line[ 1 ];
+                $tmp[ 'netPrice' ] = $line[ 2 ];
+                $tmp[ 'vatPerItem' ] = $line[ 3 ];
+                $tmp[ 'vatTypeCharged' ] = $line[ 4 ];
+                $tmp[ 'enjoyedInLocationType' ] = $line[ 5 ];
+                $tmp[ 'productType' ] = $line[ 6 ];
+                $newDetails[] = $tmp;
+            }
+            $this->setTransactionDetail( $newDetails );
+            return true;
+        }else {
+            return false;
+        }
+    }
 
 }

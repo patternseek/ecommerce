@@ -198,7 +198,12 @@ class Basket extends AbstractViewComponent
         $txn->ipCountryCode = $this->state->ipCountryCode;
         $txn->billingAddress = $this->state->addressAsString;
         $txn->transactionDescription = $this->state->config->briefDescription;
-        $txn->transactionDetail = $this->state->transactionDetail;
+        $txnDetailArr = [ ];
+        foreach ($this->state->lineItems as $item) {
+            // Coerce LineItem StructClass to array
+            $txnDetailArr[] = (array)$item;
+        }
+        $txn->setTransactionDetail( $txnDetailArr ); 
         $txn->time = time();
         try{
             $txn->validate();
@@ -248,16 +253,7 @@ class Basket extends AbstractViewComponent
         $total = 0;
         $vatTotal = 0;
         $this->state->requireUserLocationProof = false;
-        $this->state->transactionDetail = implode( ', ',
-                [
-                    "Quantity",
-                    "Description",
-                    "Net per item",
-                    "VAT per item",
-                    "VAT type",
-                    "Enjoyed in location type",
-                    "Product type"
-                ] ) . "\n";
+
         /** @var LineItem $lineItem */
         foreach ($this->state->lineItems as $id => $lineItem) {
             // VAT number either verified or there was a
@@ -283,16 +279,6 @@ class Basket extends AbstractViewComponent
             $lineItemTotal = $lineItem->getTotal();
             $total += $lineItemTotal;
             $vatTotal += $lineItem->getTotalVAT();
-            $this->state->transactionDetail .= implode( ', ',
-                    [
-                        ( $lineItem->quantity?$lineItem->quantity:'-' ),
-                        str_replace( "\n", " ", $lineItem->description ),
-                        $lineItem->netPrice,
-                        $lineItem->vatPerItem,
-                        $lineItem->vatTypeCharged,
-                        $lineItem->enjoyedInLocationType,
-                        $lineItem->productType
-                    ] ) . "\n";
 
             $lineItem->validate();
         }

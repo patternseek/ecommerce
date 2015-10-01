@@ -165,13 +165,6 @@ class BasketState extends ViewState
     public $addressAsString;
 
     /**
-     * @var string
-     *
-     * @Assert\Type(type="string")
-     */
-    public $transactionDetail;
-
-    /**
      * The address sub-component's rendered output.
      * @var string
      */
