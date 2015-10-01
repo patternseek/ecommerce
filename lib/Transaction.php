@@ -199,7 +199,8 @@ class Transaction extends StructClass
             $newDetails = [ ];
             foreach ($lines as $line) {
                 $parts = explode( ',', $line );
-                if (!count( $parts )) {
+                // Bad transaction.
+                if (count( $parts ) < 7) {
                     continue;
                 }
                 $tmp = [ ];
