@@ -198,14 +198,15 @@ class Transaction extends StructClass
             array_shift( $lines );
             $newDetails = [ ];
             foreach ($lines as $line) {
+                $parts = explode( ',', $line );
                 $tmp = [ ];
-                $tmp[ 'quantity' ] = ( $line[ 0 ] == '-' )?null:$line[ 0 ];
-                $tmp[ 'description' ] = $line[ 1 ];
-                $tmp[ 'netPrice' ] = $line[ 2 ];
-                $tmp[ 'vatPerItem' ] = $line[ 3 ];
-                $tmp[ 'vatTypeCharged' ] = $line[ 4 ];
-                $tmp[ 'enjoyedInLocationType' ] = $line[ 5 ];
-                $tmp[ 'productType' ] = $line[ 6 ];
+                $tmp[ 'quantity' ] = ( trim( $parts[ 0 ] ) == '-' )?null:trim( $parts[ 0 ] );
+                $tmp[ 'description' ] = trim( $parts[ 1 ] );
+                $tmp[ 'netPrice' ] = trim( $parts[ 2 ] );
+                $tmp[ 'vatPerItem' ] = trim( $parts[ 3 ] );
+                $tmp[ 'vatTypeCharged' ] = trim( $parts[ 4 ] );
+                $tmp[ 'enjoyedInLocationType' ] = trim( $parts[ 5 ] );
+                $tmp[ 'productType' ] = trim( $parts[ 6 ] );
                 $newDetails[] = $tmp;
             }
             $this->setTransactionDetail( $newDetails );
