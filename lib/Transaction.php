@@ -199,6 +199,9 @@ class Transaction extends StructClass
             $newDetails = [ ];
             foreach ($lines as $line) {
                 $parts = explode( ',', $line );
+                if (!count( $parts )) {
+                    continue;
+                }
                 $tmp = [ ];
                 $tmp[ 'quantity' ] = ( trim( $parts[ 0 ] ) == '-' )?null:trim( $parts[ 0 ] );
                 $tmp[ 'description' ] = trim( $parts[ 1 ] );
