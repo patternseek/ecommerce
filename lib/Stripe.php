@@ -141,14 +141,16 @@ class Stripe extends AbstractViewComponent
 
         // Create the charge on Stripe's servers - this will charge the user's card
         try{
-            $charge = $stripe->chargeCreate(
-                [
-                    "amount" => $this->state->amount, // amount in cents/pence etc, again
-                    "currency" => $c->currency,
-                    "card" => $stripeToken,
-                    "description" => $this->state->description
-                ]
-            );
+            $params = [
+                "amount" => $this->state->amount, // amount in cents/pence etc, again
+                "currency" => $c->currency,
+                "card" => $stripeToken,
+                "description" => $this->state->description
+            ];
+            if ($this->state->email) {
+                $params[ 'receipt_email' ] = $this->state->email;
+            }
+            $charge = $stripe->chargeCreate( $params );
         }catch( \Stripe\Error\Card $e ){
             $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
 
