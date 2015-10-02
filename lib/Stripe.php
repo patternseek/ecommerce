@@ -233,10 +233,6 @@ class Stripe extends AbstractViewComponent
 
         $props[ 'apiPubKey' ] = $props[ 'testMode' ]?$c->testApiPubKey:$c->liveApiPubKey;
 
-        if (null !== $props[ 'email' ]) {
-            $props[ 'emailHTML' ] = "data-email=\"{$props['email']}\"";
-        }
-
         $this->state = StripeState::fromArray( $props, true );
     }
 }

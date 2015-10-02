@@ -326,7 +326,7 @@ class Basket extends AbstractViewComponent
                 [
                     'config' => $providerConfig->conf,
                     'buttonLabel' => null,
-                    'email' => null,
+                    'email' => $this->state->config->email,
                     'testMode' => $this->state->testMode,
                     'description' => $this->state->config->briefDescription,
                     'amount' => $this->state->total,

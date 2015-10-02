@@ -118,6 +118,12 @@ class BasketConfig extends StructClass
     public $billingAddress;
 
     /**
+     * @var string User's email address, optional
+     * @Assert\Type(type="string")
+     */
+    public $email;
+
+    /**
      * Populate the StructClass's properties from an array
      * @param array $properties
      * @param bool $discardInvalidEntries If set to true, entries in $properties for which there is no corresponding class member will be discarded instead of generating an error
