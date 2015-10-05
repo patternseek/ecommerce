@@ -204,7 +204,7 @@ class Transaction extends StructClass
                     continue;
                 }
                 $tmp = [ ];
-                $tmp[ 'quantity' ] = ( trim( $parts[ 0 ] ) == '-' )?null:trim( $parts[ 0 ] );
+                $tmp[ 'quantity' ] = ( trim( $parts[ 0 ] ) == '-' )?1:trim( $parts[ 0 ] );
                 $tmp[ 'description' ] = trim( $parts[ 1 ] );
                 $tmp[ 'netPrice' ] = trim( $parts[ 2 ] );
                 $tmp[ 'vatPerItem' ] = trim( $parts[ 3 ] );

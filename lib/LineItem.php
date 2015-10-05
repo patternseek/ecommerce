@@ -108,7 +108,7 @@ class LineItem extends StructClass
     public function getTotal()
     {
         return
-            ( $this->netPrice * ( $this->quantity?$this->quantity:1 ) )
+            ( $this->netPrice * $this->quantity )
                 + $this->getTotalVAT() 
             ;
         
@@ -119,7 +119,7 @@ class LineItem extends StructClass
      */
     public function getTotalVAT()
     {
-        return ( $this->vatPerItem?$this->vatPerItem:0 )* ( $this->quantity?$this->quantity:1 );
+        return ( $this->vatPerItem?$this->vatPerItem:0 ) * $this->quantity;
     }
 
     /**

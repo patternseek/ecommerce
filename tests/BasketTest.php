@@ -475,7 +475,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         "vatPerItem": 0,
         "vatTypeCharged": "zero",
         "isB2b": false,
-        "quantity": null,
+        "quantity": 1,
         "productType": "electronicservices",
         "enjoyedInLocationType": "row"
     }
@@ -543,7 +543,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         "vatPerItem": 20,
         "vatTypeCharged": "customer",
         "isB2b": false,
-        "quantity": null,
+        "quantity": 1,
         "productType": "electronicservices",
         "enjoyedInLocationType": "local"
     }
@@ -709,7 +709,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = new LineItem();
         $lineItem->description = "Some online service";
         $lineItem->netPrice = 100.00;
-        $lineItem->quantity = null;
+        $lineItem->quantity = 1;
         $lineItem->productType = "electronicservices";
         return $lineItem;
     }
@@ -722,7 +722,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = new LineItem();
         $lineItem->description = "Some non-online service";
         $lineItem->netPrice = 100.00;
-        $lineItem->quantity = null;
+        $lineItem->quantity = 1;
         $lineItem->productType = "normalservices";
         return $lineItem;
     }
