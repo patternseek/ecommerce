@@ -24,12 +24,12 @@
         "php": ">=5.3.3",
         "ext-geoip": "*",
         "ext-mbstring": "*",
-        "patternseek/componentview": "dev-master",
-        "patternseek/structclass": "dev-master",
-        "patternseek/dependencyinjector": "dev-master",
-        "symfony/validator": "*",
-        "doctrine/annotations": "*",
-        "doctrine/cache": "*",
+        "patternseek/componentview": "0.1.*",
+        "patternseek/structclass": "0.1.*",
+        "patternseek/dependencyinjector": "0.1.*",
+        "symfony/validator": "2.7.*",
+        "doctrine/annotations": "1.2.*",
+        "doctrine/cache": "1.5.*",
         "stripe/stripe-php": "~2.0"
     },
     "require-dev": {
