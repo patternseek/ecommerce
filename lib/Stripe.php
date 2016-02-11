@@ -101,30 +101,30 @@ class Stripe extends AbstractViewComponent
         /*
          Stripe_Token Object
         (
-            [_apiKey:protected] => sk_test_EqK12xvA7RysgScYONkWMXMV
+            [_apiKey:protected] => sk_test_xxx
             [_values:protected] => Array
             (
-                [id] => tok_15CwGRBNRx9jdbLg90ZJ8XSF
+                [id] => tok_xxx
                 [livemode] =>
-                [created] => 1419354967
+                [created] => 141xxx
                 [used] =>
                 [object] => token
                 [type] => card
                 [card] => Stripe_Card Object
                     (
-                    [_apiKey:protected] => sk_test_EqK12xvA7RysgScYONkWMXMV
+                    [_apiKey:protected] => sk_test_xxx
                     [_values:protected] => Array
                         (
-                        [id] => card_15CwGRBNRx9jdbLgXp2HmuQO
+                        [id] => card_xxx
                         [object] => card
-                        [last4] => 4242
+                        [last4] => xxx
                         [brand] => Visa
                         [funding] => credit
                         [exp_month] => 1
                         [exp_year] => 2016
-                        [fingerprint] => knXHKmMt80BmS5g1
+                        [fingerprint] => xxx
                         [country] => US
-                        [name] => tolan@overtops.org
+                        [name] => xxx@xxx.org
                         [address_line1] =>
                         [address_line2] =>
                         [address_city] =>
