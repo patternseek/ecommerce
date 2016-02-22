@@ -11,7 +11,7 @@
 
 namespace PatternSeek\ECommerce\Test;
 
-use PatternSeek\ComponentView\ViewComponentResponse;
+use PatternSeek\ComponentView\Response;
 use PatternSeek\ECommerce\Basket;
 use PatternSeek\ECommerce\Transaction;
 use PatternSeek\ECommerce\TransactionSuccessCallback;
@@ -24,6 +24,6 @@ class TestSuccess extends TransactionSuccessCallback
         unset( $successOutput[ 'validationError' ] );
         $successOutput[ 'time' ] = null;
         ksort( $successOutput );
-        return new ViewComponentResponse( "text/plain", var_export( $successOutput, true ) );
+        return new Response( "text/plain", var_export( $successOutput, true ) );
     }
 }

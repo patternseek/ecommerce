@@ -12,7 +12,7 @@ namespace PatternSeek\ECommerce;
 
 use PatternSeek\ComponentView\AbstractViewComponent;
 use PatternSeek\ComponentView\Template\TwigTemplate;
-use PatternSeek\ComponentView\ViewComponentResponse;
+use PatternSeek\ComponentView\Response;
 use PatternSeek\ECommerce\ViewState\BasketState;
 use Psr\Log\LogLevel;
 
@@ -74,7 +74,7 @@ class Basket extends AbstractViewComponent
      * ** This method is called by exec() and is designed to be HTTP accessible **
      *
      * @param $args ['vatNumber'=>"...", 'countryCode'=>'...']
-     * @return ViewComponentResponse
+     * @return Response
      * @throws \Exception
      */
     public function validateVatNumberHandler( $args )
@@ -182,7 +182,7 @@ class Basket extends AbstractViewComponent
 
     /**
      * @param Transaction $txn
-     * @return ViewComponentResponse
+     * @return Response
      */
     public function transactionSuccess( Transaction $txn )
     {
