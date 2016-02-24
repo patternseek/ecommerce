@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "31ad6311fb5d0c6d13e23489561ad950",
-    "content-hash": "0efec11d98ae35331c3f7a4baa9c3003",
+    "hash": "8498b3d328ce62072d65410a16449db0",
+    "content-hash": "b3f163730cdfe1c9c15cd7ccd9ee89c4",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -201,11 +201,17 @@
         },
         {
             "name": "patternseek/componentview",
-            "version": "1.0.0",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
-                "url": "../patternseek-componentview",
-                "reference": "64e3c48da43abca2341d019a38b947fbaa488585"
+                "url": "https://github.com/patternseek/componentview.git",
+                "reference": "930b7693a93785010fa80441977b71ee774f47a9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/patternseek/componentview/zipball/930b7693a93785010fa80441977b71ee774f47a9",
+                "reference": "930b7693a93785010fa80441977b71ee774f47a9",
+                "shasum": ""
             },
             "require": {
                 "patternseek/dependencyinjector": "0.1.*",
@@ -224,6 +230,7 @@
                     "PatternSeek\\ComponentView\\Test\\": "tests"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -237,20 +244,20 @@
             "keywords": [
                 "framework"
             ],
-            "time": "2016-02-22 13:01:42"
+            "time": "2016-02-23 14:11:41"
         },
         {
             "name": "patternseek/dependencyinjector",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patternseek/dependencyinjector.git",
-                "reference": "4e8cc8a860f7cf29e500f4b07112c5f0f6eb5987"
+                "reference": "8732a36b3d69dab9d456626c0892b4ea983fc1dc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patternseek/dependencyinjector/zipball/4e8cc8a860f7cf29e500f4b07112c5f0f6eb5987",
-                "reference": "4e8cc8a860f7cf29e500f4b07112c5f0f6eb5987",
+                "url": "https://api.github.com/repos/patternseek/dependencyinjector/zipball/8732a36b3d69dab9d456626c0892b4ea983fc1dc",
+                "reference": "8732a36b3d69dab9d456626c0892b4ea983fc1dc",
                 "shasum": ""
             },
             "require": {
@@ -280,15 +287,21 @@
             "keywords": [
                 "library"
             ],
-            "time": "2015-07-02 13:50:12"
+            "time": "2016-02-24 13:33:04"
         },
         {
             "name": "patternseek/structclass",
-            "version": "0.1.0",
+            "version": "0.1.2",
             "source": {
                 "type": "git",
-                "url": "../patternseek-structclass",
-                "reference": "63f2c687d7d19e0eb33e5f9b64d5c90b2ac00c8d"
+                "url": "https://github.com/patternseek/structclass.git",
+                "reference": "f3018e5f28db8151c519442bf654467f4a29368a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/patternseek/structclass/zipball/f3018e5f28db8151c519442bf654467f4a29368a",
+                "reference": "f3018e5f28db8151c519442bf654467f4a29368a",
+                "shasum": ""
             },
             "require": {
                 "doctrine/annotations": "1.2.*",
@@ -302,6 +315,7 @@
                     "PatternSeek\\StructClass\\": "lib"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -315,7 +329,7 @@
             "keywords": [
                 "library"
             ],
-            "time": "2015-11-11 15:39:15"
+            "time": "2016-02-24 13:58:16"
         },
         {
             "name": "pimple/pimple",
