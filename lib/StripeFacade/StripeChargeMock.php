@@ -12,7 +12,7 @@ namespace PatternSeek\ECommerce\StripeFacade;
 
 use Stripe\Charge;
 
-class Stripe_ChargeMock extends Charge
+class StripeChargeMock extends Charge
 {
 
     public static $params;
@@ -20,7 +20,7 @@ class Stripe_ChargeMock extends Charge
     public static function create( $params = null, $options = null )
     {
         self::$params = $params;
-        $charge = new Stripe_ChargeMock();
+        $charge = new StripeChargeMock();
         $charge->id = "TestStripeID";
         return $charge;
     }

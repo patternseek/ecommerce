@@ -16,7 +16,7 @@ use Stripe\Token;
  * Class Stripe_TokenMock
  * @package PatternSeek\ECommerce\StripeFacade
  */
-class Stripe_TokenMock extends Token
+class StripeTokenMock extends Token
 {
 
     /**
@@ -48,11 +48,11 @@ class Stripe_TokenMock extends Token
     /**
      * @param string $stripeToken
      * @param array|null|string $opts
-     * @return Stripe_TokenMock
+     * @return StripeTokenMock
      */
     static function retrieve( $stripeToken, $opts = null )
     {
-        $tok = new Stripe_TokenMock();
+        $tok = new StripeTokenMock();
         $tok->type = self::$typeSetting;
         $tok->card = self::$cardCountrySetting;
         $tok->bank_account = self::$bankCountrySetting;

@@ -11,8 +11,8 @@
 namespace PatternSeek\ECommerce;
 
 use PatternSeek\ComponentView\AbstractViewComponent;
-use PatternSeek\ComponentView\Template\TwigTemplate;
 use PatternSeek\ComponentView\Response;
+use PatternSeek\ComponentView\Template\TwigTemplate;
 use PatternSeek\ECommerce\ViewState\BasketState;
 use Psr\Log\LogLevel;
 
