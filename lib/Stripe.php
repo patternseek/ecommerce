@@ -188,11 +188,15 @@ class Stripe extends AbstractViewComponent
         $this->template = new TwigTemplate( $this, null, $tplTwig );
     }
 
+    /**
+     * @return void
+     * @throws \Exception
+     */
     protected function updateState()
     {
         $props = $this->props;
-        
-        if( null == $this->state ){
+
+        if (null === $this->state) {
             $this->init( $props );
         }
         
@@ -212,9 +216,12 @@ class Stripe extends AbstractViewComponent
         $this->state->complete = $props[ 'transactionComplete' ];
         $this->state->address = $props[ 'address' ];
 
-        return (array)$this->state;
     }
 
+    /**
+     * @param $props
+     * @throws \Exception
+     */
     private function init( $props )
     {
         $this->testInputs(
