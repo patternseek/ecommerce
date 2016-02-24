@@ -47,7 +47,7 @@ class StripeFacade
     function tokenRetrieve( $stripeToken, $apiPrivKey )
     {
         if (self::$testMode) {
-            return Stripe_TokenMock::retrieve( $stripeToken, $apiPrivKey );
+            return StripeTokenMock::retrieve( $stripeToken, $apiPrivKey );
         }else {
             return Token::retrieve( $stripeToken, $apiPrivKey );
         }
@@ -60,7 +60,7 @@ class StripeFacade
     function chargeCreate( $params )
     {
         if (self::$testMode) {
-            return Stripe_ChargeMock::create( $params );
+            return StripeChargeMock::create( $params );
         }else {
             return Charge::create( $params );
         }

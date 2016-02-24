@@ -10,16 +10,6 @@
             "email": "tolan@patternseek.net"
         }
     ],
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "../patternseek-componentview"
-        },
-        {
-            "type": "vcs",
-            "url": "../patternseek-structclass"
-        }
-    ],
     "require": {
         "php": ">=5.3.3",
         "ext-geoip": "*",

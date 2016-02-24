@@ -13,8 +13,8 @@ use PatternSeek\DependencyInjector\DependencyInjector;
 use PatternSeek\ECommerce\Basket;
 use PatternSeek\ECommerce\BasketConfig;
 use PatternSeek\ECommerce\LineItem;
-use PatternSeek\ECommerce\StripeFacade\Stripe_TokenMock;
 use PatternSeek\ECommerce\StripeFacade\StripeFacade;
+use PatternSeek\ECommerce\StripeFacade\StripeTokenMock;
 use Pimple\Container;
 
 /**
@@ -410,8 +410,8 @@ class BasketTest extends \PHPUnit_Framework_TestCase
      */
     protected function failOn3DifferentCountries( $uns )
     {
-        Stripe_TokenMock::$typeSetting = 'card';
-        Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'ES' ];
+        StripeTokenMock::$typeSetting = 'card';
+        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'ES' ];
 
         $uns->updateView(
             [
@@ -431,8 +431,8 @@ class BasketTest extends \PHPUnit_Framework_TestCase
      */
     protected function failOnOnlyIPandCardMatch( $uns )
     {
-        Stripe_TokenMock::$typeSetting = 'card';
-        Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
+        StripeTokenMock::$typeSetting = 'card';
+        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
         $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
@@ -454,8 +454,8 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     protected function succeedOnSameAddressAndCardCountries( $uns, &$successOutput )
     {
         // US card + US address + GB IP, should succeed
-        Stripe_TokenMock::$typeSetting = 'card';
-        Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
+        StripeTokenMock::$typeSetting = 'card';
+        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
         $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
@@ -494,7 +494,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'time' => $successOutput[ 'time' ]
         ];
         ksort( $expected );
-        $expectedString = "<div id=\"component-basket\">\n    ".var_export( $expected, true )."\n</div>";
+        $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
         $this->assertEquals( $expectedString, $execOut  );
 
     }
@@ -506,8 +506,8 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     protected function succeedOnAllCountriesMatch( $uns, &$successOutput )
     {
         // GB card + GB address + GB IP, should succeed
-        Stripe_TokenMock::$typeSetting = 'card';
-        Stripe_TokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
+        StripeTokenMock::$typeSetting = 'card';
+        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
         $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
@@ -562,7 +562,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'time' => null
         ];
         ksort( $expected );
-        $expectedString = "<div id=\"component-basket\">\n    ".var_export( $expected, true )."\n</div>";
+        $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
         $this->assertEquals( $expectedString, $execOut  );
 
     }

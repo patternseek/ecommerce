@@ -194,7 +194,7 @@ class BasketState extends ViewState
             $this->vatNumber
             || ( !$this->requireUserLocationProof )
             || (
-                ( $this->getConfirmedUserCountryCode() != false )
+                ( $this->getConfirmedUserCountryCode() !== false )
                 && ( $this->getConfirmedUserCountryCode() == $this->provisionalUserCountryCode )
             )
         );
@@ -215,24 +215,24 @@ class BasketState extends ViewState
         }
 
         if (
-            $this->ipCountryCode != null
-            && $this->addressCountryCode != null
+            $this->ipCountryCode !== null
+            && $this->addressCountryCode !== null
             && ( $this->ipCountryCode == $this->addressCountryCode )
         ) {
             return $this->ipCountryCode;
         }
 
         if (
-            $this->ipCountryCode != null
-            && $this->cardCountryCode != null
+            $this->ipCountryCode !== null
+            && $this->cardCountryCode !== null
             && ( $this->ipCountryCode == $this->cardCountryCode )
         ) {
             return $this->ipCountryCode;
         }
 
         if (
-            $this->addressCountryCode != null
-            && $this->cardCountryCode != null
+            $this->addressCountryCode !== null
+            && $this->cardCountryCode !== null
             && ( $this->addressCountryCode == $this->cardCountryCode )
         ) {
             return $this->addressCountryCode;
