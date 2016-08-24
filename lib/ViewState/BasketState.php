@@ -262,7 +262,7 @@ class BasketState extends ViewState
      */
     private function validVatNumberCC()
     {
-        if ($this->vatNumber && $this->vatNumberCountryCode && ( ( $this->vatNumberStatus == "valid" ) || ( $this->vatNumberStatus == "notchecked" ) )) {
+        if ($this->vatNumber && $this->vatNumberCountryCode && ( ( $this->vatNumberStatus == "valid" ) || ( $this->vatNumberStatus == "unknown" ) )) {
             return $this->vatNumberCountryCode;
         }else {
             return false;
