@@ -481,14 +481,14 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     }
 ]',
             'chargeID' => 'TestStripeID',
-            'vatAmount' => 0,
+            'vatAmount' => 0.0,
             'paymentCountryCode' => 'US',
             'paymentType' => 'card',
             'testMode' => true,
             'vatNumberStatus' => 'notchecked',
             'vatNumberGiven' => null,
             'vatNumberGivenCountryCode' => null,
-            'transactionAmount' => 100,
+            'transactionAmount' => 100.0,
             'billingAddressCountryCode' => 'US',
             'ipCountryCode' => 'GB',
             'time' => $successOutput[ 'time' ]
@@ -554,9 +554,9 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'testMode' => true,
             'vatNumberStatus' => 'notchecked',
             'vatNumberGiven' => null,
-            'vatAmount' => 20,
+            'vatAmount' => 20.0,
             'vatNumberGivenCountryCode' => null,
-            'transactionAmount' => 120,
+            'transactionAmount' => 120.0,
             'billingAddressCountryCode' => 'GB',
             'ipCountryCode' => 'GB',
             'time' => null
