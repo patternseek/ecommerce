@@ -40,8 +40,9 @@ class DelayedOrRepeatTransaction extends Transaction
      * @throws \Exception
      */
     public function charge( array $credentials ){
+        $myCreds = $credentials[$this->providerClass];
         $class = $this->providerClass;
-        return call_user_func( $class.'::chargeDelayedOrRepeatPaymentTransaction', $credentials, $this );
+        return call_user_func( $class.'::chargeDelayedOrRepeatPaymentTransaction', $myCreds, $this );
     }
 
 
