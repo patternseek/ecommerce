@@ -10,6 +10,7 @@
 namespace PatternSeek\ECommerce\StripeFacade;
 
 use Stripe\Charge;
+use Stripe\Customer;
 use Stripe\Stripe as StripeAPI;
 use Stripe\Token;
 
@@ -42,7 +43,7 @@ class StripeFacade
     /**
      * @param $stripeToken
      * @param $apiPrivKey
-     * @return Stripe_TokenMock|Token
+     * @return StripeTokenMock|Token
      */
     function tokenRetrieve( $stripeToken, $apiPrivKey )
     {
@@ -55,7 +56,7 @@ class StripeFacade
 
     /**
      * @param $params
-     * @return Stripe_ChargeMock|Charge
+     * @return StripeChargeMock|Charge
      */
     function chargeCreate( $params )
     {
@@ -63,6 +64,19 @@ class StripeFacade
             return StripeChargeMock::create( $params );
         }else {
             return Charge::create( $params );
+        }
+    }
+
+    /**
+     * @param $params
+     * @return StripeCustomerMock|Customer
+     */
+    function customerCreate( $params )
+    {
+        if (self::$testMode) {
+            return StripeCustomerMock::create( $params );
+        }else {
+            return Customer::create( $params );
         }
     }
 }

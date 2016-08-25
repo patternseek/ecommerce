@@ -21,7 +21,6 @@ class TestSuccess extends TransactionSuccessCallback
 
     function __invoke( Transaction $txnDetails, Basket $basket ){
         $successOutput = (array)$txnDetails;
-        unset( $successOutput[ 'validationError' ] );
         $successOutput[ 'time' ] = null;
         ksort( $successOutput );
         return new Response( "text/plain", var_export( $successOutput, true ) );

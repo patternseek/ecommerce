@@ -34,7 +34,8 @@ class Basket extends AbstractViewComponent
                 'config' => [ 'PatternSeek\ECommerce\BasketConfig' ],
                 'vatRates' => [ 'array' ],
                 'lineItems' => [ 'array' ],
-                'testMode' => [ 'boolean' ]
+                'testMode' => [ 'boolean' ],
+                'chargeMode' => [ 'string' ]
             ],
             $props
         );
@@ -58,6 +59,7 @@ class Basket extends AbstractViewComponent
         $this->state->intro = $config->intro;
         $this->state->outro = $config->outro;
         $this->state->testMode = $props[ 'testMode' ];
+        $this->state->chargeMode = $props[ 'chargeMode' ];
 
         $this->state->cardCountryCode = null;
         $this->state->addressCountryCode = null;
@@ -188,22 +190,8 @@ class Basket extends AbstractViewComponent
     {
         $this->state->complete = true;
 
-        $txn->testMode = $this->state->testMode;
-        $txn->vatNumberStatus = $this->state->vatNumberStatus;
-        $txn->vatNumberGiven = $this->state->vatNumber;
-        $txn->vatNumberGivenCountryCode = $this->state->vatNumberCountryCode;
-        $txn->transactionAmount = $this->state->total;
-        $txn->vatAmount = $this->state->vatTotal;
-        $txn->billingAddressCountryCode = $this->state->addressCountryCode;
-        $txn->ipCountryCode = $this->state->ipCountryCode;
-        $txn->billingAddress = $this->state->addressAsString;
-        $txn->transactionDescription = $this->state->config->briefDescription;
-        $txnDetailArr = [ ];
-        foreach ($this->state->lineItems as $item) {
-            // Coerce LineItem StructClass to array
-            $txnDetailArr[] = (array)$item;
-        }
-        $txn->setTransactionDetail( $txnDetailArr ); 
+        $this->populateTransactionDetails( $txn ); 
+        
         $txn->time = time();
         try{
             $txn->validate();
@@ -219,11 +207,57 @@ class Basket extends AbstractViewComponent
     }
 
     /**
+     * @param DelayedOrRepeatTransaction $txn
+     * @return Response
+     */
+    public function delayedTransactionSuccess( DelayedOrRepeatTransaction $txn )
+    {
+        $this->state->complete = true;
+
+        $txn->time = time();
+        try{
+            $txn->validate();
+        }catch( \Exception $e ){
+            $txn->validationError = $e->getMessage();
+        }
+
+        $this->state->successMessage = $this->state->delayedTransactionSuccessCallback->__invoke( $txn, $this )->content;
+        // Render full component, including parent of basket, if any.
+        $root = $this->getRootComponent();
+        $root->updateState();
+        return $root->render();
+    }
+
+    /**
      * Used for testing state methods
      */
     function getStateForTesting()
     {
         return $this->state;
+    }
+
+    /**
+     * @param Transaction $txn
+     */
+    public function populateTransactionDetails( Transaction $txn )
+    {
+        $txn->testMode = $this->state->testMode;
+        $txn->vatNumberStatus = $this->state->vatNumberStatus;
+        $txn->vatNumberGiven = $this->state->vatNumber;
+        $txn->vatNumberGivenCountryCode = $this->state->vatNumberCountryCode;
+        $txn->transactionAmount = $this->state->total;
+        $txn->transactionCurrency = $this->state->config->currencyCode;
+        $txn->vatAmount = $this->state->vatTotal;
+        $txn->billingAddressCountryCode = $this->state->addressCountryCode;
+        $txn->ipCountryCode = $this->state->ipCountryCode;
+        $txn->billingAddress = $this->state->addressAsString;
+        $txn->transactionDescription = $this->state->config->briefDescription;
+        $txnDetailArr = [ ];
+        foreach ($this->state->lineItems as $item) {
+            // Coerce LineItem StructClass to array
+            $txnDetailArr[] = (array)$item;
+        }
+        $txn->setTransactionDetail( $txnDetailArr );
     }
 
     /**
@@ -305,7 +339,8 @@ class Basket extends AbstractViewComponent
 
         $this->testInputs(
             [
-                'transactionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\TransactionSuccessCallback', null ]
+                'transactionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\TransactionSuccessCallback', null ],
+                'delayedTransactionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\DelayedTransactionSuccessCallback', null ]
             ],
             $props
         );
@@ -314,6 +349,10 @@ class Basket extends AbstractViewComponent
             $this->state->transactionSuccessCallback = $props[ 'transactionSuccessCallback' ];
         }
 
+        if( $props['delayedTransactionSuccessCallback'] instanceof DelayedTransactionSuccessCallback  ){
+            $this->state->delayedTransactionSuccessCallback = $props[ 'delayedTransactionSuccessCallback' ];
+        }
+        
         $this->addOrUpdateChild(
             'billingAddress', '\\PatternSeek\\ECommerce\\Address',
             [ 'state' => $this->state->config->billingAddress ]
@@ -328,6 +367,7 @@ class Basket extends AbstractViewComponent
                     'buttonLabel' => null,
                     'email' => $this->state->config->email,
                     'testMode' => $this->state->testMode,
+                    'chargeMode' => $this->state->chargeMode,
                     'description' => $this->state->config->briefDescription,
                     'amount' => $this->state->total,
                     'basketReady' => $this->state->readyForPaymentInfo(),

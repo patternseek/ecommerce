@@ -39,6 +39,13 @@ class BasketState extends ViewState
     public $testMode;
 
     /**
+     * @var string
+     *
+     * @Assert\Choice(choices = {"immediate", "delayed"})
+     */
+    public $chargeMode;
+
+    /**
      * @var array
      *
      * @Assert\Type(type="array")
@@ -174,6 +181,11 @@ class BasketState extends ViewState
      * @var TransactionSuccessCallback
      */
     public $transactionSuccessCallback;
+
+    /**
+     * @var TransactionSuccessCallback
+     */
+    public $delayedTransactionSuccessCallback;
     
     /**
      * Determine whether payment process is ready to begin.

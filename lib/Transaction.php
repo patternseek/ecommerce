@@ -71,7 +71,6 @@ class Transaction extends StructClass
      *
      * @var string
      *
-     * @Assert\NotBlank()
      * @Assert\Type(type="string")
      */
     public $transactionDetailLegacy;
@@ -100,6 +99,15 @@ class Transaction extends StructClass
      */
     public $transactionAmount;
 
+    /**
+     * @var string
+     *
+     * @Assert\NotBlank()
+     * @Assert\Type(type="string")
+     * @Assert\Regex(pattern="/^[A-Z]{3}$/", message="Must be three characters and upper case.")
+     */
+    public $transactionCurrency;
+    
     /**
      * @var string
      *
@@ -146,7 +154,10 @@ class Transaction extends StructClass
     /**
      * @var string
      *
-     * @Assert\NotBlank()
+     * The "NotBlank" assertion has been removed as it
+     * breaks the DelayedOrRepeatTransaction subclass and 
+     * Symfony annotations don't allow subclass overrides.
+     * 
      * @Assert\Type(type="string")
      */
     public $chargeID;

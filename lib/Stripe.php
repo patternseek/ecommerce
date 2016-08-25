@@ -16,10 +16,6 @@ use PatternSeek\ECommerce\ViewState\StripeState;
 
 /**
  * A ViewComponent for rendering Stripe checkout within a ViewComponents
- * @typedef array \UpdateType {
- * @var string $config
- * @var string $email
- * }
  *
  */
 class Stripe extends AbstractViewComponent
@@ -76,21 +72,21 @@ class Stripe extends AbstractViewComponent
         $apiPrivKey = $this->state->testMode?$c->testApiPrivKey:$c->liveApiPrivKey;
         $stripe->setApiKey( $apiPrivKey );
         $tok = $stripe->tokenRetrieve( $stripeToken, $apiPrivKey );
-        $countryCode = '';
-        $type = "";
+        $paymentCountryCode = '';
+        $paymentType = "";
         if ($tok->type == 'card') {
-            $countryCode = $tok->card->country;
-            $type = "card";
+            $paymentCountryCode = $tok->card->country;
+            $paymentType = "card";
         }
         if ($tok->type == 'bank_account') {
-            $countryCode = $tok->bank_account->country;
-            $type = "bank_account";
+            $paymentCountryCode = $tok->bank_account->country;
+            $paymentType = "bank_account";
         }
 
         // Do we require VAT location proof, and if so do we have
         // enough and does it match the information used
         // to calculate the original VAT?
-        if (!$this->parent->confirmValidTxnFunc( $countryCode )) {
+        if (!$this->parent->confirmValidTxnFunc( $paymentCountryCode )) {
             $this->parent->setFlashError( "Sorry but we can't collect enough information about your location to comply with EU VAT legislation with the information we have available. You have not been charged. Please contact us to arrange a manual payment." );
 
             $root = $this->getRootComponent();
@@ -139,33 +135,133 @@ class Stripe extends AbstractViewComponent
 
          */
 
-        // Create the charge on Stripe's servers - this will charge the user's card
+        $amount = $this->state->amount;
+        $currency = $c->currency;
+        $description = $this->state->description;
         try{
-            $params = [
-                "amount" => $this->state->amount, // amount in cents/pence etc, again
-                "currency" => $c->currency,
-                "card" => $stripeToken,
-                "description" => $this->state->description
-            ];
-            if ($this->state->email) {
-                $params[ 'receipt_email' ] = $this->state->email;
+            if( $this->state->chargeMode == "immediate"){
+                // Create the charge on Stripe's servers - this will charge the user's card
+                $ret = 
+                    $this->chargeCard( 
+                        $stripe, 
+                        $stripeToken, 
+                        $amount, 
+                        $currency, 
+                        $description, 
+                        $paymentCountryCode,
+                        $paymentType );
+            }else{
+                // Generate token for later/repeat charge
+                $ret = 
+                    $this->getDelayedOrRepeatPaymentTransaction( $stripe, $stripeToken, $paymentCountryCode, $paymentType );
             }
-            $charge = $stripe->chargeCreate( $params );
         }catch( \Stripe\Error\Card $e ){
             $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
 
             $root = $this->getRootComponent();
             $root->updateState();
-            return $root->render();
+            $ret = $root->render();
         }
 
-        $ret = new Transaction();
-        $ret->chargeID = $charge->id;
-        $ret->paymentCountryCode = $countryCode;
-        $ret->paymentType = $type;
+        
+        return $ret;
+    }
+
+    /**
+     * @param StripeFacade $stripe
+     * @param $card
+     * @param $amount
+     * @param $currency
+     * @param $description
+     * @param $paymentCountryCode
+     * @param string $type
+     * @return \PatternSeek\ComponentView\Response
+     */
+    private function chargeCard( $stripe, $card, $amount, $currency, $description, $paymentCountryCode, $type = "card" )
+    {
+
+        $params = [
+            "amount" => $amount, // amount in cents/pence etc, again
+            "currency" => $currency,
+            "card" => $card,
+            "description" => $description
+        ];
+        if ($this->state->email) {
+            $params[ 'receipt_email' ] = $this->state->email;
+        }
+        $charge = $stripe->chargeCreate( $params );
+
+        $txn = new Transaction();
+        $txn->chargeID = $charge->id;
+        $txn->paymentCountryCode = $paymentCountryCode;
+        $txn->paymentType = $type;
 
         $this->state->complete = true;
-        return $this->parent->transactionSuccess( $ret );
+        $ret = $this->parent->transactionSuccess( $txn );
+        return $ret;
+    }
+
+    /**
+     * @param StripeFacade $stripe
+     * @param $stripeToken
+     * @param $paymentCountryCode
+     * @param string $paymentType
+     * @return \PatternSeek\ComponentView\Response
+     */
+    private function getDelayedOrRepeatPaymentTransaction( $stripe, $stripeToken, $paymentCountryCode, $paymentType )
+    {
+
+        $params = [
+            "source" => $stripeToken,
+            "description" => $this->state->email
+        ];
+        $customer = $stripe->customerCreate( $params );
+        
+        if ($this->state->email) {
+            $params[ 'receipt_email' ] = $this->state->email;
+        }
+        
+        $futureTxn = new DelayedOrRepeatTransaction();
+        $futureTxn->paymentCountryCode = $paymentCountryCode;
+        $futureTxn->paymentType = $paymentType;
+        $this->parent->populateTransactionDetails( $futureTxn );        
+        $futureTxn->storedToken = $customer->id;
+        $futureTxn->providerClass = "\\PatternSeek\\ECommerce\\Stripe";
+        
+        $this->state->complete = true;
+        $ret = $this->parent->delayedTransactionSuccess( $futureTxn );
+        return $ret;
+    }
+
+    /**
+     * @param array $credentials
+     * @param DelayedOrRepeatTransaction $delayedTxn
+     * @return \PatternSeek\ComponentView\Response
+     * @throws \Exception
+     */
+    public static function chargeDelayedOrRepeatPaymentTransaction( $credentials, DelayedOrRepeatTransaction $delayedTxn )
+    {
+        $stripe = new StripeFacade();
+        $stripe->setApiKey( $credentials[ 'apiPrivKey' ] );
+        
+        $charge = $stripe->chargeCreate( [ 
+            "amount"   => $delayedTxn->transactionAmount * 100, // Stripe wants amount in pence/cents etc. In an instance, $this->state->amount has already been multiplied.
+            "currency" => $delayedTxn->transactionCurrency,
+            "description" => $delayedTxn->transactionDescription,
+            "customer" => $delayedTxn->storedToken
+        ]);
+
+        /** @var Transaction $finalTxn */
+        $finalTxn = Transaction::fromArray( $delayedTxn->toArray(), true );
+        $finalTxn->chargeID = $charge->id;
+        $finalTxn->time = time();
+        try{
+            $finalTxn->validate();
+        }catch( \Exception $e ){
+            $finalTxn->validationError = $e->getMessage();
+        }
+        
+        return $finalTxn;
     }
 
     /**
@@ -229,7 +325,8 @@ class Stripe extends AbstractViewComponent
                 'config' => [ "array" ],  // Required, entries should be PatternSeek\ECommerce\PaymentProviderConfig
                 'buttonLabel' => [ 'string', null ],                                 // Optional, default null
                 'email' => [ 'string', null ],                                       // Optional, default null
-                'testMode' => [ 'boolean' ]                                        // Required
+                'testMode' => [ 'boolean' ],                                        // Required
+                'chargeMode' => [ 'string' ]                                        // Required
             ],
             $props
         );

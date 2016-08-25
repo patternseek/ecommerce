@@ -29,7 +29,20 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     }
     
     protected $successCallback;
+    protected $delayedSuccessCallback;
 
+    public function testDelayedModeTransaction()
+    {
+        $billingAddress = $this->getUSAddress();
+        $lineItem = $this->getElectronicServiceLineItem();
+        $successOutput = [ ];
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress, $chargeMode = "delayed" );
+
+        StripeFacade::$testMode = true;
+        $this->succeedOnDelayedTransaction($view, $successOutput);
+    }
+    
     public function testElectronicServiceToUKConsumer()
     {
         $billingAddress = $this->getUKAddress();
@@ -451,6 +464,109 @@ class BasketTest extends \PHPUnit_Framework_TestCase
      * @param $successOutput
      * @throws \Exception
      */
+    protected function succeedOnDelayedTransaction( $uns, &$successOutput )
+    {
+        // US card + US address + GB IP, should succeed
+        StripeTokenMock::$typeSetting = 'card';
+        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
+        $uns->updateView(
+            [
+                'delayedTransactionSuccessCallback' => $this->delayedSuccessCallback
+            ]
+        );
+        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+        $expected = array (
+            'delayedTxn' =>
+                array (
+                    'billingAddress' => 'addressLine1
+addressLine2
+townOrCity
+stateOrRegion
+postCode
+United States',
+                    'billingAddressCountryCode' => 'US',
+                    'chargeID' => NULL,
+                    'clientEmail' => NULL,
+                    'clientName' => NULL,
+                    'ipCountryCode' => 'GB',
+                    'paymentCountryCode' => 'US',
+                    'paymentType' => 'card',
+                    'providerClass' => '\\PatternSeek\\ECommerce\\Stripe',
+                    'storedToken' => 'TestStripeCustomerID',
+                    'testMode' => true,
+                    'time' => NULL,
+                    'transactionAmount' => 100.0,
+                    'transactionCurrency' => 'GBP',
+                    'transactionDescription' => 'Brief description of basket contents.',
+                    'transactionDetailLegacy' => NULL,
+                    'transactionDetailRaw' => '[
+    {
+        "description": "Some online service",
+        "netPrice": 100,
+        "vatPerItem": 0,
+        "vatTypeCharged": "zero",
+        "isB2b": false,
+        "quantity": 1,
+        "productType": "electronicservices",
+        "enjoyedInLocationType": "row"
+    }
+]',
+                    'validationError' => NULL,
+                    'vatAmount' => 0.0,
+                    'vatNumberGiven' => NULL,
+                    'vatNumberGivenCountryCode' => NULL,
+                    'vatNumberStatus' => 'notchecked',
+                ),
+            'actualTxn' =>
+                array (
+                    'billingAddress' => 'addressLine1
+addressLine2
+townOrCity
+stateOrRegion
+postCode
+United States',
+                    'billingAddressCountryCode' => 'US',
+                    'chargeID' => 'TestStripeID',
+                    'clientEmail' => NULL,
+                    'clientName' => NULL,
+                    'ipCountryCode' => 'GB',
+                    'paymentCountryCode' => 'US',
+                    'paymentType' => 'card',
+                    'testMode' => true,
+                    'time' => NULL,
+                    'transactionAmount' => 100.0,
+                    'transactionCurrency' => 'GBP',
+                    'transactionDescription' => 'Brief description of basket contents.',
+                    'transactionDetailLegacy' => NULL,
+                    'transactionDetailRaw' => '[
+    {
+        "description": "Some online service",
+        "netPrice": 100,
+        "vatPerItem": 0,
+        "vatTypeCharged": "zero",
+        "isB2b": false,
+        "quantity": 1,
+        "productType": "electronicservices",
+        "enjoyedInLocationType": "row"
+    }
+]',
+                    'vatAmount' => 0.0,
+                    'vatNumberGiven' => NULL,
+                    'vatNumberGivenCountryCode' => NULL,
+                    'vatNumberStatus' => 'notchecked',
+                ),
+        );
+        krsort( $expected );
+        $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
+        $this->assertEquals( $expectedString, $execOut  );
+
+    }
+    
+    /**
+     * @param Basket $uns
+     * @param $successOutput
+     * @throws \Exception
+     */
     protected function succeedOnSameAddressAndCardCountries( $uns, &$successOutput )
     {
         // US card + US address + GB IP, should succeed
@@ -481,6 +597,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     }
 ]',
             'chargeID' => 'TestStripeID',
+            'validationError' => NULL,
             'vatAmount' => 0.0,
             'paymentCountryCode' => 'US',
             'paymentType' => 'card',
@@ -489,6 +606,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'vatNumberGiven' => null,
             'vatNumberGivenCountryCode' => null,
             'transactionAmount' => 100.0,
+            'transactionCurrency' => "GBP",
             'billingAddressCountryCode' => 'US',
             'ipCountryCode' => 'GB',
             'time' => $successOutput[ 'time' ]
@@ -554,8 +672,11 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             'testMode' => true,
             'vatNumberStatus' => 'notchecked',
             'vatNumberGiven' => null,
+            'validationError' => NULL,
             'vatAmount' => 20.0,
             'vatNumberGivenCountryCode' => null,
+            'transactionAmount' => 120.0,
+            'transactionCurrency' => "GBP",
             'transactionAmount' => 120.0,
             'billingAddressCountryCode' => 'GB',
             'ipCountryCode' => 'GB',
@@ -571,10 +692,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
      * @param LineItem $lineItem
      * @param $successOutput
      * @param $billingAddress
+     * @param string $chargeMode
      * @return array
-     * @throws \Exception
      */
-    private function prepareBasket( LineItem $lineItem, &$successOutput, $billingAddress )
+    private function prepareBasket( LineItem $lineItem, &$successOutput, $billingAddress, $chargeMode = "immediate" )
     {
         // This would usually come from a config source
         $configArray = [
@@ -625,6 +746,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $view = new Basket();
 
         $this->successCallback = new TestSuccess();
+        $this->delayedSuccessCallback = new TestDelayedSuccess();
 
         $view->updateView(
             [
@@ -632,8 +754,9 @@ class BasketTest extends \PHPUnit_Framework_TestCase
                 'vatRates' => $vatRates,
                 'lineItems' => [ $lineItem ],
                 'testMode' => true,
-                
-                'transactionSuccessCallback' => $this->successCallback
+                'chargeMode' => $chargeMode,
+                'transactionSuccessCallback' => $this->successCallback,
+                'delayedTransactionSuccessCallback' => $this->delayedSuccessCallback
             ]
         );
 
