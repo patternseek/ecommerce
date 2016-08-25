@@ -58,6 +58,13 @@ class StripeState extends ViewState
     /**
      * @var string
      *
+     * @Assert\Choice(choices = {"immediate", "delayed"})
+     */
+    public $chargeMode;
+
+    /**
+     * @var string
+     *
      * @Assert\Type(type="string")
      */
     public $apiPubKey;

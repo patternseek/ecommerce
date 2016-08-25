@@ -1,3 +1,6 @@
+{# @var this \PatternSeek\ECommerce\Stripe #}
+{# @var exec \PatternSeek\ComponentView\ExecHelper #}
+{# @var state \PatternSeek\ECommerce\ViewState\StripeState #}
 {% set formBody %}
 <div style="display: none;" id="formHide">
     <fieldset>
@@ -24,7 +27,6 @@
         </label>
         <input id="cc-cvc" data-stripe="cvc" type="tel" class="cc-cvc" autocomplete="off" placeholder="•••" required>
         <br>
-
         <input type="hidden" id="cc-exp-month" data-stripe="exp-month">
         <input type="hidden" id="cc-exp-year" data-stripe="exp-year">
         <input type="hidden" data-stripe="address_line1" value="{{ state.address.addressLine1 }}">
