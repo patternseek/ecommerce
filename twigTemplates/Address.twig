@@ -111,7 +111,7 @@
             {% endfor %}
         </select>
         <br>
-        <input type="submit" value="Update address" class="updateAddress">
+        <input type="submit" value="Continue..." class="updateAddress">
     {% endset %}
     {{ exec.replaceElementUsingForm( "setAddress", "POST", formBody, "component-basket", "addressUpdate" ) }}
 {% endif %}
