@@ -37,7 +37,7 @@ class DelayedOrRepeatTransaction extends Transaction
     /**
      * @param array $credentials
      * @return mixed
-     * @throws \Exception
+     * @throws \Exception If there is a problem with the charge then an Exception will be thrown.
      */
     public function charge( array $credentials ){
         $myCreds = $credentials[$this->providerClass];
