@@ -138,6 +138,10 @@ class Stripe extends AbstractViewComponent
                         [customer] =>
 
          */
+        
+        if( $this->state->amount == 0 ){
+            $this->logger->alert( var_export($this->getRootComponent(), true) );
+        }
 
         // Create the charge on Stripe's servers - this will charge the user's card
         try{
