@@ -138,9 +138,9 @@ class Stripe extends AbstractViewComponent
                         [customer] =>
 
          */
-        
+
         if( $this->state->amount == 0 ){
-            $this->logger->alert( var_export($this->getRootComponent(), true) );
+            $this->logger->alert( [ $_SERVER[ 'HTTP_USER_AGENT' ], var_export( $this->getRootComponent(), true ) ] );
         }
 
         // Create the charge on Stripe's servers - this will charge the user's card
@@ -203,7 +203,7 @@ class Stripe extends AbstractViewComponent
         if (null === $this->state) {
             $this->init( $props );
         }
-        
+
         $this->testInputs(
             [
                 'amount' => [ 'double' ],
