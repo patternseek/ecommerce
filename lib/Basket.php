@@ -231,7 +231,7 @@ class Basket extends AbstractViewComponent
     /**
      * Used for testing state methods
      */
-    function getStateForTesting()
+    public function getStateForTesting()
     {
         return $this->state;
     }

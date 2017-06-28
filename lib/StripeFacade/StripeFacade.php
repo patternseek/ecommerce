@@ -31,7 +31,7 @@ class StripeFacade
     /**
      * @param $apiKey
      */
-    function setApiKey( $apiKey )
+    public function setApiKey( $apiKey )
     {
         if (self::$testMode) {
             StripeMock::setApiKey( $apiKey );
@@ -45,7 +45,7 @@ class StripeFacade
      * @param $apiPrivKey
      * @return StripeTokenMock|Token
      */
-    function tokenRetrieve( $stripeToken, $apiPrivKey )
+    public function tokenRetrieve( $stripeToken, $apiPrivKey )
     {
         if (self::$testMode) {
             return StripeTokenMock::retrieve( $stripeToken, $apiPrivKey );
@@ -58,7 +58,7 @@ class StripeFacade
      * @param $params
      * @return StripeChargeMock|Charge
      */
-    function chargeCreate( $params )
+    public function chargeCreate( $params )
     {
         if (self::$testMode) {
             return StripeChargeMock::create( $params );
@@ -71,7 +71,7 @@ class StripeFacade
      * @param $params
      * @return StripeCustomerMock|Customer
      */
-    function customerCreate( $params )
+    public function customerCreate( $params )
     {
         if (self::$testMode) {
             return StripeCustomerMock::create( $params );
