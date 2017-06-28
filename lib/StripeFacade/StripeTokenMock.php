@@ -22,15 +22,15 @@ class StripeTokenMock extends Token
     /**
      * @var
      */
-    static $typeSetting;
+    public static $typeSetting;
     /**
      * @var
      */
-    static $cardCountrySetting;
+    public static $cardCountrySetting;
     /**
      * @var
      */
-    static $bankCountrySetting;
+    public static $bankCountrySetting;
 
     /**
      * @var
@@ -50,7 +50,7 @@ class StripeTokenMock extends Token
      * @param array|null|string $opts
      * @return StripeTokenMock
      */
-    static function retrieve( $stripeToken, $opts = null )
+    public static function retrieve( $stripeToken, $opts = null )
     {
         $tok = new StripeTokenMock();
         $tok->type = self::$typeSetting;

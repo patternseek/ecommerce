@@ -129,7 +129,7 @@ class BasketConfig extends StructClass
      * @param bool $discardInvalidEntries If set to true, entries in $properties for which there is no corresponding class member will be discarded instead of generating an error
      * @return BasketConfig
      */
-    static function fromArray( array $properties, $discardInvalidEntries = false )
+    public static function fromArray( array $properties, $discardInvalidEntries = false )
     {
         $paymentProviders = $properties[ 'paymentProviders' ];
         unset( $properties[ 'paymentProviders' ] );

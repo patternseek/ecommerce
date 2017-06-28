@@ -337,7 +337,10 @@ class Address extends AbstractViewComponent
         return $this->parent->render();
     }
 
-    function getState()
+    /**
+     * @return AddressState
+     */
+    public function getState()
     {
         return $this->state;
     }

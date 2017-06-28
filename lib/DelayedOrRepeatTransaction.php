@@ -11,8 +11,6 @@
 
 namespace PatternSeek\ECommerce;
 
-use Symfony\Component\Validator\Constraints as Assert;
-
 /**
  * Stored information for an authorised transaction, which can 
  * 
