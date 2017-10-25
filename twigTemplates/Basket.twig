@@ -56,10 +56,7 @@
     
         {% if not state.complete %}
             <tr class="topseparator">
-                <td>
-                    EU VAT number
-                </td>
-                <td colspan="3">
+                <td colspan="4">
                     {% set validateFormBody %}
                     {% if state.vatNumber %}
                         <strong>{{ state.vatNumber }}</strong>
@@ -73,6 +70,8 @@
                         {% endfor %}
                     </select>
                     <input type="submit" value="Update">
+                        <br>
+                        <small>If you are purchasing for a VAT registered company.</small>
                     {% endset %}
                     {{ exec.replaceElementUsingForm( "validateVatNumber", "POST", validateFormBody, "component-basket", "vatNumberUpdate" ) }}
                     {# {{ exec.wrapForm( "validateVatNumber", "POST", validateFormBody, false, "vatNumberUpdate" ) }} #}

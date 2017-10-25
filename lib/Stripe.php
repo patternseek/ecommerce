@@ -195,6 +195,7 @@ class Stripe extends AbstractViewComponent
         $txn->chargeID = $charge->id;
         $txn->paymentCountryCode = $paymentCountryCode;
         $txn->paymentType = $type;
+        $txn->transactionCurrency = $currency;
 
         $this->state->complete = true;
         $ret = $this->parent->transactionSuccess( $txn );
