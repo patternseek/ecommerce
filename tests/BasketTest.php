@@ -410,12 +410,12 @@ class BasketTest extends \PHPUnit_Framework_TestCase
      */
     protected function getVatRates()
     {
-        if( ! $_ENV['vatlayer_api_key']){
+        if( ! getenv('vatlayer_api_key') ){
             throw new \Exception( "Please set the vatlayer_api_key environment variable" );
         }
         
         if (!( $ratesStr = @file_get_contents( "/tmp/vatrates.json" ) )) {
-            $apiKey = $_ENV['vatlayer_api_key'];
+            $apiKey = getenv('vatlayer_api_key');
             $ratesStr = file_get_contents( "http://apilayer.net/api/rate_list?access_key={$apiKey}&format=1" );
             file_put_contents( "/tmp/vatrates.json", $ratesStr );
         }
