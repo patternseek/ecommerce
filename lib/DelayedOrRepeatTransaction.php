@@ -12,7 +12,7 @@
 namespace PatternSeek\ECommerce;
 
 /**
- * Stored information for an authorised transaction, which can 
+ * Stored information for an authorised transaction, which can be charged at a later date, one or more times.
  * 
  * @package PatternSeek\ECommerce
  */
