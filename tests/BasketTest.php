@@ -536,7 +536,8 @@ United States',
         "quantity": 1,
         "productType": "electronicservices",
         "enjoyedInLocationType": "row",
-        "subscriptionTypeId": null
+        "subscriptionTypeId": null,
+        "vatRate": 0
     }
 ]',
                     'validationError' => NULL,
@@ -576,7 +577,8 @@ United States',
         "quantity": 1,
         "productType": "electronicservices",
         "enjoyedInLocationType": "row",
-        "subscriptionTypeId": null
+        "subscriptionTypeId": null,
+        "vatRate": 0
     }
 ]',
                     'vatAmount' => 0.0,
@@ -661,7 +663,8 @@ United States',
         "quantity": 1,
         "productType": "electronicservices",
         "enjoyedInLocationType": "row",
-        "subscriptionTypeId": null
+        "subscriptionTypeId": null,
+        "vatRate": 0
     }
 ]',
             'chargeID' => 'TestStripeID',
@@ -732,7 +735,8 @@ United States',
         "quantity": 1,
         "productType": "electronicservices",
         "enjoyedInLocationType": "local",
-        "subscriptionTypeId": null
+        "subscriptionTypeId": null,
+        "vatRate": 0.2
     }
 ]',
             'chargeID' => 'TestStripeID',

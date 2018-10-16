@@ -87,6 +87,12 @@ class LineItem extends StructClass
     public $subscriptionTypeId;
 
     /**
+     * The VAT rate for this item for the current customer
+     * @var double
+     */
+    public $vatRate;
+
+    /**
      * Work out which VAT type and amount per item are applicable to this line item.
      * @param $vendorVatRate
      * @param $customerVatRate
@@ -192,27 +198,44 @@ class LineItem extends StructClass
     }
 
     /**
-     * Determine what rate of VAT to charge. The rate in the vendor country, the customer country or zero.
+     * Determine what how much VAT to charge.
      *
      * @param string $vatType One of "customer", "vendor", or "zero"
      * @param $itemPrice
      * @param double $vendorRate The vendor's VAT rate.
      * @param double $customerRate The customer's VAT rate
      * @return float The VAT rate to use
-     * @internal param string $productType One of 'deliveredgoods','normalservices','electronicservices'
-     * @internal param bool $isB2b B2B transaction if true, B2C if not.
-     * @internal param string $enjoyedInLocation Where the goods are sent or the service is consumed, one of 'local','eu','row'. 'row' being Rest Of World
      */
     private function getVat( $vatType, $itemPrice, $vendorRate, $customerRate )
     {
+        $rate = $this->getVatRate( $vatType, $vendorRate, $customerRate );
+        $vat = round( $itemPrice * $rate, 2 );
+        return $vat;
+    }
+
+    /**
+     * Determine what rate of VAT to charge. The rate in the vendor country, the customer country or zero.
+     *
+     * @param string $vatType One of "customer", "vendor", or "zero"
+     * @param double $vendorRate The vendor's VAT rate.
+     * @param double $customerRate The customer's VAT rate
+     * @return float The VAT rate to use
+     */
+    public function getVatRate( $vatType, $vendorRate, $customerRate ){
+        $rate = 0.0;
         switch ($vatType) {
             case "customer":
-                return round( $itemPrice * $customerRate, 2 );
+                $rate = $customerRate;
+                break;
             case "vendor":
-                return round( $itemPrice * $vendorRate, 2 );
+                $rate = $vendorRate;
+                break;
             case "zero":
-                return 0.0;
+                $rate = 0.0;
+                break;
         }
+        $this->vatRate = $rate;
+        return $this->vatRate;
     }
 
 }
