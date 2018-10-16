@@ -15,13 +15,21 @@ use PatternSeek\ComponentView\Response;
 use PatternSeek\ECommerce\Basket;
 use PatternSeek\ECommerce\DelayedOrRepeatTransaction;
 use PatternSeek\ECommerce\DelayedTransactionSuccessCallback;
+use PatternSeek\ECommerce\Stripe;
 use PatternSeek\ECommerce\Transaction;
 use PatternSeek\ECommerce\TransactionSuccessCallback;
 
 class TestDelayedSuccess extends DelayedTransactionSuccessCallback
 {
 
+    /**
+     * @var DelayedOrRepeatTransaction
+     */
+    public $delayedTxn;
+
     function __invoke( DelayedOrRepeatTransaction $delayedTxn, Basket $basket ){
+        $this->delayedTxn = $delayedTxn;
+        
         $delayedSuccessOutput = (array)$delayedTxn;
         
         #unset( $delayedSuccessOutput[ 'validationError' ] );
@@ -29,7 +37,7 @@ class TestDelayedSuccess extends DelayedTransactionSuccessCallback
         $delayedSuccessOutput['time'] = null;
         ksort( $delayedSuccessOutput );
         
-        if( $delayedTxn->providerClass == "\\PatternSeek\\ECommerce\\Stripe" ){
+        if( $delayedTxn->providerClass == Stripe::class ){
             $creds = ["apiPrivKey"=>"dummy_api_key"];
             $finalTxn = $delayedTxn->charge( $creds );
             $finalTxnOutput = (array)$finalTxn;

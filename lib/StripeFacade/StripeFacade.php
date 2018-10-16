@@ -12,6 +12,7 @@ namespace PatternSeek\ECommerce\StripeFacade;
 use Stripe\Charge;
 use Stripe\Customer;
 use Stripe\Stripe as StripeAPI;
+use Stripe\Subscription;
 use Stripe\Token;
 
 /**
@@ -77,6 +78,19 @@ class StripeFacade
             return StripeCustomerMock::create( $params );
         }else {
             return Customer::create( $params );
+        }
+    }
+
+    /**
+     * @param $params
+     * @return StripeCustomerMock|Customer
+     */
+    public function subscriptionCreate( $params )
+    {
+        if (self::$testMode) {
+            return StripeSubscriptionMock::create( $params );
+        }else {
+            return Subscription::create( $params );
         }
     }
 }

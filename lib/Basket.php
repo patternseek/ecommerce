@@ -228,6 +228,25 @@ class Basket extends AbstractViewComponent
         return $root->render();
     }
 
+    public function subscriptionSuccess( Subscription $sub )
+    {
+        $this->state->complete = true;
+
+        try{
+            $sub->validate();
+        }catch( \Exception $e ){
+            $sub->validationError = $e->getMessage();
+        }
+
+        $this->state->successMessage = $this->state->subscriptionSuccessCallback->__invoke( $sub, $this )->content;
+        // Render full component, including parent of basket, if any.
+        $root = $this->getRootComponent();
+        $root->updateState();
+        return $root->render();
+        
+        
+    }
+
     /**
      * Used for testing state methods
      */
@@ -340,7 +359,8 @@ class Basket extends AbstractViewComponent
         $this->testInputs(
             [
                 'transactionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\TransactionSuccessCallback', null ],
-                'delayedTransactionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\DelayedTransactionSuccessCallback', null ]
+                'delayedTransactionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\DelayedTransactionSuccessCallback', null ],
+                'subscriptionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\SubscriptionSuccessCallback', null ]
             ],
             $props
         );
@@ -351,6 +371,10 @@ class Basket extends AbstractViewComponent
 
         if( $props['delayedTransactionSuccessCallback'] instanceof DelayedTransactionSuccessCallback  ){
             $this->state->delayedTransactionSuccessCallback = $props[ 'delayedTransactionSuccessCallback' ];
+        }
+
+        if( $props['subscriptionSuccessCallback'] instanceof SubscriptionSuccessCallback  ){
+            $this->state->subscriptionSuccessCallback = $props[ 'subscriptionSuccessCallback' ];
         }
         
         $this->addOrUpdateChild(

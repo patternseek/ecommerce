@@ -10,9 +10,9 @@
 
 namespace PatternSeek\ECommerce\StripeFacade;
 
-use Stripe\Customer;
+use Stripe\Subscription;
 
-class StripeCustomerMock extends Customer
+class StripeSubscriptionMock extends Subscription
 {
 
     public static $params;
@@ -20,8 +20,8 @@ class StripeCustomerMock extends Customer
     public static function create( $params = null, $options = null )
     {
         self::$params = $params;
-        $customer = new StripeCustomerMock();
-        $customer->id = "TestStripeCustomerID";
-        return $customer;
+        $subscription = new StripeSubscriptionMock();
+        $subscription->id = "TestStripeSubscriptionID";
+        return $subscription;
     }
 }
