@@ -6,7 +6,7 @@ use PatternSeek\StructClass\StructClass;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Class AddressState
+ * Class Transaction
  * @package PatternSeek\ECommerce
  */
 class Transaction extends StructClass

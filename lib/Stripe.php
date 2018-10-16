@@ -9,6 +9,7 @@
  */
 namespace PatternSeek\ECommerce;
 
+use Exception;
 use PatternSeek\ComponentView\AbstractViewComponent;
 use PatternSeek\ComponentView\Template\TwigTemplate;
 use PatternSeek\ECommerce\StripeFacade\StripeFacade;
@@ -139,22 +140,33 @@ class Stripe extends AbstractViewComponent
         $currency = $c->currency;
         $description = $this->state->description;
         try{
-            if( $this->state->chargeMode == "immediate"){
-                // Create the charge on Stripe's servers - this will charge the user's card
-                $ret = 
-                    $this->chargeCard( 
-                        $stripe, 
-                        $stripeToken, 
-                        $amount, 
-                        $currency, 
-                        $description, 
-                        $paymentCountryCode,
-                        $paymentType );
-            }else{
-                // Generate token for later/repeat charge
-                $ret = 
-                    $this->getDelayedOrRepeatPaymentTransaction( $stripe, $stripeToken, $paymentCountryCode, $paymentType );
+            switch ( $this->state->chargeMode ){
+                case "immediate":
+                    // Create the charge on Stripe's servers - this will charge the user's card
+                    $ret =
+                        $this->chargeCard(
+                            $stripe,
+                            $stripeToken,
+                            $amount,
+                            $currency,
+                            $description,
+                            $paymentCountryCode,
+                            $paymentType );
+                    break;
+                case "delayed":
+                    // Generate token for later/repeat charge
+                    $ret =
+                        $this->getDelayedOrRepeatPaymentTransaction( $stripe, $stripeToken, $paymentCountryCode, $paymentType );
+                    break;
+                case "subscription":
+                    // Subscribe user
+                    $ret =
+                        $this->createUserAndSubscribe( $stripe, $stripeToken, $paymentCountryCode, $paymentType );
+                    break;
+                default:
+                    throw new Exception("Sorry there was an internal error: 'Unknown chargeMode {$this->state->chargeMode}'");
             }
+
         }catch( \Stripe\Error\Card $e ){
             $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
 
@@ -177,7 +189,7 @@ class Stripe extends AbstractViewComponent
      * @param string $type
      * @return \PatternSeek\ComponentView\Response
      */
-    private function chargeCard( $stripe, $card, $amount, $currency, $description, $paymentCountryCode, $type = "card" )
+    private function chargeCard( StripeFacade $stripe, $card, $amount, $currency, $description, $paymentCountryCode, $type = "card" )
     {
 
         $params = [
@@ -209,7 +221,7 @@ class Stripe extends AbstractViewComponent
      * @param string $paymentType
      * @return \PatternSeek\ComponentView\Response
      */
-    private function getDelayedOrRepeatPaymentTransaction( $stripe, $stripeToken, $paymentCountryCode, $paymentType )
+    private function getDelayedOrRepeatPaymentTransaction( StripeFacade $stripe, $stripeToken, $paymentCountryCode, $paymentType )
     {
 
         $params = [
@@ -227,11 +239,39 @@ class Stripe extends AbstractViewComponent
         $futureTxn->paymentType = $paymentType;
         $this->parent->populateTransactionDetails( $futureTxn );        
         $futureTxn->storedToken = $customer->id;
-        $futureTxn->providerClass = "\\PatternSeek\\ECommerce\\Stripe";
+        $futureTxn->providerClass = Stripe::class;
         
         $this->state->complete = true;
         $ret = $this->parent->delayedTransactionSuccess( $futureTxn );
         return $ret;
+    }
+
+    private function createUserAndSubscribe( StripeFacade $stripe, $stripeToken, $planId )
+    {
+        $params = [
+            "source" => $stripeToken,
+            "description" => $this->state->email
+        ];
+        $customer = $stripe->customerCreate( $params );
+        
+        $subscription = $stripe->subscriptionCreate([
+            'customer' => $customer->id,
+            'items' => [['plan' => $planId]],
+        ]);
+        
+        $sub = new Subscription();
+
+        $sub->providerClass = Stripe::class;
+        $sub->setProviderSpecificSubscriptionData( 
+            [
+                'customer' => $customer,
+                'subscription' => $subscription
+            ]
+        );
+        
+        $ret = $this->parent->subscriptionSuccess( $sub );
+        return $ret;
+        
     }
 
     /**

@@ -13,6 +13,7 @@ use PatternSeek\DependencyInjector\DependencyInjector;
 use PatternSeek\ECommerce\Basket;
 use PatternSeek\ECommerce\BasketConfig;
 use PatternSeek\ECommerce\LineItem;
+use PatternSeek\ECommerce\Stripe;
 use PatternSeek\ECommerce\StripeFacade\StripeFacade;
 use PatternSeek\ECommerce\StripeFacade\StripeTokenMock;
 use Pimple\Container;
@@ -27,20 +28,41 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     function setup(){
         DependencyInjector::init( new Container() );
     }
-    
+
     protected $successCallback;
     protected $delayedSuccessCallback;
+    protected $subscriptionSuccessCallback;
 
     public function testDelayedModeTransaction()
     {
         $billingAddress = $this->getUSAddress();
         $lineItem = $this->getElectronicServiceLineItem();
-        $successOutput = [ ];
+        $testDelayedSuccess = new TestDelayedSuccess();
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress, $chargeMode = "delayed" );
+        $view = $this->prepareBasket( $lineItem, $billingAddress, $chargeMode = "delayed", $testDelayedSuccess );
 
         StripeFacade::$testMode = true;
-        $this->succeedOnDelayedTransaction($view, $successOutput);
+        $this->succeedOnDelayedTransaction( $view );
+
+        $delayedTxn = $testDelayedSuccess->delayedTxn;
+
+        // Charge again. Doesn't actually call Stripe of course but could catch something in future.
+        $delayedTxn->charge( $this->getPaymentProvidersConfig() );
+        $delayedTxn->charge( $this->getPaymentProvidersConfig() );
+    }
+    
+    public function testSubscription()
+    {
+        $billingAddress = $this->getUSAddress();
+        $lineItem = $this->getElectronicServiceLineItem();
+        $successOutput = [ ];
+
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $billingAddress, $chargeMode = "subscription" );
+
+        StripeFacade::$testMode = true;
+        $this->succeedOnSubscription( $view );
+
     }
     
     public function testElectronicServiceToUKConsumer()
@@ -49,7 +71,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getElectronicServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertTrue(
             $state->requireUserLocationProof
@@ -78,7 +100,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getNormalServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertFalse(
             $state->requireUserLocationProof // Not needed for normal services
@@ -107,7 +129,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getElectronicServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertTrue(
             $state->requireUserLocationProof
@@ -136,7 +158,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getNormalServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertFalse(
             $state->requireUserLocationProof // Not needed for normal services
@@ -169,7 +191,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getElectronicServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertTrue(
             $state->requireUserLocationProof
@@ -203,7 +225,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getNormalServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
         $state = $view->getStateForTesting();
         $this->assertFalse(
             $state->requireUserLocationProof // Not needed for normal services
@@ -232,7 +254,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getElectronicServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
 
         $view->render( "validateVatNumber", [ "countryCode" => "GB", "vatNumber" => "333289454" ] ); //BBC VAT number
 
@@ -264,7 +286,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getNormalServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
 
         $view->render( "validateVatNumber", [ "countryCode" => "GB", "vatNumber" => "333289454" ] ); //BBC VAT number
 
@@ -296,7 +318,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getElectronicServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
 
         $view->render( "validateVatNumber",
             [ "countryCode" => "ES", "vatNumber" => "a28015865" ] ); //Telefonica Spain VAT number
@@ -331,7 +353,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getNormalServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
 
         $view->render( "validateVatNumber",
             [
@@ -369,7 +391,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         $lineItem = $this->getElectronicServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $successOutput, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress );
         $state = $view->getStateForTesting();
 
         $serialised = serialize( $view );
@@ -466,10 +488,9 @@ class BasketTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @param Basket $uns
-     * @param $successOutput
      * @throws \Exception
      */
-    protected function succeedOnDelayedTransaction( $uns, &$successOutput )
+    protected function succeedOnDelayedTransaction( $uns )
     {
         // US card + US address + GB IP, should succeed
         StripeTokenMock::$typeSetting = 'card';
@@ -496,7 +517,7 @@ United States',
                     'ipCountryCode' => 'GB',
                     'paymentCountryCode' => 'US',
                     'paymentType' => 'card',
-                    'providerClass' => '\\PatternSeek\\ECommerce\\Stripe',
+                    'providerClass' => Stripe::class,
                     'storedToken' => 'TestStripeCustomerID',
                     'testMode' => true,
                     'time' => NULL,
@@ -561,6 +582,40 @@ United States',
                     'vatNumberStatus' => 'notchecked',
                 ),
         );
+        krsort( $expected );
+        $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
+        $this->assertEquals( $expectedString, $execOut  );
+
+    }
+
+    /**
+     * @param Basket $uns
+     * @throws \Exception
+     */
+    protected function succeedOnSubscription( $uns )
+    {
+        // US card + US address + GB IP, should succeed
+        StripeTokenMock::$typeSetting = 'card';
+        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
+        $uns->updateView(
+            [
+                'subscriptionSuccessCallback' => $this->subscriptionSuccessCallback
+            ]
+        );
+        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+
+        $expected =     
+            [
+                'subscription' =>
+                    [
+                        'id' => 'TestStripeSubscriptionID',
+                    ],
+                'customer' =>
+                    [
+                        'id' => 'TestStripeCustomerID',
+                    ],
+            ];
+
         krsort( $expected );
         $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
         $this->assertEquals( $expectedString, $execOut  );
@@ -695,12 +750,18 @@ United States',
 
     /**
      * @param LineItem $lineItem
-     * @param $successOutput
      * @param $billingAddress
      * @param string $chargeMode
-     * @return array
+     * @param null $testDelayedSuccess
+     * @return Basket
+     * @throws \Exception
      */
-    private function prepareBasket( LineItem $lineItem, &$successOutput, $billingAddress, $chargeMode = "immediate" )
+    private function prepareBasket(
+        LineItem $lineItem,
+        $billingAddress,
+        $chargeMode = "immediate",
+        $testDelayedSuccess = null
+    )
     {
         // This would usually come from a config source
         $configArray = [
@@ -711,21 +772,7 @@ United States',
             'countryCode' => "GB",
             'briefDescription' => "Brief description of basket contents.",
             'intro' => "Optional intro HTML for page.",
-            'paymentProviders' => [
-                'Stripe' => [
-                    'name' => 'stripe',
-                    'componentClass' => "\\PatternSeek\\ECommerce\\Stripe",
-                    'conf' => [
-                        'testApiPubKey' => 'pk_test_abc123',
-                        'testApiPrivKey' => 'sk_test_abc123',
-                        'liveApiPubKey' => 'pk_live_abc123',
-                        'liveApiPrivKey' => 'sk_live_abc123',
-                        'siteName' => 'example.com',
-                        'currency' => 'GBP',
-                        'siteLogo' => '//example.com/logo.png'
-                    ]
-                ]
-            ],
+            'paymentProviders' => $this->getPaymentProvidersConfig(),
             'billingAddress' => $billingAddress
         ];
         file_put_contents( "/tmp/cnf", yaml_emit( $configArray, YAML_UTF8_ENCODING ) );
@@ -751,7 +798,11 @@ United States',
         $view = new Basket();
 
         $this->successCallback = new TestSuccess();
-        $this->delayedSuccessCallback = new TestDelayedSuccess();
+        if( null === $testDelayedSuccess ){
+            $testDelayedSuccess = new TestDelayedSuccess();
+        }
+        $this->delayedSuccessCallback = $testDelayedSuccess;
+        $this->subscriptionSuccessCallback = new TestSubscriptionSuccess();
 
         $view->updateView(
             [
@@ -761,7 +812,8 @@ United States',
                 'testMode' => true,
                 'chargeMode' => $chargeMode,
                 'transactionSuccessCallback' => $this->successCallback,
-                'delayedTransactionSuccessCallback' => $this->delayedSuccessCallback
+                'delayedTransactionSuccessCallback' => $this->delayedSuccessCallback,
+                'subscriptionSuccessCallback' => $this->subscriptionSuccessCallback
             ]
         );
 
@@ -853,5 +905,27 @@ United States',
         $lineItem->quantity = 1;
         $lineItem->productType = "normalservices";
         return $lineItem;
+    }
+
+    /**
+     * @return array
+     */
+    private function getPaymentProvidersConfig()
+    {
+        return [
+            'Stripe' => [
+                'name' => 'stripe',
+                'componentClass' => "\\PatternSeek\\ECommerce\\Stripe",
+                'conf' => [
+                    'testApiPubKey' => 'pk_test_abc123',
+                    'testApiPrivKey' => 'sk_test_abc123',
+                    'liveApiPubKey' => 'pk_live_abc123',
+                    'liveApiPrivKey' => 'sk_live_abc123',
+                    'siteName' => 'example.com',
+                    'currency' => 'GBP',
+                    'siteLogo' => '//example.com/logo.png'
+                ]
+            ]
+        ];
     }
 }
