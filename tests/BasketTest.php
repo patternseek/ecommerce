@@ -55,6 +55,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     {
         $billingAddress = $this->getUSAddress();
         $lineItem = $this->getElectronicServiceLineItem();
+        $lineItem->subscriptionTypeId = "example-subscription-id";
         $successOutput = [ ];
 
         /** @var Basket $view */
@@ -534,7 +535,8 @@ United States',
         "isB2b": false,
         "quantity": 1,
         "productType": "electronicservices",
-        "enjoyedInLocationType": "row"
+        "enjoyedInLocationType": "row",
+        "subscriptionTypeId": null
     }
 ]',
                     'validationError' => NULL,
@@ -573,7 +575,8 @@ United States',
         "isB2b": false,
         "quantity": 1,
         "productType": "electronicservices",
-        "enjoyedInLocationType": "row"
+        "enjoyedInLocationType": "row",
+        "subscriptionTypeId": null
     }
 ]',
                     'vatAmount' => 0.0,
@@ -604,17 +607,21 @@ United States',
         );
         $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
 
-        $expected =     
+        $expected =
             [
-                'subscription' =>
+                0 =>
                     [
-                        'id' => 'TestStripeSubscriptionID',
-                    ],
-                'customer' =>
-                    [
-                        'id' => 'TestStripeCustomerID',
+                        'subscription' =>
+                            [
+                                'id' => 'TestStripeSubscriptionID',
+                            ],
+                        'customer' =>
+                            [
+                                'id' => 'TestStripeCustomerID',
+                            ],
                     ],
             ];
+
 
         krsort( $expected );
         $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
@@ -653,7 +660,8 @@ United States',
         "isB2b": false,
         "quantity": 1,
         "productType": "electronicservices",
-        "enjoyedInLocationType": "row"
+        "enjoyedInLocationType": "row",
+        "subscriptionTypeId": null
     }
 ]',
             'chargeID' => 'TestStripeID',
@@ -723,7 +731,8 @@ United States',
         "isB2b": false,
         "quantity": 1,
         "productType": "electronicservices",
-        "enjoyedInLocationType": "local"
+        "enjoyedInLocationType": "local",
+        "subscriptionTypeId": null
     }
 ]',
             'chargeID' => 'TestStripeID',

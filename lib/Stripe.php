@@ -11,8 +11,10 @@ namespace PatternSeek\ECommerce;
 
 use Exception;
 use PatternSeek\ComponentView\AbstractViewComponent;
+use PatternSeek\ComponentView\Response;
 use PatternSeek\ComponentView\Template\TwigTemplate;
 use PatternSeek\ECommerce\StripeFacade\StripeFacade;
+use PatternSeek\ECommerce\ViewState\AddressState;
 use PatternSeek\ECommerce\ViewState\StripeState;
 
 /**
@@ -161,13 +163,13 @@ class Stripe extends AbstractViewComponent
                 case "subscription":
                     // Subscribe user
                     $ret =
-                        $this->createUserAndSubscribe( $stripe, $stripeToken, $paymentCountryCode, $paymentType );
+                        $this->createUserAndSubscribe( $stripe, $stripeToken, $this->state->lineItems );
                     break;
                 default:
                     throw new Exception("Sorry there was an internal error: 'Unknown chargeMode {$this->state->chargeMode}'");
             }
 
-        }catch( \Stripe\Error\Card $e ){
+        }catch( Exception $e ){
             $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
 
             $root = $this->getRootComponent();
@@ -187,7 +189,8 @@ class Stripe extends AbstractViewComponent
      * @param $description
      * @param $paymentCountryCode
      * @param string $type
-     * @return \PatternSeek\ComponentView\Response
+     * @return Response
+     * @throws Exception
      */
     private function chargeCard( StripeFacade $stripe, $card, $amount, $currency, $description, $paymentCountryCode, $type = "card" )
     {
@@ -219,7 +222,8 @@ class Stripe extends AbstractViewComponent
      * @param $stripeToken
      * @param $paymentCountryCode
      * @param string $paymentType
-     * @return \PatternSeek\ComponentView\Response
+     * @return Response
+     * @throws Exception
      */
     private function getDelayedOrRepeatPaymentTransaction( StripeFacade $stripe, $stripeToken, $paymentCountryCode, $paymentType )
     {
@@ -246,7 +250,14 @@ class Stripe extends AbstractViewComponent
         return $ret;
     }
 
-    private function createUserAndSubscribe( StripeFacade $stripe, $stripeToken, $planId )
+    /**
+     * @param StripeFacade $stripe
+     * @param string $stripeToken
+     * @param LineItem[] $lineItems
+     * @return Response
+     * @throws Exception
+     */
+    private function createUserAndSubscribe( StripeFacade $stripe, $stripeToken, $lineItems )
     {
         $params = [
             "source" => $stripeToken,
@@ -254,22 +265,26 @@ class Stripe extends AbstractViewComponent
         ];
         $customer = $stripe->customerCreate( $params );
         
-        $subscription = $stripe->subscriptionCreate([
-            'customer' => $customer->id,
-            'items' => [['plan' => $planId]],
-        ]);
-        
-        $sub = new Subscription();
+        $subs = [];
+        foreach( $lineItems as $lineItem ){
+            $subscriptionRaw = $stripe->subscriptionCreate([
+                'customer' => $customer->id,
+                'items' => [['plan' => $lineItem->subscriptionTypeId]],
+            ]);
 
-        $sub->providerClass = Stripe::class;
-        $sub->setProviderSpecificSubscriptionData( 
-            [
-                'customer' => $customer,
-                'subscription' => $subscription
-            ]
-        );
+            $sub = new Subscription();
+            $sub->providerClass = Stripe::class;
+            $sub->setProviderSpecificSubscriptionData(
+                [
+                    'customer' => $customer,
+                    'subscription' => $subscriptionRaw
+                ]
+            );
+            $subs[] = $sub;
+        }
+
         
-        $ret = $this->parent->subscriptionSuccess( $sub );
+        $ret = $this->parent->subscriptionSuccess( $subs );
         return $ret;
         
     }
@@ -277,8 +292,7 @@ class Stripe extends AbstractViewComponent
     /**
      * @param array $credentials
      * @param DelayedOrRepeatTransaction $delayedTxn
-     * @return \PatternSeek\ComponentView\Response
-     * @throws \Exception
+     * @return Transaction
      */
     public static function chargeDelayedOrRepeatPaymentTransaction( $credentials, DelayedOrRepeatTransaction $delayedTxn )
     {
@@ -343,7 +357,8 @@ class Stripe extends AbstractViewComponent
                 'description' => [ "string" ],
                 'basketReady' => [ 'boolean' ],
                 'transactionComplete' => [ 'boolean' ],
-                'address' => [ 'PatternSeek\ECommerce\ViewState\AddressState' ]
+                'address' => [ AddressState::class ],
+                'lineItems' => [ 'array' ],
             ],
             $props
         );
@@ -352,6 +367,7 @@ class Stripe extends AbstractViewComponent
         $this->state->ready = $props[ 'basketReady' ];
         $this->state->complete = $props[ 'transactionComplete' ];
         $this->state->address = $props[ 'address' ];
+        $this->state->lineItems = $props['lineItems'];
 
     }
 

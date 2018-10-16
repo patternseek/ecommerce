@@ -26,18 +26,23 @@ class TestSubscriptionSuccess extends SubscriptionSuccessCallback
      */
     public $delayedTxn;
 
-    function __invoke( Subscription $sub, Basket $basket ){
+    /**
+     * @param Subscription[] $subs
+     * @param Basket $basket
+     * @return mixed
+     * @throws \Exception
+     */
+    function __invoke( array $subs, Basket $basket ){
         
-        $subscriptionSuccessOutput = (array)$sub;
-        
-        ksort( $subscriptionSuccessOutput );
-        
-        if( $sub->providerClass !== Stripe::class ){
-            throw new \Exception( "Txn provider should be Stripe" );
+        $out = [];
+        foreach ( $subs as $sub ){
+            if( $sub->providerClass !== Stripe::class ){
+                throw new \Exception( "Txn provider should be Stripe" );
+            }
+            $subOut = $sub->getProviderSpecificSubscriptionData();
+            krsort($subOut);
+            $out[] = $subOut;
         }
-
-        $out = $sub->getProviderSpecificSubscriptionData();
-        krsort( $out );
         return new Response( "text/plain", var_export( $out, true ) );
     }
 }

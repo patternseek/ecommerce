@@ -80,6 +80,13 @@ class LineItem extends StructClass
     public $enjoyedInLocationType;
 
     /**
+     * In the case of subscription products, an ID is required to subscribe the user to.
+     * 
+     * @var mixed
+     */
+    public $subscriptionTypeId;
+
+    /**
      * Work out which VAT type and amount per item are applicable to this line item.
      * @param $vendorVatRate
      * @param $customerVatRate

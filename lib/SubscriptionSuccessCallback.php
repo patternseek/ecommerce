@@ -17,8 +17,8 @@ namespace PatternSeek\ECommerce;
  * Usage:
  * 
  * class MyCallback extends SubscriptionSuccessCallback{
- *      public function __invoke( Subscription $subscription, Basket $basket ){
- *          //.. Do something with $subscription, $basket and $this->variables
+ *      public function __invoke( array $subscriptions, Basket $basket ){
+ *          //.. Do something with $subscriptions, $basket and $this->variables
  *      }
  * } 
  * 
@@ -38,7 +38,12 @@ abstract class SubscriptionSuccessCallback
     public function __construct( $variables = [] ){
         $this->variables = $variables;
     }
-    
-    abstract public function __invoke( Subscription $subscription, Basket $basket );
+
+    /**
+     * @param Subscription[] $subscriptions
+     * @param Basket $basket
+     * @return mixed
+     */
+    abstract public function __invoke( array $subscriptions, Basket $basket );
     
 }

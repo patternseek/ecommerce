@@ -45,6 +45,17 @@ class Basket extends AbstractViewComponent
         foreach ($props[ 'lineItems' ] as $lineItem) {
             $this->state->lineItems[ ] = $lineItem;
         }
+        
+        // We only support one charge type per basket currently.
+        // In the case of subscriptions this means that all line items must have
+        // an associated subscriptionTypeId
+        if( $props['chargeMode'] == 'subscription' ){
+            foreach ($this->state->lineItems as $lineItem){
+                if( empty( $lineItem->subscriptionTypeId ) ){
+                    throw new \Exception("When setting the basket charge mode to subscription all line items must include a subscription type ID.");
+                }
+            }
+        }
 
         $this->state->config = $config;
 
@@ -185,6 +196,7 @@ class Basket extends AbstractViewComponent
     /**
      * @param Transaction $txn
      * @return Response
+     * @throws \Exception
      */
     public function transactionSuccess( Transaction $txn )
     {
@@ -209,6 +221,7 @@ class Basket extends AbstractViewComponent
     /**
      * @param DelayedOrRepeatTransaction $txn
      * @return Response
+     * @throws \Exception
      */
     public function delayedTransactionSuccess( DelayedOrRepeatTransaction $txn )
     {
@@ -228,17 +241,25 @@ class Basket extends AbstractViewComponent
         return $root->render();
     }
 
-    public function subscriptionSuccess( Subscription $sub )
+    /**
+     * @param Subscription[] $sub
+     * @return Response
+     * @throws \Exception
+     */
+    public function subscriptionSuccess( array $subs )
     {
         $this->state->complete = true;
 
-        try{
-            $sub->validate();
-        }catch( \Exception $e ){
-            $sub->validationError = $e->getMessage();
+        foreach ($subs as $sub){
+            try{
+                $sub->validate();
+            }catch( \Exception $e ){
+                $sub->validationError = $e->getMessage();
+            }
         }
 
-        $this->state->successMessage = $this->state->subscriptionSuccessCallback->__invoke( $sub, $this )->content;
+
+        $this->state->successMessage = $this->state->subscriptionSuccessCallback->__invoke( $subs, $this )->content;
         // Render full component, including parent of basket, if any.
         $root = $this->getRootComponent();
         $root->updateState();
@@ -396,7 +417,8 @@ class Basket extends AbstractViewComponent
                     'amount' => $this->state->total,
                     'basketReady' => $this->state->readyForPaymentInfo(),
                     'transactionComplete' => $this->state->complete,
-                    'address' => $this->childComponents[ 'billingAddress' ]->getState()
+                    'address' => $this->childComponents[ 'billingAddress' ]->getState(),
+                    'lineItems' => $this->state->lineItems
                 ]
             );
         }
