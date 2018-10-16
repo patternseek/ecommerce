@@ -270,6 +270,7 @@ class Stripe extends AbstractViewComponent
             $subscriptionRaw = $stripe->subscriptionCreate([
                 'customer' => $customer->id,
                 'items' => [['plan' => $lineItem->subscriptionTypeId]],
+                'tax_percent' => $lineItem->vatRate,
             ]);
 
             $sub = new Subscription();
