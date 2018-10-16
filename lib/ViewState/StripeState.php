@@ -11,6 +11,7 @@
 namespace PatternSeek\ECommerce\ViewState;
 
 use PatternSeek\ComponentView\ViewState\ViewState;
+use PatternSeek\ECommerce\LineItem;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -111,5 +112,11 @@ class StripeState extends ViewState
      * @Assert\Type(type="\Patternseek\Ecommerce\ViewState\AddressState")
      */
     public $address;
+
+    /**
+     * @var LineItem[]
+     * @Assert\Type(type="array")
+     */
+    public $lineItems;
 
 }
