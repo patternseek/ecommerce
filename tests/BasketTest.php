@@ -53,7 +53,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     
     public function testSubscription()
     {
-        $billingAddress = $this->getUSAddress();
+        $billingAddress = $this->getUKAddress();
         $lineItem = $this->getElectronicServiceLineItem();
         $lineItem->subscriptionTypeId = "example-subscription-id";
         $successOutput = [ ];
@@ -520,6 +520,7 @@ United States',
                     'paymentType' => 'card',
                     'providerClass' => Stripe::class,
                     'storedToken' => 'TestStripeCustomerID',
+                    'subscriptions' => NULL,
                     'testMode' => true,
                     'time' => NULL,
                     'transactionAmount' => 100.0,
@@ -561,6 +562,7 @@ United States',
                     'ipCountryCode' => 'GB',
                     'paymentCountryCode' => 'US',
                     'paymentType' => 'card',
+                    'subscriptions' => NULL,
                     'testMode' => true,
                     'time' => NULL,
                     'transactionAmount' => 100.0,
@@ -610,23 +612,70 @@ United States',
         $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
 
         $expected =
-            [
-                0 =>
-                    [
-                        'subscription' =>
-                            [
-                                'id' => 'TestStripeSubscriptionID',
-                            ],
-                        'customer' =>
-                            [
-                                'id' => 'TestStripeCustomerID',
-                            ],
-                    ],
-            ];
+            array (
+                'vatNumberStatus' => 'notchecked',
+                'vatNumberGivenCountryCode' => NULL,
+                'vatNumberGiven' => NULL,
+                'vatAmount' => 20.0,
+                'validationError' => 'Invalid properties in PatternSeek\\ECommerce\\Transaction
+time : This value should not be blank. But got NULL',
+                'transactionDetailRaw' => '[
+    {
+        "description": "Some online service",
+        "netPrice": 100,
+        "vatPerItem": 20,
+        "vatTypeCharged": "customer",
+        "isB2b": false,
+        "quantity": 1,
+        "productType": "electronicservices",
+        "enjoyedInLocationType": "local",
+        "subscriptionTypeId": "example-subscription-id",
+        "vatRate": 0.2
+    }
+]',
+                'transactionDetailLegacy' => NULL,
+                'transactionDescription' => 'Brief description of basket contents.',
+                'transactionCurrency' => 'GBP',
+                'transactionAmount' => 120.0,
+                'time' => NULL,
+                'testMode' => true,
+                'subscriptions' =>
+                    array (
+                        0 =>
+                            array (
+                                'providerRawResult' =>
+                                    array (
+                                        'customer' =>
+                                            array (
+                                                'id' => 'TestStripeCustomerID',
+                                            ),
+                                        'subscription' =>
+                                            array (
+                                                'id' => 'TestStripeSubscriptionID',
+                                            ),
+                                    ),
+                            ),
+                    ),
+                'paymentType' => 'card',
+                'paymentCountryCode' => 'US',
+                'ipCountryCode' => 'GB',
+                'clientName' => NULL,
+                'clientEmail' => NULL,
+                'chargeID' => NULL,
+                'billingAddressCountryCode' => 'GB',
+                'billingAddress' => 'addressLine1
+addressLine2
+townOrCity
+stateOrRegion
+postCode
+United Kingdom',
+            );
+
 
 
         krsort( $expected );
         $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
+    
         $this->assertEquals( $expectedString, $execOut  );
 
     }
@@ -672,6 +721,7 @@ United States',
             'vatAmount' => 0.0,
             'paymentCountryCode' => 'US',
             'paymentType' => 'card',
+            'subscriptions' => NULL,
             'testMode' => true,
             'vatNumberStatus' => 'notchecked',
             'vatNumberGiven' => null,
@@ -742,6 +792,7 @@ United States',
             'chargeID' => 'TestStripeID',
             'paymentCountryCode' => 'GB',
             'paymentType' => 'card',
+            'subscriptions' => NULL,
             'testMode' => true,
             'vatNumberStatus' => 'notchecked',
             'vatNumberGiven' => null,
@@ -934,9 +985,7 @@ United States',
                     'testApiPrivKey' => 'sk_test_abc123',
                     'liveApiPubKey' => 'pk_live_abc123',
                     'liveApiPrivKey' => 'sk_live_abc123',
-                    'siteName' => 'example.com',
                     'currency' => 'GBP',
-                    'siteLogo' => '//example.com/logo.png'
                 ]
             ]
         ];

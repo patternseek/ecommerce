@@ -163,7 +163,7 @@ class Stripe extends AbstractViewComponent
                 case "subscription":
                     // Subscribe user
                     $ret =
-                        $this->createUserAndSubscribe( $stripe, $stripeToken, $this->state->lineItems );
+                        $this->createUserAndSubscribe( $stripe, $stripeToken, $this->state->lineItems, $paymentCountryCode, $paymentType  );
                     break;
                 default:
                     throw new Exception("Sorry there was an internal error: 'Unknown chargeMode {$this->state->chargeMode}'");
@@ -257,35 +257,35 @@ class Stripe extends AbstractViewComponent
      * @return Response
      * @throws Exception
      */
-    private function createUserAndSubscribe( StripeFacade $stripe, $stripeToken, $lineItems )
+    private function createUserAndSubscribe( StripeFacade $stripe, $stripeToken, $lineItems, $paymentCountryCode, $paymentType )
     {
         $params = [
             "source" => $stripeToken,
             "description" => $this->state->email
         ];
         $customer = $stripe->customerCreate( $params );
+
+        $txn = new Transaction();
+        $txn->paymentCountryCode = $paymentCountryCode;
+        $txn->paymentType = $paymentType;
         
-        $subs = [];
         foreach( $lineItems as $lineItem ){
             $subscriptionRaw = $stripe->subscriptionCreate([
                 'customer' => $customer->id,
                 'items' => [['plan' => $lineItem->subscriptionTypeId]],
                 'tax_percent' => $lineItem->vatRate,
             ]);
+            $txn->subscriptions[] = 
+                ['providerRawResult'=>
+                    [
+                        'customer' => (array)$customer->jsonSerialize(),
+                        'subscription' => (array)$subscriptionRaw->jsonSerialize()
+                    ]
+                ];
 
-            $sub = new Subscription();
-            $sub->providerClass = Stripe::class;
-            $sub->setProviderSpecificSubscriptionData(
-                [
-                    'customer' => $customer,
-                    'subscription' => $subscriptionRaw
-                ]
-            );
-            $subs[] = $sub;
         }
-
         
-        $ret = $this->parent->subscriptionSuccess( $subs );
+        $ret = $this->parent->subscriptionSuccess( $txn );
         return $ret;
         
     }

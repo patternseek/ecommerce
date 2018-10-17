@@ -227,6 +227,9 @@ class Basket extends AbstractViewComponent
     {
         $this->state->complete = true;
 
+        // Don't need to call populateTransactionDetails() here as it's
+        // called in getDelayedOrRepeatPaymentTransaction()
+        
         $txn->time = time();
         try{
             $txn->validate();
@@ -242,29 +245,26 @@ class Basket extends AbstractViewComponent
     }
 
     /**
-     * @param Subscription[] $sub
+     * @param Transaction $txn
      * @return Response
      * @throws \Exception
      */
-    public function subscriptionSuccess( array $subs )
+    public function subscriptionSuccess( Transaction $txn )
     {
         $this->state->complete = true;
 
-        foreach ($subs as $sub){
-            try{
-                $sub->validate();
-            }catch( \Exception $e ){
-                $sub->validationError = $e->getMessage();
-            }
+        $this->populateTransactionDetails( $txn );
+        try{
+            $txn->validate();
+        }catch( \Exception $e ){
+            $txn->validationError = $e->getMessage();
         }
 
-
-        $this->state->successMessage = $this->state->subscriptionSuccessCallback->__invoke( $subs, $this )->content;
+        $this->state->successMessage = $this->state->subscriptionSuccessCallback->__invoke( $txn, $this )->content;
         // Render full component, including parent of basket, if any.
         $root = $this->getRootComponent();
         $root->updateState();
         return $root->render();
-        
         
     }
 

@@ -180,6 +180,12 @@ class Transaction extends StructClass
     public $vatAmount;
 
     /**
+     * @var Subscription[]
+     * @Assert\Type(type="array")
+     */
+    public $subscriptions;
+
+    /**
      * Get transaction details as array
      *
      * @return mixed
@@ -191,6 +197,7 @@ class Transaction extends StructClass
 
     /**
      * Set transaction details as array
+     * @param array $transactionDetail
      */
     public function setTransactionDetail( array $transactionDetail )
     {
