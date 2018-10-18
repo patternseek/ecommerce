@@ -184,10 +184,10 @@ class Basket extends AbstractViewComponent
     {
         $ret = [ ];
         foreach ($this->state->vatRates[ 'rates' ] as $cc => $info) {
-            if (isset( $info[ 'iso_duplicate' ] )) {
-                continue;
-            }
-            $ret[ $cc ] = $info[ 'country' ];
+//            if (isset( $info[ 'iso_duplicate' ] )) {
+//                continue;
+//            }
+            $ret[ $cc ] = $info[ 'country_name' ];
         }
         asort( $ret );
         return $ret;
