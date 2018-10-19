@@ -254,6 +254,8 @@ class Stripe extends AbstractViewComponent
      * @param StripeFacade $stripe
      * @param string $stripeToken
      * @param LineItem[] $lineItems
+     * @param $paymentCountryCode
+     * @param $paymentType
      * @return Response
      * @throws Exception
      */
@@ -269,13 +271,14 @@ class Stripe extends AbstractViewComponent
         $txn->paymentCountryCode = $paymentCountryCode;
         $txn->paymentType = $paymentType;
         
+        $subs = [];
         foreach( $lineItems as $lineItem ){
             $subscriptionRaw = $stripe->subscriptionCreate([
                 'customer' => $customer->id,
                 'items' => [['plan' => $lineItem->subscriptionTypeId]],
                 'tax_percent' => $lineItem->vatRate,
             ]);
-            $txn->subscriptions[] = 
+            $subs[] = 
                 ['providerRawResult'=>
                     [
                         'customer' => (array)$customer->jsonSerialize(),
@@ -284,7 +287,7 @@ class Stripe extends AbstractViewComponent
                 ];
 
         }
-        
+        $txn->setSubscriptions( $subs );
         $ret = $this->parent->subscriptionSuccess( $txn );
         return $ret;
         
