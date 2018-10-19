@@ -520,7 +520,7 @@ United States',
                     'paymentType' => 'card',
                     'providerClass' => Stripe::class,
                     'storedToken' => 'TestStripeCustomerID',
-                    'subscriptions' => NULL,
+                    'subscriptionsRaw' => NULL,
                     'testMode' => true,
                     'time' => NULL,
                     'transactionAmount' => 100.0,
@@ -562,7 +562,7 @@ United States',
                     'ipCountryCode' => 'GB',
                     'paymentCountryCode' => 'US',
                     'paymentType' => 'card',
-                    'subscriptions' => NULL,
+                    'subscriptionsRaw' => NULL,
                     'testMode' => true,
                     'time' => NULL,
                     'transactionAmount' => 100.0,
@@ -639,23 +639,19 @@ time : This value should not be blank. But got NULL',
                 'transactionAmount' => 120.0,
                 'time' => NULL,
                 'testMode' => true,
-                'subscriptions' =>
-                    array (
-                        0 =>
-                            array (
-                                'providerRawResult' =>
-                                    array (
-                                        'customer' =>
-                                            array (
-                                                'id' => 'TestStripeCustomerID',
-                                            ),
-                                        'subscription' =>
-                                            array (
-                                                'id' => 'TestStripeSubscriptionID',
-                                            ),
-                                    ),
-                            ),
-                    ),
+                'subscriptionsRaw' => '[
+    {
+        "providerRawResult": {
+            "customer": {
+                "id": "TestStripeCustomerID"
+            },
+            "subscription": {
+                "id": "TestStripeSubscriptionID"
+            }
+        }
+    }
+]',
+
                 'paymentType' => 'card',
                 'paymentCountryCode' => 'US',
                 'ipCountryCode' => 'GB',
@@ -721,7 +717,7 @@ United Kingdom',
             'vatAmount' => 0.0,
             'paymentCountryCode' => 'US',
             'paymentType' => 'card',
-            'subscriptions' => NULL,
+            'subscriptionsRaw' => NULL,
             'testMode' => true,
             'vatNumberStatus' => 'notchecked',
             'vatNumberGiven' => null,
@@ -792,7 +788,7 @@ United Kingdom',
             'chargeID' => 'TestStripeID',
             'paymentCountryCode' => 'GB',
             'paymentType' => 'card',
-            'subscriptions' => NULL,
+            'subscriptionsRaw' => NULL,
             'testMode' => true,
             'vatNumberStatus' => 'notchecked',
             'vatNumberGiven' => null,

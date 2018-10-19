@@ -180,10 +180,29 @@ class Transaction extends StructClass
     public $vatAmount;
 
     /**
-     * @var Subscription[]
-     * @Assert\Type(type="array")
+     * @var string json
+     * @Assert\Type(type="string")
      */
-    public $subscriptions;
+    public $subscriptionsRaw;
+
+    /**
+     * Get subscriptions as array
+     *
+     * @return mixed
+     */
+    public function getSubscriptions()
+    {
+        return json_decode( $this->subscriptionsRaw, true );
+    }
+
+    /**
+     * Set subscriptions as array
+     * @param array $subscriptions
+     */
+    public function setSubscriptions( array $subscriptions )
+    {
+        $this->subscriptionsRaw = json_encode( $subscriptions, JSON_PRETTY_PRINT );
+    }
 
     /**
      * Get transaction details as array
