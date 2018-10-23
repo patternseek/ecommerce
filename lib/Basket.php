@@ -277,6 +277,13 @@ class Basket extends AbstractViewComponent
     }
 
     /**
+     * @return bool
+     */
+    public function getComplete(){
+        return $this->state->complete;
+    }
+
+    /**
      * @param Transaction $txn
      */
     public function populateTransactionDetails( Transaction $txn )
