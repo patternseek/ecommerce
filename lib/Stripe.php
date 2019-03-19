@@ -201,7 +201,7 @@ class Stripe extends AbstractViewComponent
             "card" => $card,
             "description" => $description
         ];
-        if ($this->state->email) {
+        if ($this->state->email !== null) {
             $params[ 'receipt_email' ] = $this->state->email;
         }
         $charge = $stripe->chargeCreate( $params );
@@ -229,9 +229,12 @@ class Stripe extends AbstractViewComponent
     {
 
         $params = [
-            "source" => $stripeToken,
-            "description" => $this->state->email
+            "source" => $stripeToken
         ];
+        if( null !== $this->state->email ){
+            $params['description'] = $this->state->email;
+            $params['email'] = $this->state->email;
+        }
         $customer = $stripe->customerCreate( $params );
         
         if ($this->state->email) {
@@ -363,6 +366,7 @@ class Stripe extends AbstractViewComponent
                 'transactionComplete' => [ 'boolean' ],
                 'address' => [ AddressState::class ],
                 'lineItems' => [ 'array' ],
+                'email' => ['string', null ]
             ],
             $props
         );
@@ -372,6 +376,7 @@ class Stripe extends AbstractViewComponent
         $this->state->complete = $props[ 'transactionComplete' ];
         $this->state->address = $props[ 'address' ];
         $this->state->lineItems = $props['lineItems'];
+        $this->state->email = $props['email'];
 
     }
 
