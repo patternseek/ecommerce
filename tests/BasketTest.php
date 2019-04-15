@@ -975,7 +975,7 @@ United Kingdom',
         return [
             'Stripe' => [
                 'name' => 'stripe',
-                'componentClass' => "\\PatternSeek\\ECommerce\\Stripe",
+                'componentClass' => Stripe::class,
                 'conf' => [
                     'testApiPubKey' => 'pk_test_abc123',
                     'testApiPrivKey' => 'sk_test_abc123',
