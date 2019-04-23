@@ -20,8 +20,7 @@ class StripeCustomerMock extends Customer
     public static function create( $params = null, $options = null )
     {
         self::$params = $params;
-        $customer = new StripeCustomerMock();
-        $customer->id = "TestStripeCustomerID";
+        $customer = new StripeCustomerMock("TestStripeCustomerID");
         return $customer;
     }
 }

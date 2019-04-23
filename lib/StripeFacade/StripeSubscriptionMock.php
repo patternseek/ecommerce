@@ -20,8 +20,7 @@ class StripeSubscriptionMock extends Subscription
     public static function create( $params = null, $options = null )
     {
         self::$params = $params;
-        $subscription = new StripeSubscriptionMock();
-        $subscription->id = "TestStripeSubscriptionID";
+        $subscription = new StripeSubscriptionMock("TestStripeSubscriptionID");
         return $subscription;
     }
 }

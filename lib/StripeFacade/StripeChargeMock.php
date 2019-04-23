@@ -20,8 +20,7 @@ class StripeChargeMock extends Charge
     public static function create( $params = null, $options = null )
     {
         self::$params = $params;
-        $charge = new StripeChargeMock();
-        $charge->id = "TestStripeID";
+        $charge = new StripeChargeMock( "TestStripeID" );
         return $charge;
     }
 }
