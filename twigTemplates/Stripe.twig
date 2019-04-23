@@ -6,36 +6,16 @@
     <fieldset>
         <legend>{{ state.trans.card_details }}</legend>
 
-        <span class='payment-errors'></span>
-
-        <label for="cc-number">
-            {{ state.trans.card_number }}
+        <label for="card-element">
+          {{ state.trans.credit_or_debit_card }}
         </label>
-        <input id="cc-number" data-stripe="number" type="tel" class="cc-number" autocomplete="cc-number"
-               placeholder="•••• •••• •••• ••••" required>
-        <span class="cc-brand"></span>
+        <div id="card-element">
+          <!-- a Stripe Element will be inserted here. -->
+        </div>
+    
+        <!-- Used to display form errors -->
+        <div id="card-errors" role="alert"></div>
         <br>
-
-        <label for="cc-exp">
-            {{ state.trans.expiry_date }}
-        </label>
-        <input id="cc-exp" type="tel" class="cc-exp" autocomplete="cc-exp" placeholder="•• / ••" required>
-        <br>
-
-        <label for="cc-cvc">
-            {{ state.trans.cvc_number }}
-        </label>
-        <input id="cc-cvc" data-stripe="cvc" type="tel" class="cc-cvc" autocomplete="off" placeholder="•••" required>
-        <br>
-        <input type="hidden" id="cc-exp-month" data-stripe="exp-month">
-        <input type="hidden" id="cc-exp-year" data-stripe="exp-year">
-        <input type="hidden" data-stripe="address_line1" value="{{ state.address.addressLine1 }}">
-        <input type="hidden" data-stripe="address_line2" value="{{ state.address.addressLine2 }}">
-        <input type="hidden" data-stripe="address_city" value="{{ state.address.townOrCity }}">
-        <input type="hidden" data-stripe="address_state" value="{{ state.address.stateOrRegion }}">
-        <input type="hidden" data-stripe="address_zip" value="{{ state.address.postCode }}">
-        <input type="hidden" data-stripe="address_country" value="{{ state.address.countryString }}">
-
         <input type="submit" value="{{ state.trans.submit_payment }}">
     </fieldset>
 </div>
@@ -44,83 +24,57 @@
 
 <script type="text/javascript">
 
-
-    var stripeResponseHandler = function (status, response) {
+    var tokenHandler = function (token) {
         var form = $('#payment-form');
-        if (response.error) {
-            // Show the errors on the form
-            form.find('.payment-errors').html(response.error.message + "<br><br>");
-            form.find('input[type="submit"]').removeProp('disabled');
-        } else {
-            // token contains id, last4, and card type
-            var token = response.id;
-            // Insert the token into the form so it gets submitted to the server
-            form.append($('<input type="hidden" name="stripeToken" />').val(token));
-            // and re-submit
-            form.get(0).submit();
-        }
+        // Insert the token into the form so it gets submitted to the server
+        form.append($('<input type="hidden" name="stripeToken" />').val(token.id));
+        // and re-submit
+        form.get(0).submit();
     };
 
     jQuery(function ($) {
+        
+        var stripe = Stripe('{{ state.apiPubKey }}');
+        var elements = stripe.elements();
+        var card = elements.create(
+            'card', 
+            {
+                hidePostalCode: true,
+            }
+        );
+        card.mount('#card-element');
+        $('#formHide').slideDown();
+        
         $('#payment-form').submit(function (e) {
             $('.payment-errors').html("");
             var form = $(this);
             // Disable the submit button to prevent repeated clicks
             form.find('input[type="submit"]').prop('disabled', true);
 
-            // Split expiry
-            var exp = $("#cc-exp").val();
-            var expAr = exp.split(' / ');
-            $('#cc-exp-month').val(expAr[0]);
-            $('#cc-exp-year').val(expAr[1]);
-
-            var cardType = $.payment.cardType($('.cc-number').val());
-            $('.cc-number').toggleInputError(!$.payment.validateCardNumber($('.cc-number').val()));
-            $('.cc-exp').toggleInputError(!$.payment.validateCardExpiry($('.cc-exp').payment('cardExpiryVal')));
-            $('.cc-cvc').toggleInputError(!$.payment.validateCardCVC($('.cc-cvc').val(), cardType));
-            if (null != cardType) {
-                $('.cc-brand').text(cardType);
-            } else {
-                $('.cc-brand').text("");
-            }
-
-            $('.validation').removeClass('text-danger text-success');
-
-            Stripe.card.createToken(form, stripeResponseHandler);
-            // Prevent the form from submitting with the default action
+            stripe.createToken(
+                card, 
+                {
+                    'address_line1': '{{ state.address.addressLine1 }}',
+                    'address_line2': '{{ state.address.addressLine2 }}',
+                    'address_city': '{{ state.address.townOrCity }}',
+                    'address_state': '{{ state.address.stateOrRegion }}',
+                    'address_zip': '{{ state.address.postCode }}',
+                    'address_country': '{{ state.address.countryString }}'
+                }
+            ).then(function(result) {
+                if (result.error) {
+                  // Inform the user if there was an error
+                  var errorElement = document.getElementById('card-errors');
+                  errorElement.textContent = result.error.message;
+                  // Re-enable the form
+                  form.find('input[type="submit"]').prop('disabled', false);
+                } else {
+                  // Send the token to your server
+                  tokenHandler(result.token);
+                }
+              });
             return false;
         });
 
-        $('.cc-number').change(function () {
-            $('.cc-number').toggleInputError(!$.payment.validateCardNumber($('.cc-number').val()));
-            var cardType = $.payment.cardType($('.cc-number').val());
-
-            if (null != cardType) {
-                $('.cc-brand').text(cardType);
-            } else {
-                $('.cc-brand').text("");
-            }
-        });
-
-        $('.cc-cvc').change(function () {
-            var cardType = $.payment.cardType($('.cc-number').val());
-            $('.cc-cvc').toggleInputError(!$.payment.validateCardCVC($('.cc-cvc').val(), cardType));
-        });
-
-        $('.cc-exp').change(function () {
-            $('.cc-exp').toggleInputError(!$.payment.validateCardExpiry($('.cc-exp').payment('cardExpiryVal')));
-        });
-
-
-        Stripe.setPublishableKey('{{ state.apiPubKey }}');
-        $('.cc-number').payment('formatCardNumber');
-        $('.cc-exp').payment('formatCardExpiry');
-        $('.cc-cvc').payment('formatCardCVC');
-
-        $.fn.toggleInputError = function (erred) {
-            this.toggleClass('has-error', erred);
-            return this;
-        };
-        $('#formHide').slideDown();
     });
 </script>
