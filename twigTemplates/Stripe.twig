@@ -1,80 +1,132 @@
 {# @var this \PatternSeek\ECommerce\Stripe #}
 {# @var exec \PatternSeek\ComponentView\ExecHelper #}
 {# @var state \PatternSeek\ECommerce\ViewState\StripeState #}
-{% set formBody %}
-<div style="display: none;" id="formHide">
-    <fieldset>
+<form id="payment-form">
+    <div style="display: none;" id="formHide">
+        <fieldset>
         <legend>{{ state.trans.card_details }}</legend>
 
-        <label for="card-element">
-          {{ state.trans.credit_or_debit_card }}
-        </label>
-        <div id="card-element">
-          <!-- a Stripe Element will be inserted here. -->
-        </div>
-    
-        <!-- Used to display form errors -->
-        <div id="card-errors" role="alert"></div>
-        <br>
+            <label for="card-element">
+                {{ state.trans.credit_or_debit_card }}
+            </label>
+            <div id="card-element">
+                <!-- a Stripe Element will be inserted here. -->
+            </div>
+
+            <!-- Used to display form errors -->
+            <div id="card-errors" role="alert"></div>
+            <br>
         <input type="submit" value="{{ state.trans.submit_payment }}">
-    </fieldset>
-</div>
-{% endset %}
-{{ exec.wrapForm( "submitForm", 'POST', formBody, false, "payment-form" ) }}
+        </fieldset>
+    </div>
+</form>
+
+{{ exec.wrapForm( "completion", 'POST', formBody, false, "completion-form" ) }}
 
 <script type="text/javascript">
 
-    var tokenHandler = function (token) {
-        var form = $('#payment-form');
-        // Insert the token into the form so it gets submitted to the server
-        form.append($('<input type="hidden" name="stripeToken" />').val(token.id));
-        // and re-submit
-        form.get(0).submit();
-    };
-
     jQuery(function ($) {
-        
+
         var stripe = Stripe('{{ state.apiPubKey }}');
         var elements = stripe.elements();
-        var card = elements.create(
-            'card', 
+        var cardEl = elements.create(
+            'card',
             {
                 hidePostalCode: true,
             }
         );
-        card.mount('#card-element');
+        cardEl.mount('#card-element');
         $('#formHide').slideDown();
-        
+
         $('#payment-form').submit(function (e) {
             $('.payment-errors').html("");
             var form = $(this);
             // Disable the submit button to prevent repeated clicks
             form.find('input[type="submit"]').prop('disabled', true);
 
-            stripe.createToken(
-                card, 
+            stripe.createPaymentMethod(
+                'card',
+                cardEl,
                 {
-                    'address_line1': '{{ state.address.addressLine1 }}',
-                    'address_line2': '{{ state.address.addressLine2 }}',
-                    'address_city': '{{ state.address.townOrCity }}',
-                    'address_state': '{{ state.address.stateOrRegion }}',
-                    'address_zip': '{{ state.address.postCode }}',
-                    'address_country': '{{ state.address.countryString }}'
+                    'billing_details':
+                        {
+                            'address':
+                                {
+                                    'line1': '{{ state.address.addressLine1 }}',
+                                    'line2': '{{ state.address.addressLine2 }}',
+                                    'city': '{{ state.address.townOrCity }}',
+                                    'state': '{{ state.address.stateOrRegion }}',
+                                    'postal_code': '{{ state.address.postCode }}',
+                                    'country': '{{ state.address.countryString }}'
+                                }
+                        }
                 }
-            ).then(function(result) {
+            ).then(function (result) {
                 if (result.error) {
-                  // Inform the user if there was an error
-                  var errorElement = document.getElementById('card-errors');
-                  errorElement.textContent = result.error.message;
-                  // Re-enable the form
-                  form.find('input[type="submit"]').prop('disabled', false);
+                    showStripeError(result);
                 } else {
-                  // Send the token to your server
-                  tokenHandler(result.token);
+                    fetch('{{ exec.url( "confirmPayment", [], true ) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            payment_method_id: result.paymentMethod.id
+                        })
+                    }).then(function (result) {
+                        // Handle server response (see Step 3)
+                        result.json().then(function (json) {
+                            handleServerResponse(json, stripe);
+                        })
+                    });
                 }
-              });
+            });
             return false;
         });
 
     });
+
+    function handleServerResponse(response, stripe) {
+        if (response.error) {
+            // Show error from server on payment form
+            showStripeError(response);
+        } else if (response.requires_action) {
+            // Use Stripe.js to handle required card action
+            handleAction(response, stripe);
+        } else {
+            // Success
+            submitCompletionForm(response.paymentIntentId);
+        }
+    }
+
+    function handleAction(response, stripe) {
+        stripe.handleCardAction(
+            response.payment_intent_client_secret
+        ).then(function (result) {
+            if (result.error) {
+                // Show error in payment form
+                showStripeError(result)
+            } else {
+                // Success
+                submitCompletionForm(result.paymentIntent.id);
+            }
+        });
+    }
+
+    function showStripeError(result) {
+        // Inform the user if there was an error
+        var errorElement = document.getElementById('card-errors');
+        errorElement.textContent = result.error;
+        // Re-enable the form
+        var form = $('#payment-form');
+        form.find('input[type="submit"]').prop('disabled', false);
+    }
+
+    function submitCompletionForm(paymentIntentId) {
+        var form = $('#completion-form');
+        form.append($('<input type="hidden" name="paymentIntentId" />').val(paymentIntentId));
+        // and re-submit
+        form.get(0).submit();
+    };
+    
 </script>

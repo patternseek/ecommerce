@@ -11,6 +11,8 @@ namespace PatternSeek\ECommerce\StripeFacade;
 
 use Stripe\Charge;
 use Stripe\Customer;
+use Stripe\PaymentIntent;
+use Stripe\PaymentMethod;
 use Stripe\Stripe as StripeAPI;
 use Stripe\Subscription;
 use Stripe\Token;
@@ -28,6 +30,15 @@ class StripeFacade
      * @var bool
      */
     public static $testMode = false;
+    
+    
+    public function __construct( $apiKey )
+    {
+        if( ! self::$testMode ){
+            $this->setApiVersion( "2019-03-14" );
+            $this->setApiKey( $apiKey );
+        }
+    }
 
     /**
      * @param $apiKey
@@ -38,6 +49,12 @@ class StripeFacade
             StripeMock::setApiKey( $apiKey );
         }else {
             StripeAPI::setApiKey( $apiKey );
+        }
+    }
+    
+    public function setApiVersion( $version ){
+        if (! self::$testMode) {
+            \Stripe\Stripe::setApiVersion( $version );
         }
     }
 
@@ -54,7 +71,35 @@ class StripeFacade
             return Token::retrieve( $stripeToken, $apiPrivKey );
         }
     }
-
+    
+        /**
+     * @param $stripePaymentIntent
+     * @param $apiPrivKey
+     * @return StripePaymentIntentMock|PaymentIntent
+     */
+    public function paymentIntentRetrieve( $stripePaymentIntent )
+    {
+        if (self::$testMode) {
+            return StripePaymentIntentMock::create($stripePaymentIntent);
+        }else {
+            return PaymentIntent::retrieve( $stripePaymentIntent );
+        }
+    }
+    
+    /**
+     * @param $stripePaymentMethod
+     * @param $apiPrivKey
+     * @return StripePaymentMethodMock|PaymentMethod
+     */
+    public function paymentMethodRetrieve( $stripePaymentMethod )
+    {
+        if (self::$testMode) {
+            return StripePaymentMethodMock::create($stripePaymentMethod);
+        }else {
+            return PaymentMethod::retrieve( $stripePaymentMethod );
+        }
+    }
+    
     /**
      * @param $params
      * @return StripeChargeMock|Charge
@@ -68,6 +113,19 @@ class StripeFacade
         }
     }
 
+    /**
+     * @param $params
+     * @return StripePaymentIntentMock|PaymentIntent
+     */
+    public function paymentIntentCreate( $params )
+    {
+        if (self::$testMode) {
+            return StripePaymentIntentMock::create( $params );
+        }else {
+            return PaymentIntent::create( $params );
+        }
+    }
+    
     /**
      * @param $params
      * @return StripeCustomerMock|Customer

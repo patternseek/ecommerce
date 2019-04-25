@@ -15,7 +15,7 @@ use PatternSeek\ECommerce\BasketConfig;
 use PatternSeek\ECommerce\LineItem;
 use PatternSeek\ECommerce\Stripe;
 use PatternSeek\ECommerce\StripeFacade\StripeFacade;
-use PatternSeek\ECommerce\StripeFacade\StripeTokenMock;
+use PatternSeek\ECommerce\StripeFacade\StripePaymentMethodMock;
 use Pimple\Container;
 
 /**
@@ -33,38 +33,38 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     protected $delayedSuccessCallback;
     protected $subscriptionSuccessCallback;
 
-    public function testDelayedModeTransaction()
-    {
-        $billingAddress = $this->getUSAddress();
-        $lineItem = $this->getElectronicServiceLineItem();
-        $testDelayedSuccess = new TestDelayedSuccess();
-        /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $billingAddress, $chargeMode = "delayed", $testDelayedSuccess );
-
-        StripeFacade::$testMode = true;
-        $this->succeedOnDelayedTransaction( $view );
-
-        $delayedTxn = $testDelayedSuccess->delayedTxn;
-
-        // Charge again. Doesn't actually call Stripe of course but could catch something in future.
-        $delayedTxn->charge( $this->getPaymentProvidersConfig() );
-        $delayedTxn->charge( $this->getPaymentProvidersConfig() );
-    }
+//    public function testDelayedModeTransaction()
+//    {
+//        $billingAddress = $this->getUSAddress();
+//        $lineItem = $this->getElectronicServiceLineItem();
+//        $testDelayedSuccess = new TestDelayedSuccess();
+//        /** @var Basket $view */
+//        $view = $this->prepareBasket( $lineItem, $billingAddress, $chargeMode = "delayed", $testDelayedSuccess );
+//
+//        StripeFacade::$testMode = true;
+//        $this->succeedOnDelayedTransaction( $view );
+//
+//        $delayedTxn = $testDelayedSuccess->delayedTxn;
+//
+//        // Charge again. Doesn't actually call Stripe of course but could catch something in future.
+//        $delayedTxn->charge( $this->getPaymentProvidersConfig() );
+//        $delayedTxn->charge( $this->getPaymentProvidersConfig() );
+//    }
     
-    public function testSubscription()
-    {
-        $billingAddress = $this->getUKAddress();
-        $lineItem = $this->getElectronicServiceLineItem();
-        $lineItem->subscriptionTypeId = "example-subscription-id";
-        $successOutput = [ ];
-
-        /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $billingAddress, $chargeMode = "subscription" );
-
-        StripeFacade::$testMode = true;
-        $this->succeedOnSubscription( $view );
-
-    }
+//    public function testSubscription()
+//    {
+//        $billingAddress = $this->getUKAddress();
+//        $lineItem = $this->getElectronicServiceLineItem();
+//        $lineItem->subscriptionTypeId = "example-subscription-id";
+//        $successOutput = [ ];
+//
+//        /** @var Basket $view */
+//        $view = $this->prepareBasket( $lineItem, $billingAddress, $chargeMode = "subscription" );
+//
+//        StripeFacade::$testMode = true;
+//        $this->succeedOnSubscription( $view );
+//
+//    }
     
     public function testElectronicServiceToUKConsumer()
     {
@@ -451,15 +451,15 @@ class BasketTest extends \PHPUnit_Framework_TestCase
      */
     protected function failOn3DifferentCountries( $uns )
     {
-        StripeTokenMock::$typeSetting = 'card';
-        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'ES' ];
+        StripePaymentMethodMock::$typeSetting = 'card';
+        StripePaymentMethodMock::$cardCountrySetting = (object)[ 'country' => 'ES' ];
 
         $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
         );
-        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+        $execOut = $uns->render( "stripe.completion", [ 'paymentIntentId' => "TestStripeID" ] )->content;
 
         // ES Card + US address + GB IP, shoud fail
         $this->assertTrue(
@@ -472,14 +472,14 @@ class BasketTest extends \PHPUnit_Framework_TestCase
      */
     protected function failOnOnlyIPandCardMatch( $uns )
     {
-        StripeTokenMock::$typeSetting = 'card';
-        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
+        StripePaymentMethodMock::$typeSetting = 'card';
+        StripePaymentMethodMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
         $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
         );
-        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+        $execOut = $uns->render( "stripe.completion", [ 'paymentIntentId' => "TestStripeID" ] )->content;
 
         // GB Card + US address + GB IP, shoud fail
         $this->assertTrue(
@@ -487,194 +487,194 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    /**
-     * @param Basket $uns
-     * @throws \Exception
-     */
-    protected function succeedOnDelayedTransaction( $uns )
-    {
-        // US card + US address + GB IP, should succeed
-        StripeTokenMock::$typeSetting = 'card';
-        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
-        $uns->updateView(
-            [
-                'delayedTransactionSuccessCallback' => $this->delayedSuccessCallback
-            ]
-        );
-        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
-        $expected = array (
-            'delayedTxn' =>
-                array (
-                    'billingAddress' => 'addressLine1
-addressLine2
-townOrCity
-stateOrRegion
-postCode
-United States',
-                    'billingAddressCountryCode' => 'US',
-                    'chargeID' => NULL,
-                    'clientEmail' => NULL,
-                    'clientName' => NULL,
-                    'ipCountryCode' => 'GB',
-                    'paymentCountryCode' => 'US',
-                    'paymentType' => 'card',
-                    'providerClass' => Stripe::class,
-                    'storedToken' => 'TestStripeCustomerID',
-                    'subscriptionsRaw' => NULL,
-                    'testMode' => true,
-                    'time' => NULL,
-                    'transactionAmount' => 100.0,
-                    'transactionCurrency' => 'GBP',
-                    'transactionDescription' => 'Brief description of basket contents.',
-                    'transactionDetailLegacy' => NULL,
-                    'transactionDetailRaw' => '[
-    {
-        "description": "Some online service",
-        "netPrice": 100,
-        "vatPerItem": 0,
-        "vatTypeCharged": "zero",
-        "isB2b": false,
-        "quantity": 1,
-        "productType": "electronicservices",
-        "enjoyedInLocationType": "row",
-        "subscriptionTypeId": null,
-        "vatRate": 0
-    }
-]',
-                    'validationError' => NULL,
-                    'vatAmount' => 0.0,
-                    'vatNumberGiven' => NULL,
-                    'vatNumberGivenCountryCode' => NULL,
-                    'vatNumberStatus' => 'notchecked',
-                ),
-            'actualTxn' =>
-                array (
-                    'billingAddress' => 'addressLine1
-addressLine2
-townOrCity
-stateOrRegion
-postCode
-United States',
-                    'billingAddressCountryCode' => 'US',
-                    'chargeID' => 'TestStripeID',
-                    'clientEmail' => NULL,
-                    'clientName' => NULL,
-                    'ipCountryCode' => 'GB',
-                    'paymentCountryCode' => 'US',
-                    'paymentType' => 'card',
-                    'subscriptionsRaw' => NULL,
-                    'testMode' => true,
-                    'time' => NULL,
-                    'transactionAmount' => 100.0,
-                    'transactionCurrency' => 'GBP',
-                    'transactionDescription' => 'Brief description of basket contents.',
-                    'transactionDetailLegacy' => NULL,
-                    'transactionDetailRaw' => '[
-    {
-        "description": "Some online service",
-        "netPrice": 100,
-        "vatPerItem": 0,
-        "vatTypeCharged": "zero",
-        "isB2b": false,
-        "quantity": 1,
-        "productType": "electronicservices",
-        "enjoyedInLocationType": "row",
-        "subscriptionTypeId": null,
-        "vatRate": 0
-    }
-]',
-                    'vatAmount' => 0.0,
-                    'vatNumberGiven' => NULL,
-                    'vatNumberGivenCountryCode' => NULL,
-                    'vatNumberStatus' => 'notchecked',
-                ),
-        );
-        krsort( $expected );
-        $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
-        $this->assertEquals( $expectedString, $execOut  );
+//    /**
+//     * @param Basket $uns
+//     * @throws \Exception
+//     */
+//    protected function succeedOnDelayedTransaction( $uns )
+//    {
+//        // US card + US address + GB IP, should succeed
+//        StripePaymentMethodMock::$typeSetting = 'card';
+//        StripePaymentMethodMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
+//        $uns->updateView(
+//            [
+//                'delayedTransactionSuccessCallback' => $this->delayedSuccessCallback
+//            ]
+//        );
+//        $execOut = $uns->render( "stripe.completion", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+//        $expected = array (
+//            'delayedTxn' =>
+//                array (
+//                    'billingAddress' => 'addressLine1
+//addressLine2
+//townOrCity
+//stateOrRegion
+//postCode
+//United States',
+//                    'billingAddressCountryCode' => 'US',
+//                    'chargeID' => NULL,
+//                    'clientEmail' => NULL,
+//                    'clientName' => NULL,
+//                    'ipCountryCode' => 'GB',
+//                    'paymentCountryCode' => 'US',
+//                    'paymentType' => 'card',
+//                    'providerClass' => Stripe::class,
+//                    'storedToken' => 'TestStripeCustomerID',
+//                    'subscriptionsRaw' => NULL,
+//                    'testMode' => true,
+//                    'time' => NULL,
+//                    'transactionAmount' => 100.0,
+//                    'transactionCurrency' => 'GBP',
+//                    'transactionDescription' => 'Brief description of basket contents.',
+//                    'transactionDetailLegacy' => NULL,
+//                    'transactionDetailRaw' => '[
+//    {
+//        "description": "Some online service",
+//        "netPrice": 100,
+//        "vatPerItem": 0,
+//        "vatTypeCharged": "zero",
+//        "isB2b": false,
+//        "quantity": 1,
+//        "productType": "electronicservices",
+//        "enjoyedInLocationType": "row",
+//        "subscriptionTypeId": null,
+//        "vatRate": 0
+//    }
+//]',
+//                    'validationError' => NULL,
+//                    'vatAmount' => 0.0,
+//                    'vatNumberGiven' => NULL,
+//                    'vatNumberGivenCountryCode' => NULL,
+//                    'vatNumberStatus' => 'notchecked',
+//                ),
+//            'actualTxn' =>
+//                array (
+//                    'billingAddress' => 'addressLine1
+//addressLine2
+//townOrCity
+//stateOrRegion
+//postCode
+//United States',
+//                    'billingAddressCountryCode' => 'US',
+//                    'chargeID' => 'TestStripeID',
+//                    'clientEmail' => NULL,
+//                    'clientName' => NULL,
+//                    'ipCountryCode' => 'GB',
+//                    'paymentCountryCode' => 'US',
+//                    'paymentType' => 'card',
+//                    'subscriptionsRaw' => NULL,
+//                    'testMode' => true,
+//                    'time' => NULL,
+//                    'transactionAmount' => 100.0,
+//                    'transactionCurrency' => 'GBP',
+//                    'transactionDescription' => 'Brief description of basket contents.',
+//                    'transactionDetailLegacy' => NULL,
+//                    'transactionDetailRaw' => '[
+//    {
+//        "description": "Some online service",
+//        "netPrice": 100,
+//        "vatPerItem": 0,
+//        "vatTypeCharged": "zero",
+//        "isB2b": false,
+//        "quantity": 1,
+//        "productType": "electronicservices",
+//        "enjoyedInLocationType": "row",
+//        "subscriptionTypeId": null,
+//        "vatRate": 0
+//    }
+//]',
+//                    'vatAmount' => 0.0,
+//                    'vatNumberGiven' => NULL,
+//                    'vatNumberGivenCountryCode' => NULL,
+//                    'vatNumberStatus' => 'notchecked',
+//                ),
+//        );
+//        krsort( $expected );
+//        $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
+//        $this->assertEquals( $expectedString, $execOut  );
+//
+//    }
 
-    }
-
-    /**
-     * @param Basket $uns
-     * @throws \Exception
-     */
-    protected function succeedOnSubscription( $uns )
-    {
-        // US card + US address + GB IP, should succeed
-        StripeTokenMock::$typeSetting = 'card';
-        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
-        $uns->updateView(
-            [
-                'subscriptionSuccessCallback' => $this->subscriptionSuccessCallback
-            ]
-        );
-        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
-
-        $expected =
-            array (
-                'vatNumberStatus' => 'notchecked',
-                'vatNumberGivenCountryCode' => NULL,
-                'vatNumberGiven' => NULL,
-                'vatAmount' => 20.0,
-                'validationError' => 'Invalid properties in PatternSeek\\ECommerce\\Transaction
-time : This value should not be blank. But got NULL',
-                'transactionDetailRaw' => '[
-    {
-        "description": "Some online service",
-        "netPrice": 100,
-        "vatPerItem": 20,
-        "vatTypeCharged": "customer",
-        "isB2b": false,
-        "quantity": 1,
-        "productType": "electronicservices",
-        "enjoyedInLocationType": "local",
-        "subscriptionTypeId": "example-subscription-id",
-        "vatRate": 0.2
-    }
-]',
-                'transactionDetailLegacy' => NULL,
-                'transactionDescription' => 'Brief description of basket contents.',
-                'transactionCurrency' => 'GBP',
-                'transactionAmount' => 120.0,
-                'time' => NULL,
-                'testMode' => true,
-                'subscriptionsRaw' => '[
-    {
-        "providerRawResult": {
-            "customer": {
-                "id": "TestStripeCustomerID"
-            },
-            "subscription": {
-                "id": "TestStripeSubscriptionID"
-            }
-        }
-    }
-]',
-
-                'paymentType' => 'card',
-                'paymentCountryCode' => 'US',
-                'ipCountryCode' => 'GB',
-                'clientName' => NULL,
-                'clientEmail' => NULL,
-                'chargeID' => NULL,
-                'billingAddressCountryCode' => 'GB',
-                'billingAddress' => 'addressLine1
-addressLine2
-townOrCity
-stateOrRegion
-postCode
-United Kingdom',
-            );
-
-
-
-        krsort( $expected );
-        $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
-    
-        $this->assertEquals( $expectedString, $execOut  );
-
-    }
+//    /**
+//     * @param Basket $uns
+//     * @throws \Exception
+//     */
+//    protected function succeedOnSubscription( $uns )
+//    {
+//        // US card + US address + GB IP, should succeed
+//        StripePaymentMethodMock::$typeSetting = 'card';
+//        StripePaymentMethodMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
+//        $uns->updateView(
+//            [
+//                'subscriptionSuccessCallback' => $this->subscriptionSuccessCallback
+//            ]
+//        );
+//        $execOut = $uns->render( "stripe.completion", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+//
+//        $expected =
+//            array (
+//                'vatNumberStatus' => 'notchecked',
+//                'vatNumberGivenCountryCode' => NULL,
+//                'vatNumberGiven' => NULL,
+//                'vatAmount' => 20.0,
+//                'validationError' => 'Invalid properties in PatternSeek\\ECommerce\\Transaction
+//time : This value should not be blank. But got NULL',
+//                'transactionDetailRaw' => '[
+//    {
+//        "description": "Some online service",
+//        "netPrice": 100,
+//        "vatPerItem": 20,
+//        "vatTypeCharged": "customer",
+//        "isB2b": false,
+//        "quantity": 1,
+//        "productType": "electronicservices",
+//        "enjoyedInLocationType": "local",
+//        "subscriptionTypeId": "example-subscription-id",
+//        "vatRate": 0.2
+//    }
+//]',
+//                'transactionDetailLegacy' => NULL,
+//                'transactionDescription' => 'Brief description of basket contents.',
+//                'transactionCurrency' => 'GBP',
+//                'transactionAmount' => 120.0,
+//                'time' => NULL,
+//                'testMode' => true,
+//                'subscriptionsRaw' => '[
+//    {
+//        "providerRawResult": {
+//            "customer": {
+//                "id": "TestStripeCustomerID"
+//            },
+//            "subscription": {
+//                "id": "TestStripeSubscriptionID"
+//            }
+//        }
+//    }
+//]',
+//
+//                'paymentType' => 'card',
+//                'paymentCountryCode' => 'US',
+//                'ipCountryCode' => 'GB',
+//                'clientName' => NULL,
+//                'clientEmail' => NULL,
+//                'chargeID' => NULL,
+//                'billingAddressCountryCode' => 'GB',
+//                'billingAddress' => 'addressLine1
+//addressLine2
+//townOrCity
+//stateOrRegion
+//postCode
+//United Kingdom',
+//            );
+//
+//
+//
+//        krsort( $expected );
+//        $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
+//    
+//        $this->assertEquals( $expectedString, $execOut  );
+//
+//    }
     
     /**
      * @param Basket $uns
@@ -684,14 +684,14 @@ United Kingdom',
     protected function succeedOnSameAddressAndCardCountries( $uns, &$successOutput )
     {
         // US card + US address + GB IP, should succeed
-        StripeTokenMock::$typeSetting = 'card';
-        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
+        StripePaymentMethodMock::$typeSetting = 'card';
+        StripePaymentMethodMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
         $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
             ]
         );
-        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+        $execOut = $uns->render( "stripe.completion", [ 'paymentIntentId' => "TestStripeID" ] )->content;
         $expected = [
             'clientName' => null,
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited States",
@@ -741,8 +741,8 @@ United Kingdom',
     protected function succeedOnAllCountriesMatch( $uns, &$successOutput )
     {
         // GB card + GB address + GB IP, should succeed
-        StripeTokenMock::$typeSetting = 'card';
-        StripeTokenMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
+        StripePaymentMethodMock::$typeSetting = 'card';
+        StripePaymentMethodMock::$cardCountrySetting = (object)[ 'country' => 'GB' ];
         $uns->updateView(
             [
                 'transactionSuccessCallback' => $this->successCallback
@@ -763,7 +763,7 @@ United Kingdom',
                 'transactionSuccessCallback' => $this->successCallback
             ]
         );
-        $execOut = $uns->render( "stripe.submitForm", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+        $execOut = $uns->render( "stripe.completion", [ 'paymentIntentId' => "TestStripeID" ] )->content;
 
         $expected = [
             'clientName' => null,
