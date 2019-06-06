@@ -138,9 +138,10 @@ class BasketConfig extends StructClass
         $base = parent::fromArray( $properties );
 
         $base->paymentProviders = [ ];
+        /** @var PaymentProviderConfig $provider */
         foreach ($paymentProviders as $provider) {
             $provConf = PaymentProviderConfig::fromArray( $provider );
-            $base->paymentProviders[ ] = $provConf;
+            $base->paymentProviders[$provider['componentClass']] = $provConf;
         }
 
         if ($properties[ 'billingAddress' ]) {

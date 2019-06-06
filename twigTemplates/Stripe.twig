@@ -4,12 +4,12 @@
 {% set formBody %}
 <div style="display: none;" id="formHide">
     <fieldset>
-        <legend>Card details</legend>
+        <legend>{{ state.trans.card_details }}</legend>
 
         <span class='payment-errors'></span>
 
         <label for="cc-number">
-            Card number
+            {{ state.trans.card_number }}
         </label>
         <input id="cc-number" data-stripe="number" type="tel" class="cc-number" autocomplete="cc-number"
                placeholder="•••• •••• •••• ••••" required>
@@ -17,13 +17,13 @@
         <br>
 
         <label for="cc-exp">
-            Expiry date
+            {{ state.trans.expiry_date }}
         </label>
         <input id="cc-exp" type="tel" class="cc-exp" autocomplete="cc-exp" placeholder="•• / ••" required>
         <br>
 
         <label for="cc-cvc">
-            CVC number
+            {{ state.trans.cvc_number }}
         </label>
         <input id="cc-cvc" data-stripe="cvc" type="tel" class="cc-cvc" autocomplete="off" placeholder="•••" required>
         <br>
@@ -36,7 +36,7 @@
         <input type="hidden" data-stripe="address_zip" value="{{ state.address.postCode }}">
         <input type="hidden" data-stripe="address_country" value="{{ state.address.countryString }}">
 
-        <input type="submit" value="Submit Payment">
+        <input type="submit" value="{{ state.trans.submit_payment }}">
     </fieldset>
 </div>
 {% endset %}

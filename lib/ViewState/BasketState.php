@@ -4,6 +4,7 @@ namespace PatternSeek\ECommerce\ViewState;
 
 use PatternSeek\ComponentView\ViewState\ViewState;
 use PatternSeek\ECommerce\BasketConfig;
+use PatternSeek\ECommerce\BasketTranslations;
 use PatternSeek\ECommerce\SubscriptionSuccessCallback;
 use PatternSeek\ECommerce\TransactionSuccessCallback;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -31,6 +32,16 @@ class BasketState extends ViewState
      * @Assert\Type(type="PatternSeek\ECommerce\BasketConfig")
      */
     public $config;
+    
+    /**
+     * Translated strings. 
+     * Strings for payment providers are within their PaymentProviderConfigs.
+     * 
+     * @var BasketTranslations
+     *
+     * @Assert\Type(type="PatternSeek\ECommerce\BasketTranslations")
+     */
+    public $trans;
 
     /**
      * @var boolean

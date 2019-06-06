@@ -16,6 +16,7 @@ use PatternSeek\ComponentView\Template\TwigTemplate;
 use PatternSeek\ECommerce\StripeFacade\StripeFacade;
 use PatternSeek\ECommerce\ViewState\AddressState;
 use PatternSeek\ECommerce\ViewState\StripeState;
+use PatternSeek\StructClass\StructClass;
 
 /**
  * A ViewComponent for rendering Stripe checkout within a ViewComponents
@@ -56,7 +57,7 @@ class Stripe extends AbstractViewComponent
         // This is just a backup as the basket won't show the stripe button
         // if it's not ready or the transaction is complete.
         if (( !$this->state->ready ) || ( $this->state->complete )) {
-            $this->parent->setFlashError( "The basket is not ready yet. Please ensure you've filled in all required fields." );
+            $this->parent->setFlashError( $this->state->trans->fill_all_fields );
 
             $root = $this->getRootComponent();
             $root->updateState();
@@ -90,7 +91,7 @@ class Stripe extends AbstractViewComponent
         // enough and does it match the information used
         // to calculate the original VAT?
         if (!$this->parent->confirmValidTxnFunc( $paymentCountryCode )) {
-            $this->parent->setFlashError( "Sorry but we can't collect enough information about your location to comply with EU VAT legislation with the information we have available. You have not been charged. Please contact us to arrange a manual payment." );
+            $this->parent->setFlashError( $this->state->trans->not_enough_vat_info );
 
             $root = $this->getRootComponent();
             $root->updateState();
@@ -170,7 +171,7 @@ class Stripe extends AbstractViewComponent
             }
 
         }catch( Exception $e ){
-            $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
+            $this->parent->setFlashError( $this->state->trans->stripe_error."'{$e->getMessage()}'" );
 
             $root = $this->getRootComponent();
             $root->updateState();
@@ -366,7 +367,8 @@ class Stripe extends AbstractViewComponent
                 'transactionComplete' => [ 'boolean' ],
                 'address' => [ AddressState::class ],
                 'lineItems' => [ 'array' ],
-                'email' => ['string', null ]
+                'email' => ['string', null ],
+                'translations' => [StripeTranslations::class, new StripeTranslations() ]
             ],
             $props
         );
@@ -377,6 +379,7 @@ class Stripe extends AbstractViewComponent
         $this->state->address = $props[ 'address' ];
         $this->state->lineItems = $props['lineItems'];
         $this->state->email = $props['email'];
+        $this->state->trans = $props['translations'];
 
     }
 

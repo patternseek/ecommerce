@@ -31,17 +31,25 @@ class Basket extends AbstractViewComponent
     {
         $this->testInputs(
             [
-                'config' => [ 'PatternSeek\ECommerce\BasketConfig' ],
+                'config' => [ BasketConfig::class ],
                 'vatRates' => [ 'array' ],
                 'lineItems' => [ 'array' ],
                 'testMode' => [ 'boolean' ],
-                'chargeMode' => [ 'string' ]
+                'chargeMode' => [ 'string' ],
+                'translations' => [BasketTranslations::class,new BasketTranslations()]
             ],
             $props
         );
 
         $config = $props[ 'config' ];
+        $this->state->config = $config;
+        
+        $this->state->trans = $props['translations'];
+        // Address is sharing the BasketTranslations object
+        $this->state->config->billingAddress->trans = $props['translations'];
 
+
+        
         foreach ($props[ 'lineItems' ] as $lineItem) {
             $this->state->lineItems[ ] = $lineItem;
         }
@@ -57,13 +65,12 @@ class Basket extends AbstractViewComponent
             }
         }
 
-        $this->state->config = $config;
 
         // Set required billing address fields
         $this->state->config->billingAddress->requiredFields = [
-            'addressLine1' => "Address line 1",
-            'postCode' => "Post code",
-            'countryCode' => "Country"
+            'addressLine1' => $this->state->trans->address_line_1,
+            'postCode' => $this->state->trans->postcode,
+            'countryCode' => $this->state->trans->country
         ];
 
         $this->state->vatRates = $props[ 'vatRates' ];
@@ -125,7 +132,7 @@ class Basket extends AbstractViewComponent
                 $this->state->vatNumber = null;
                 $this->state->vatNumberCountryCode = null;
                 $this->state->vatNumberStatus = 'invalid';
-                $this->setFlashError( "Sorry but the VAT number or country entered was incorrect." );
+                $this->setFlashError( $this->state->trans->invalid_vat_number );
             }
         }catch( \SoapFault $e ){
             if ($e->getMessage() == "INVALID_INPUT") {
@@ -133,7 +140,7 @@ class Basket extends AbstractViewComponent
                 $this->state->vatNumber = null;
                 $this->state->vatNumberCountryCode = null;
                 $this->state->vatNumberStatus = 'invalid';
-                $this->setFlashError( "Sorry but the VAT number or country entered was incorrect." );
+                $this->setFlashError( $this->state->trans->invalid_vat_number );
             }else {
                 // Unknown due to technical error
                 // We allow the vat number but flag it for manual checking
@@ -187,7 +194,7 @@ class Basket extends AbstractViewComponent
 //            if (isset( $info[ 'iso_duplicate' ] )) {
 //                continue;
 //            }
-            $ret[ $cc ] = $info[ 'country_name' ];
+            $ret[ $cc ] = $this->state->trans->countriesByISO[ $cc ];
         }
         asort( $ret );
         return $ret;
@@ -386,9 +393,10 @@ class Basket extends AbstractViewComponent
 
         $this->testInputs(
             [
-                'transactionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\TransactionSuccessCallback', null ],
-                'delayedTransactionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\DelayedTransactionSuccessCallback', null ],
-                'subscriptionSuccessCallback' => [ '\\PatternSeek\\ECommerce\\SubscriptionSuccessCallback', null ]
+                'transactionSuccessCallback' => [ TransactionSuccessCallback::class, null ],
+                'delayedTransactionSuccessCallback' => [ DelayedTransactionSuccessCallback::class, null ],
+                'subscriptionSuccessCallback' => [ SubscriptionSuccessCallback::class, null ]
+                
             ],
             $props
         );
@@ -406,7 +414,7 @@ class Basket extends AbstractViewComponent
         }
         
         $this->addOrUpdateChild(
-            'billingAddress', '\\PatternSeek\\ECommerce\\Address',
+            'billingAddress', Address::class,
             [ 'state' => $this->state->config->billingAddress ]
         );
 
@@ -416,6 +424,7 @@ class Basket extends AbstractViewComponent
                 $providerConfig->componentClass,
                 [
                     'config' => $providerConfig->conf,
+                    'translations' => $providerConfig->translations,
                     'buttonLabel' => null,
                     'email' => $this->state->config->email,
                     'testMode' => $this->state->testMode,
