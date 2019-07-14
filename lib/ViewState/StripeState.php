@@ -11,7 +11,7 @@
 namespace PatternSeek\ECommerce\ViewState;
 
 use PatternSeek\ComponentView\ViewState\ViewState;
-use PatternSeek\ECommerce\StripeTranslations;
+use PatternSeek\ECommerce\Stripe\StripeTranslations;
 use PatternSeek\ECommerce\LineItem;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -32,9 +32,9 @@ class StripeState extends ViewState
     /**
      * Translated strings. 
      * 
-     * @var StripeTranslations
+     * @var \PatternSeek\ECommerce\Stripe\StripeTranslations
      *
-     * @Assert\Type(type="PatternSeek\ECommerce\StripeTranslations")
+     * @Assert\Type(type="PatternSeek\ECommerce\Stripe\StripeTranslations")
      */
     public $trans;
 

@@ -9,7 +9,7 @@
  *
  */
 
-namespace PatternSeek\ECommerce;
+namespace PatternSeek\ECommerce\Stripe;
 
 use PatternSeek\StructClass\StructClass;
 
@@ -20,6 +20,7 @@ class StripeTranslations extends StructClass
     public $not_enough_vat_info = "Sorry but we can't collect enough information about your location to comply with EU VAT legislation with the information we have available. You have not been charged. Please contact us to arrange a manual payment.";
     public $stripe_error = "Sorry but there was a problem authorising your transaction. The payment provider said: ";
     
+    public $credit_or_debit_card = "Credit or debit card";
     public $card_details = "Card details";
     public $card_number = "Card number";
     public $expiry_date = "Expiry date";

@@ -11,10 +11,15 @@
 namespace PatternSeek\ECommerce;
 
 use Exception;
+use function GuzzleHttp\default_ca_bundle;
 use PatternSeek\ComponentView\AbstractViewComponent;
 use PatternSeek\ComponentView\Response;
 use PatternSeek\ComponentView\Template\TwigTemplate;
-use PatternSeek\ECommerce\StripeFacade\StripeFacade;
+use PatternSeek\ECommerce\Stripe\AbstractChargeStrategy;
+use PatternSeek\ECommerce\Stripe\ImmediateChargeStrategy;
+use PatternSeek\ECommerce\Stripe\StripeTranslations;
+use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
+use PatternSeek\ECommerce\Stripe\SubscriptionChargeStrategy;
 use PatternSeek\ECommerce\ViewState\AddressState;
 use PatternSeek\ECommerce\ViewState\StripeState;
 use PatternSeek\StructClass\StructClass;
@@ -41,6 +46,11 @@ class Stripe extends AbstractViewComponent
      */
     protected $state;
     
+    /**
+     * @var AbstractChargeStrategy
+     */
+    private $chargeStrategy;
+
     protected function getStripeFacade( ){
         $c = (object)$this->state->config;
         $apiPrivKey = $this->state->testMode?$c->testApiPrivKey:$c->liveApiPrivKey;
@@ -82,22 +92,18 @@ class Stripe extends AbstractViewComponent
                     return new Response( "application/json", $resJson );
                 }
 
-                # Create the PaymentIntent
-                $params = [
-                    'payment_method' => $json_obj->payment_method_id,
-                    "amount" => $amount, // amount in cents/pence etc, again
-                    "currency" => $currency,
-                    "description" => $description,
-                    'confirmation_method' => 'manual',
-                    'confirm' => true,
-                ];
-                if ($this->state->email !== null) {
-                    $params[ 'receipt_email' ] = $this->state->email;
-                }
-                $intent = $stripe->paymentIntentCreate( $params );
+                $this->chargeStrategy->initialPaymentAttempt(
+                    $json_obj->payment_method_id,
+                    $amount,
+                    $currency, 
+                    $description,
+                    $this->state->email,
+                    $stripe
+                );
+
             }
 
-            return $this->generatePaymentResponse( $intent );
+            
         }catch( Exception $e ){
             # Display error on client
             $resJson = json_encode( [
@@ -107,33 +113,7 @@ class Stripe extends AbstractViewComponent
         }
     }
 
-    function generatePaymentResponse( $intent )
-    {
-        if ($intent->status == 'requires_action' &&
-            $intent->next_action->type == 'use_stripe_sdk') {
-            # Tell the client to handle the action
-            $resJson = json_encode( [
-                'requires_action' => true,
-                'payment_intent_client_secret' => $intent->client_secret
-            ] );
-            return new Response( "application/json", $resJson );
-        }else {
-            if ($intent->status == 'succeeded') {
-                # The payment didn’t need any additional actions and completed!
-                // Here we reply back to the calling JS to tell it we
-                // succeeded and it will then forward the user to the completionHandler
-                $resJson = json_encode( [
-                    "success" => true,
-                    'paymentIntentId' => $intent->id
-                ] );
-                return new Response( "application/json", $resJson );
-            }else {
-                # Invalid status
-                $resJson = json_encode( [ 'error' => "Invalid PaymentIntent status: {$intent->status}" ] );
-                return new Response( "application/json", $resJson, 500 );
-            }
-        }
-    }
+
 
     /**
      * HTTP accessible method
@@ -220,12 +200,6 @@ class Stripe extends AbstractViewComponent
 //                            $paymentCountryCode,
 //                            $paymentType );
 //                    break;
-//                case "delayed":
-//                    // Generate token for later/repeat charge
-//                    $ret =
-//                        $this->getDelayedOrRepeatPaymentTransaction( $stripe, $stripeToken, $paymentCountryCode,
-//                            $paymentType );
-//                    break;
 //                case "subscription":
 //                    // Subscribe user
 //                    $ret =
@@ -246,125 +220,52 @@ class Stripe extends AbstractViewComponent
 //        return $ret;
     }
 
-
-    /**
-     * @param StripeFacade $stripe
-     * @param $stripeToken
-     * @param $paymentCountryCode
-     * @param string $paymentType
-     * @return Response
-     * @throws Exception
-     */
-    private function getDelayedOrRepeatPaymentTransaction(
-        StripeFacade $stripe,
-        $stripeToken,
-        $paymentCountryCode,
-        $paymentType
-    ){
-
-        $params = [
-            "source" => $stripeToken
-        ];
-        if (null !== $this->state->email) {
-            $params[ 'description' ] = $this->state->email;
-            $params[ 'email' ] = $this->state->email;
-        }
-        $customer = $stripe->customerCreate( $params );
-
-        if ($this->state->email) {
-            $params[ 'receipt_email' ] = $this->state->email;
-        }
-
-        $futureTxn = new DelayedOrRepeatTransaction();
-        $futureTxn->paymentCountryCode = $paymentCountryCode;
-        $futureTxn->paymentType = $paymentType;
-        $this->parent->populateTransactionDetails( $futureTxn );
-        $futureTxn->storedToken = $customer->id;
-        $futureTxn->providerClass = Stripe::class;
-
-        $this->state->complete = true;
-        $ret = $this->parent->delayedTransactionSuccess( $futureTxn );
-        return $ret;
-    }
-
-    /**
-     * @param StripeFacade $stripe
-     * @param string $stripeToken
-     * @param LineItem[] $lineItems
-     * @param $paymentCountryCode
-     * @param $paymentType
-     * @return Response
-     * @throws Exception
-     */
-    private function createUserAndSubscribe(
-        StripeFacade $stripe,
-        $stripeToken,
-        $lineItems,
-        $paymentCountryCode,
-        $paymentType
-    ){
-        $params = [
-            "source" => $stripeToken,
-            "description" => $this->state->email
-        ];
-        $customer = $stripe->customerCreate( $params );
-
-        $txn = new Transaction();
-        $txn->paymentCountryCode = $paymentCountryCode;
-        $txn->paymentType = $paymentType;
-
-        $subs = [];
-        foreach ($lineItems as $lineItem) {
-            $subscriptionRaw = $stripe->subscriptionCreate( [
-                'customer' => $customer->id,
-                'items' => [ [ 'plan' => $lineItem->subscriptionTypeId ] ],
-                'tax_percent' => round( $lineItem->vatRate * 100, 2 ),
-            ] );
-            $subs[] =
-                [
-                    'providerRawResult' =>
-                        [
-                            'customer' => (array)$customer->jsonSerialize(),
-                            'subscription' => (array)$subscriptionRaw->jsonSerialize()
-                        ]
-                ];
-        }
-        $txn->setSubscriptions( $subs );
-        $ret = $this->parent->subscriptionSuccess( $txn );
-        return $ret;
-    }
-
-    /**
-     * @param array $credentials
-     * @param DelayedOrRepeatTransaction $delayedTxn
-     * @return Transaction
-     */
-    public static function chargeDelayedOrRepeatPaymentTransaction(
-        $credentials,
-        DelayedOrRepeatTransaction $delayedTxn
-    ){
-        $stripe = new StripeFacade( $credentials[ 'apiPrivKey' ] );
-
-        $charge = $stripe->chargeCreate( [
-            "amount" => $delayedTxn->transactionAmount * 100,
-            // Stripe wants amount in pence/cents etc. In an instance, $this->state->amount has already been multiplied.
-            "currency" => $delayedTxn->transactionCurrency,
-            "description" => $delayedTxn->transactionDescription,
-            "customer" => $delayedTxn->storedToken
-        ] );
-
-        /** @var Transaction $finalTxn */
-        $finalTxn = Transaction::fromArray( $delayedTxn->toArray(), true );
-        $finalTxn->chargeID = $charge->id;
-        $finalTxn->time = time();
-        try{
-            $finalTxn->validate();
-        }catch( \Exception $e ){
-            $finalTxn->validationError = $e->getMessage();
-        }
-
-        return $finalTxn;
-    }
+//    /**
+//     * @param StripeFacade $stripe
+//     * @param string $stripeToken
+//     * @param LineItem[] $lineItems
+//     * @param $paymentCountryCode
+//     * @param $paymentType
+//     * @return Response
+//     * @throws Exception
+//     */
+//    private function createUserAndSubscribe(
+//        StripeFacade $stripe,
+//        $stripeToken,
+//        $lineItems,
+//        $paymentCountryCode,
+//        $paymentType
+//    ){
+//        $params = [
+//            "source" => $stripeToken,
+//            "description" => $this->state->email
+//        ];
+//        $customer = $stripe->customerCreate( $params );
+//
+//        $txn = new Transaction();
+//        $txn->paymentCountryCode = $paymentCountryCode;
+//        $txn->paymentType = $paymentType;
+//
+//        $subs = [];
+//        foreach ($lineItems as $lineItem) {
+//            $subscriptionRaw = $stripe->subscriptionCreate( [
+//                'customer' => $customer->id,
+//                'items' => [ [ 'plan' => $lineItem->subscriptionTypeId ] ],
+//                'tax_percent' => round( $lineItem->vatRate * 100, 2 ),
+//            ] );
+//            $subs[] =
+//                [
+//                    'providerRawResult' =>
+//                        [
+//                            'customer' => (array)$customer->jsonSerialize(),
+//                            'subscription' => (array)$subscriptionRaw->jsonSerialize()
+//                        ]
+//                ];
+//        }
+//        $txn->setSubscriptions( $subs );
+//        $ret = $this->parent->subscriptionSuccess( $txn );
+//        return $ret;
+//    }
 
     /**
      * Initialise $this->state with either a new ViewState or an appropriate subclass
@@ -420,6 +321,19 @@ class Stripe extends AbstractViewComponent
         $this->state->email = $props[ 'email' ];
         $this->state->trans = $props['translations'];
 
+        switch ( $this->state->chargeMode ){
+            case "immediate":
+                $this->chargeStrategy = new ImmediateChargeStrategy();
+                break;
+            case "subscription":
+                $this->chargeStrategy = new SubscriptionChargeStrategy();
+                if( count( $this->state->lineItems ) > 1 ){
+                    throw new Exception("Only one subscription can be added to the basket at a time.");
+                }
+                break;
+            default:
+                throw new Exception("Invalid charge mode {$this->state->chargeMode}");
+        }
     }
 
     /**

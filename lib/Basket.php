@@ -226,32 +226,6 @@ class Basket extends AbstractViewComponent
     }
 
     /**
-     * @param DelayedOrRepeatTransaction $txn
-     * @return Response
-     * @throws \Exception
-     */
-    public function delayedTransactionSuccess( DelayedOrRepeatTransaction $txn )
-    {
-        $this->state->complete = true;
-
-        // Don't need to call populateTransactionDetails() here as it's
-        // called in getDelayedOrRepeatPaymentTransaction()
-        
-        $txn->time = time();
-        try{
-            $txn->validate();
-        }catch( \Exception $e ){
-            $txn->validationError = $e->getMessage();
-        }
-
-        $this->state->successMessage = $this->state->delayedTransactionSuccessCallback->__invoke( $txn, $this )->content;
-        // Render full component, including parent of basket, if any.
-        $root = $this->getRootComponent();
-        $root->updateState();
-        return $root->render();
-    }
-
-    /**
      * @param Transaction $txn
      * @return Response
      * @throws \Exception
@@ -394,7 +368,6 @@ class Basket extends AbstractViewComponent
         $this->testInputs(
             [
                 'transactionSuccessCallback' => [ TransactionSuccessCallback::class, null ],
-                'delayedTransactionSuccessCallback' => [ DelayedTransactionSuccessCallback::class, null ],
                 'subscriptionSuccessCallback' => [ SubscriptionSuccessCallback::class, null ]
                 
             ],
@@ -403,10 +376,6 @@ class Basket extends AbstractViewComponent
 
         if( $props['transactionSuccessCallback'] instanceof TransactionSuccessCallback  ){
             $this->state->transactionSuccessCallback = $props[ 'transactionSuccessCallback' ];
-        }
-
-        if( $props['delayedTransactionSuccessCallback'] instanceof DelayedTransactionSuccessCallback  ){
-            $this->state->delayedTransactionSuccessCallback = $props[ 'delayedTransactionSuccessCallback' ];
         }
 
         if( $props['subscriptionSuccessCallback'] instanceof SubscriptionSuccessCallback  ){
