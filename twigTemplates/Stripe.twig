@@ -14,7 +14,7 @@
             </div>
 
             <!-- Used to display form errors -->
-            <div id="card-errors" role="alert"></div>
+            <div id="card-errors" role="alert" style="color: darkred"></div>
             <br>
         <input type="submit" value="{{ state.trans.submit_payment }}">
         </fieldset>
@@ -126,9 +126,14 @@
     }
 
     function showStripeError(result) {
+        var err = result.error;
+        if( typeof result.error == "object"  ){
+            err = result.error.message; 
+        }
+
         // Inform the user if there was an error
         var errorElement = document.getElementById('card-errors');
-        errorElement.textContent = result.error;
+        errorElement.textContent = err;
         // Re-enable the form
         var form = $('#payment-form');
         form.find('input[type="submit"]').prop('disabled', false);
