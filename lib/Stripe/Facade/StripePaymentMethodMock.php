@@ -27,8 +27,6 @@ class StripePaymentMethodMock extends PaymentMethod
      */
     public static $cardCountrySetting;
     
-    
-
     public static function create( $params = null, $options = NULL )
     {
         self::$params = $params;
@@ -39,6 +37,19 @@ class StripePaymentMethodMock extends PaymentMethod
         return $paymentMethod;
         
         return $paymentMethod;
+    }
+    
+    /**
+     * @param string $stripeToken
+     * @param array|null|string $opts
+     * @return StripePaymentMethodMock
+     */
+    public static function retrieve( $stripeToken, $opts = null )
+    {
+        $pi = new StripePaymentMethodMock( "TestStripeID" );
+        $pi->type = self::$typeSetting;
+        $pi->card = self::$cardCountrySetting;
+        return $pi;
     }
     
 }

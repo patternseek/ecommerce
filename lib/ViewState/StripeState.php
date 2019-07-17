@@ -129,4 +129,9 @@ class StripeState extends ViewState
      */
     public $lineItems;
 
+    /**
+     * @var string
+     */
+    public $createdSubscriptionId;
+
 }

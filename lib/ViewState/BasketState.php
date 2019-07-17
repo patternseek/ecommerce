@@ -5,7 +5,6 @@ namespace PatternSeek\ECommerce\ViewState;
 use PatternSeek\ComponentView\ViewState\ViewState;
 use PatternSeek\ECommerce\BasketConfig;
 use PatternSeek\ECommerce\BasketTranslations;
-use PatternSeek\ECommerce\SubscriptionSuccessCallback;
 use PatternSeek\ECommerce\TransactionSuccessCallback;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -199,11 +198,6 @@ class BasketState extends ViewState
      */
     public $delayedTransactionSuccessCallback;
 
-    /**
-     * @var SubscriptionSuccessCallback
-     */
-    public $subscriptionSuccessCallback;
-    
     /**
      * Determine whether payment process is ready to begin.
      * @return bool

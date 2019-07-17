@@ -33,4 +33,14 @@ class StripePaymentIntentMock extends PaymentIntent
         return true;
     }
     
+    /**
+     * @param string $stripeToken
+     * @param array|null|string $opts
+     * @return StripePaymentIntentMock
+     */
+    public static function retrieve( $stripeToken, $opts = null )
+    {
+        $pi = new StripePaymentIntentMock( "TestStripeID" );
+        return $pi;
+    }
 }

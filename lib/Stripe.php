@@ -92,13 +92,17 @@ class Stripe extends AbstractViewComponent
                     return new Response( "application/json", $resJson );
                 }
 
-                $this->chargeStrategy->initialPaymentAttempt(
+                return $this->chargeStrategy->initialPaymentAttempt(
                     $json_obj->payment_method_id,
                     $amount,
                     $currency, 
                     $description,
                     $this->state->email,
-                    $stripe
+                    $stripe,
+                    // These two params are only relevant for subscriptions
+                    $this->state->lineItems[0]->subscriptionTypeId,
+                    $this->state->lineItems[0]->vatRate,                    
+                    $this->state
                 );
 
             }
@@ -170,11 +174,7 @@ class Stripe extends AbstractViewComponent
         
         if ($intent->status == 'succeeded') {
             // The payment is complete
-            $txn = new Transaction();
-            $txn->chargeID = $paymentIntentId;
-            $txn->paymentCountryCode = $method->card->country;
-            $txn->paymentType = 'card';
-            $txn->transactionCurrency = $currency;
+            $txn = $this->chargeStrategy->createTransaction( $paymentIntentId, $method, $currency, $stripe, $this->state );
     
             $this->state->complete = true;
             $ret = $this->parent->transactionSuccess( $txn );

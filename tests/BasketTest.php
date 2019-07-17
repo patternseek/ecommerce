@@ -30,23 +30,22 @@ class BasketTest extends \PHPUnit_Framework_TestCase
     }
 
     protected $successCallback;
-    protected $subscriptionSuccessCallback;
 
     
-//    public function testSubscription()
-//    {
-//        $billingAddress = $this->getUKAddress();
-//        $lineItem = $this->getElectronicServiceLineItem();
-//        $lineItem->subscriptionTypeId = "example-subscription-id";
-//        $successOutput = [ ];
-//
-//        /** @var Basket $view */
-//        $view = $this->prepareBasket( $lineItem, $billingAddress, $chargeMode = "subscription" );
-//
-//        StripeFacade::$testMode = true;
-//        $this->succeedOnSubscription( $view );
-//
-//    }
+    public function testSubscription()
+    {
+        $billingAddress = $this->getUKAddress();
+        $lineItem = $this->getElectronicServiceLineItem();
+        $lineItem->subscriptionTypeId = "example-subscription-id";
+        $successOutput = [ ];
+
+        /** @var Basket $view */
+        $view = $this->prepareBasket( $lineItem, $billingAddress, $chargeMode = "subscription" );
+
+        StripeFacade::$testMode = true;
+        $this->succeedOnSubscription( $view );
+
+    }
     
     public function testElectronicServiceToUKConsumer()
     {
@@ -482,10 +481,10 @@ class BasketTest extends \PHPUnit_Framework_TestCase
         StripePaymentMethodMock::$cardCountrySetting = (object)[ 'country' => 'US' ];
         $uns->updateView(
             [
-                'subscriptionSuccessCallback' => $this->subscriptionSuccessCallback
+                'transactionSuccessCallback' => $this->successCallback
             ]
         );
-        $execOut = $uns->render( "stripe.completion", [ 'stripeToken' => "TESTTOKEN" ] )->content;
+        $execOut = $uns->render( "stripe.completion", [ 'paymentIntentId' => "TestStripeID" ] )->content;
 
         $expected =
             array (
@@ -493,8 +492,7 @@ class BasketTest extends \PHPUnit_Framework_TestCase
                 'vatNumberGivenCountryCode' => NULL,
                 'vatNumberGiven' => NULL,
                 'vatAmount' => 20.0,
-                'validationError' => 'Invalid properties in PatternSeek\\ECommerce\\Transaction
-time : This value should not be blank. But got NULL',
+                'validationError' => NULL,
                 'transactionDetailRaw' => '[
     {
         "description": "Some online service",
@@ -522,7 +520,8 @@ time : This value should not be blank. But got NULL',
                 "id": "TestStripeCustomerID"
             },
             "subscription": {
-                "id": "TestStripeSubscriptionID"
+                "id": "TestStripeSubscriptionID",
+                "customer": "TestStripeCustomerID"
             }
         }
     }
@@ -533,7 +532,7 @@ time : This value should not be blank. But got NULL',
                 'ipCountryCode' => 'GB',
                 'clientName' => NULL,
                 'clientEmail' => NULL,
-                'chargeID' => NULL,
+                'chargeID' => 'TestStripeID',
                 'billingAddressCountryCode' => 'GB',
                 'billingAddress' => 'addressLine1
 addressLine2
@@ -545,7 +544,7 @@ United Kingdom',
 
 
 
-        krsort( $expected );
+        ksort( $expected );
         $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
     
         $this->assertEquals( $expectedString, $execOut  );
@@ -732,7 +731,6 @@ United Kingdom',
         $view = new Basket();
 
         $this->successCallback = new TestSuccess();
-        $this->subscriptionSuccessCallback = new TestSubscriptionSuccess();
 
         $view->updateView(
             [
@@ -741,8 +739,7 @@ United Kingdom',
                 'lineItems' => [ $lineItem ],
                 'testMode' => true,
                 'chargeMode' => $chargeMode,
-                'transactionSuccessCallback' => $this->successCallback,
-                'subscriptionSuccessCallback' => $this->subscriptionSuccessCallback
+                'transactionSuccessCallback' => $this->successCallback
             ]
         );
 

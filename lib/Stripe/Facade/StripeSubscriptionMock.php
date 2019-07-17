@@ -23,4 +23,10 @@ class StripeSubscriptionMock extends Subscription
         $subscription = new StripeSubscriptionMock("TestStripeSubscriptionID");
         return $subscription;
     }
+    
+    public static function retrieve($id, $opts = NULL){
+        $subscription = new StripeSubscriptionMock("TestStripeSubscriptionID");
+        $subscription->customer = "TestStripeCustomerID";
+        return $subscription;
+    }
 }

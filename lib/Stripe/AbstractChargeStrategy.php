@@ -13,11 +13,24 @@ namespace PatternSeek\ECommerce\Stripe;
 
 use PatternSeek\ComponentView\Response;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
+use PatternSeek\ECommerce\Transaction;
+use PatternSeek\ECommerce\ViewState\StripeState;
+use Stripe\PaymentIntent;
 
 abstract class AbstractChargeStrategy
 {
 
-    abstract public function initialPaymentAttempt( $paymentMethodId, $amount, $currency, $description, $email,  StripeFacade $stripe );
+    abstract public function initialPaymentAttempt(
+        $paymentMethodId,
+        $amount,
+        $currency,
+        $description,
+        $email,
+        StripeFacade $stripe,
+        $subscriptionTypeId,
+        $subscriptionVatRate,
+        StripeState $state
+    );
 
     protected function generatePaymentResponse( $intent )
     {
@@ -26,7 +39,8 @@ abstract class AbstractChargeStrategy
             # Tell the client to handle the action
             $resJson = json_encode( [
                 'requires_action' => true,
-                'payment_intent_client_secret' => $intent->client_secret
+                'payment_intent_client_secret' => $intent->client_secret,
+                'confirmation_method' => $intent->confirmation_method
             ] );
             return new Response( "application/json", $resJson );
         }else {
@@ -46,4 +60,23 @@ abstract class AbstractChargeStrategy
             }
         }
     }
+    
+    /**
+     * @param $paymentIntentId
+     * @param $method
+     * @param $currency
+     * @param StripeFacade $stripe
+     * @param StripeState $state
+     * @return Transaction
+     */
+    public function createTransaction( $paymentIntentId, $method, $currency, $stripe, $state )
+    {
+        $txn = new Transaction();
+        $txn->chargeID = $paymentIntentId;
+        $txn->paymentCountryCode = $method->card->country;
+        $txn->paymentType = 'card';
+        $txn->transactionCurrency = $currency;
+        return $txn;
+    }
+    
 }

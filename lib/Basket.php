@@ -226,30 +226,6 @@ class Basket extends AbstractViewComponent
     }
 
     /**
-     * @param Transaction $txn
-     * @return Response
-     * @throws \Exception
-     */
-    public function subscriptionSuccess( Transaction $txn )
-    {
-        $this->state->complete = true;
-
-        $this->populateTransactionDetails( $txn );
-        try{
-            $txn->validate();
-        }catch( \Exception $e ){
-            $txn->validationError = $e->getMessage();
-        }
-
-        $this->state->successMessage = $this->state->subscriptionSuccessCallback->__invoke( $txn, $this )->content;
-        // Render full component, including parent of basket, if any.
-        $root = $this->getRootComponent();
-        $root->updateState();
-        return $root->render();
-        
-    }
-
-    /**
      * Used for testing state methods
      */
     public function getStateForTesting()
@@ -367,9 +343,7 @@ class Basket extends AbstractViewComponent
 
         $this->testInputs(
             [
-                'transactionSuccessCallback' => [ TransactionSuccessCallback::class, null ],
-                'subscriptionSuccessCallback' => [ SubscriptionSuccessCallback::class, null ]
-                
+                'transactionSuccessCallback' => [ TransactionSuccessCallback::class, null ]
             ],
             $props
         );
@@ -378,10 +352,6 @@ class Basket extends AbstractViewComponent
             $this->state->transactionSuccessCallback = $props[ 'transactionSuccessCallback' ];
         }
 
-        if( $props['subscriptionSuccessCallback'] instanceof SubscriptionSuccessCallback  ){
-            $this->state->subscriptionSuccessCallback = $props[ 'subscriptionSuccessCallback' ];
-        }
-        
         $this->addOrUpdateChild(
             'billingAddress', Address::class,
             [ 'state' => $this->state->config->billingAddress ]

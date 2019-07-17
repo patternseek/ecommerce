@@ -100,17 +100,29 @@
     }
 
     function handleAction(response, stripe) {
-        stripe.handleCardAction(
-            response.payment_intent_client_secret
-        ).then(function (result) {
-            if (result.error) {
-                // Show error in payment form
-                showStripeError(result)
-            } else {
-                // Success
-                submitCompletionForm(result.paymentIntent.id);
-            }
-        });
+        
+        var handleResult = 
+            function (result) {
+                if (result.error) {
+                    // Show error in payment form
+                    showStripeError(result)
+                } else {
+                    // Success
+                    submitCompletionForm(result.paymentIntent.id);
+                }
+            };
+        
+        if( response.confirmation_method == "automatic" ){
+            stripe.handleCardPayment(
+                response.payment_intent_client_secret
+            ).then( handleResult )
+        }else {
+            stripe.handleCardAction(
+                response.payment_intent_client_secret
+            ).then( handleResult );    
+        }
+        
+        
     }
 
     function showStripeError(result) {

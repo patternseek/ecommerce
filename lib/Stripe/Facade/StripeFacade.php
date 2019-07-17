@@ -73,16 +73,16 @@ class StripeFacade
     }
     
         /**
-     * @param $stripePaymentIntent
+     * @param $stripePaymentIntentId
      * @param $apiPrivKey
      * @return StripePaymentIntentMock|PaymentIntent
      */
-    public function paymentIntentRetrieve( $stripePaymentIntent )
+    public function paymentIntentRetrieve( $stripePaymentIntentId )
     {
         if (self::$testMode) {
-            return StripePaymentIntentMock::create($stripePaymentIntent);
+            return StripePaymentIntentMock::retrieve($stripePaymentIntentId);
         }else {
-            return PaymentIntent::retrieve( $stripePaymentIntent );
+            return PaymentIntent::retrieve( $stripePaymentIntentId );
         }
     }
     
@@ -94,7 +94,7 @@ class StripeFacade
     public function paymentMethodRetrieve( $stripePaymentMethod )
     {
         if (self::$testMode) {
-            return StripePaymentMethodMock::create($stripePaymentMethod);
+            return StripePaymentMethodMock::retrieve($stripePaymentMethod);
         }else {
             return PaymentMethod::retrieve( $stripePaymentMethod );
         }
@@ -138,10 +138,24 @@ class StripeFacade
             return Customer::create( $params );
         }
     }
+    
+        /**
+     * @param $stripeCustomerId
+     * @param $apiPrivKey
+     * @return StripeCustomerMock|Customer
+     */
+    public function customerRetrieve( $stripeCustomerId )
+    {
+        if (self::$testMode) {
+            return StripeCustomerMock::retrieve($stripeCustomerId);
+        }else {
+            return Customer::retrieve( $stripeCustomerId );
+        }
+    }
 
     /**
      * @param $params
-     * @return StripeCustomerMock|Customer
+     * @return StripeSubscriptionMock|Subscription
      */
     public function subscriptionCreate( $params )
     {
@@ -151,4 +165,20 @@ class StripeFacade
             return Subscription::create( $params );
         }
     }
+    
+    /**
+     * @param $stripeSubscription
+     * @param $apiPrivKey
+     * @return StripeSubscriptionMock|Subscription
+     */
+    public function subscriptionRetrieve( $stripeSubscription )
+    {
+        if (self::$testMode) {
+            return StripeSubscriptionMock::retrieve($stripeSubscription);
+        }else {
+            return Subscription::retrieve( $stripeSubscription );
+        }
+    }
+    
+
 }

@@ -13,12 +13,22 @@ namespace PatternSeek\ECommerce\Stripe;
 
 use PatternSeek\ComponentView\Response;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
+use PatternSeek\ECommerce\ViewState\StripeState;
 
 class ImmediateChargeStrategy extends AbstractChargeStrategy
 {
 
-    public function initialPaymentAttempt($paymentMethodId, $amount, $currency, $description, $email,  StripeFacade $stripe)
-    {
+    public function initialPaymentAttempt(
+        $paymentMethodId,
+        $amount,
+        $currency,
+        $description,
+        $email,
+        StripeFacade $stripe,
+        $subscriptionTypeId,
+        $subscriptionVatRate,
+        StripeState $state
+    ){
         # Create the PaymentIntent
         $params = [
             'payment_method' => $paymentMethodId,
@@ -28,11 +38,11 @@ class ImmediateChargeStrategy extends AbstractChargeStrategy
             'confirmation_method' => 'manual',
             'confirm' => true,
         ];
-        if ( $email !== null) {
+        if ($email !== null) {
             $params[ 'receipt_email' ] = $email;
         }
         $intent = $stripe->paymentIntentCreate( $params );
-        
+
         return $this->generatePaymentResponse( $intent );
     }
 

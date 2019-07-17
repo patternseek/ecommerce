@@ -23,4 +23,9 @@ class StripeCustomerMock extends Customer
         $customer = new StripeCustomerMock("TestStripeCustomerID");
         return $customer;
     }
+    
+    public static function retrieve($id, $opts = NULL){
+        $customer = new StripeCustomerMock("TestStripeCustomerID");
+        return $customer;
+    }
 }
