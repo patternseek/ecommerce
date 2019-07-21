@@ -521,7 +521,11 @@ class BasketTest extends \PHPUnit_Framework_TestCase
             },
             "subscription": {
                 "id": "TestStripeSubscriptionID",
-                "customer": "TestStripeCustomerID"
+                "customer": "TestStripeCustomerID",
+                "latest_invoice": "TestStripeID"
+            },
+            "first_invoice": {
+                "id": "TestStripeID"
             }
         }
     }

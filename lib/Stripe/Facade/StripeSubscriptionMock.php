@@ -21,12 +21,15 @@ class StripeSubscriptionMock extends Subscription
     {
         self::$params = $params;
         $subscription = new StripeSubscriptionMock("TestStripeSubscriptionID");
+        $subscription->customer = "TestStripeCustomerID";
+        $subscription->latest_invoice = "TestStripeID";
         return $subscription;
     }
     
     public static function retrieve($id, $opts = NULL){
         $subscription = new StripeSubscriptionMock("TestStripeSubscriptionID");
         $subscription->customer = "TestStripeCustomerID";
+        $subscription->latest_invoice = "TestStripeID";
         return $subscription;
     }
 }

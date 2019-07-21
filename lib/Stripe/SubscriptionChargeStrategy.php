@@ -89,13 +89,15 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
         
         $sub = $stripe->subscriptionRetrieve( $state->createdSubscriptionId );
         $customer = $stripe->customerRetrieve( $sub->customer );
+        $latestInvoice = $stripe->invoiceRetrieve( $sub->latest_invoice );
         
         $subs = [];
         $subs[] = 
             ['providerRawResult'=>
                 [
                     'customer' => (array)$customer->jsonSerialize(),
-                    'subscription' => (array)$sub->jsonSerialize()
+                    'subscription' => (array)$sub->jsonSerialize(),
+                    'first_invoice' => (array)$latestInvoice->jsonSerialize()
                 ]
             ];
 

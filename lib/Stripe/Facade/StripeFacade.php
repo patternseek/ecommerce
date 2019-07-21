@@ -11,6 +11,7 @@ namespace PatternSeek\ECommerce\Stripe\Facade;
 
 use Stripe\Charge;
 use Stripe\Customer;
+use Stripe\Invoice;
 use Stripe\PaymentIntent;
 use Stripe\PaymentMethod;
 use Stripe\Stripe as StripeAPI;
@@ -180,5 +181,19 @@ class StripeFacade
         }
     }
     
+    
+        /**
+     * @param $stripeInvoice
+     * @param $apiPrivKey
+     * @return StripeInvoiceMock|Invoice
+     */
+    public function invoiceRetrieve( $stripeInvoice )
+    {
+        if (self::$testMode) {
+            return StripeInvoiceMock::retrieve($stripeInvoice);
+        }else {
+            return Invoice::retrieve( $stripeInvoice );
+        }
+    }
 
 }
