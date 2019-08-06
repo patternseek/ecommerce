@@ -1,126 +1,169 @@
 {# @var this \PatternSeek\ECommerce\Stripe #}
 {# @var exec \PatternSeek\ComponentView\ExecHelper #}
 {# @var state \PatternSeek\ECommerce\ViewState\StripeState #}
-{% set formBody %}
-<div style="display: none;" id="formHide">
-    <fieldset>
-        <legend>Card details</legend>
 
-        <span class='payment-errors'></span>
+<style>
+    #pnsk-stripe-working{
+        color: blue;
+        vertical-align: text-top;
+        margin-left: 6px;
+        display: none;
+    }
+</style>
 
-        <label for="cc-number">
-            Card number
-        </label>
-        <input id="cc-number" data-stripe="number" type="tel" class="cc-number" autocomplete="cc-number"
-               placeholder="•••• •••• •••• ••••" required>
-        <span class="cc-brand"></span>
-        <br>
+<form id="payment-form">
+    <div style="display: none;" id="formHide">
+        <fieldset>
+        <legend>{{ state.trans.card_details }}</legend>
 
-        <label for="cc-exp">
-            Expiry date
-        </label>
-        <input id="cc-exp" type="tel" class="cc-exp" autocomplete="cc-exp" placeholder="•• / ••" required>
-        <br>
+            <label for="card-element">
+                {{ state.trans.credit_or_debit_card }}
+            </label>
+            <div id="card-element">
+                <!-- a Stripe Element will be inserted here. -->
+            </div>
 
-        <label for="cc-cvc">
-            CVC number
-        </label>
-        <input id="cc-cvc" data-stripe="cvc" type="tel" class="cc-cvc" autocomplete="off" placeholder="•••" required>
-        <br>
-        <input type="hidden" id="cc-exp-month" data-stripe="exp-month">
-        <input type="hidden" id="cc-exp-year" data-stripe="exp-year">
-        <input type="hidden" data-stripe="address_line1" value="{{ state.address.addressLine1 }}">
-        <input type="hidden" data-stripe="address_line2" value="{{ state.address.addressLine2 }}">
-        <input type="hidden" data-stripe="address_city" value="{{ state.address.townOrCity }}">
-        <input type="hidden" data-stripe="address_state" value="{{ state.address.stateOrRegion }}">
-        <input type="hidden" data-stripe="address_zip" value="{{ state.address.postCode }}">
-        <input type="hidden" data-stripe="address_country" value="{{ state.address.countryString }}">
+            <!-- Used to display form errors -->
+            <div id="card-errors" role="alert" style="color: darkred"></div>
+            <br>
+        <input type="submit" id="pnsk-stripe-submit" value="{{ state.trans.submit_payment }}">
+        <span id="pnsk-stripe-working">Please wait...</span>
+        </fieldset>
+    </div>
+</form>
 
-        <input type="submit" value="Submit Payment">
-    </fieldset>
-</div>
-{% endset %}
-{{ exec.wrapForm( "submitForm", 'POST', formBody, false, "payment-form" ) }}
+{{ exec.wrapForm( "completion", 'POST', formBody, false, "completion-form" ) }}
 
 <script type="text/javascript">
 
-
-    var stripeResponseHandler = function (status, response) {
-        var form = $('#payment-form');
-        if (response.error) {
-            // Show the errors on the form
-            form.find('.payment-errors').html(response.error.message + "<br><br>");
-            form.find('input[type="submit"]').removeProp('disabled');
-        } else {
-            // token contains id, last4, and card type
-            var token = response.id;
-            // Insert the token into the form so it gets submitted to the server
-            form.append($('<input type="hidden" name="stripeToken" />').val(token));
-            // and re-submit
-            form.get(0).submit();
-        }
-    };
-
     jQuery(function ($) {
+
+        var stripe = Stripe('{{ state.apiPubKey }}');
+        var elements = stripe.elements();
+        var cardEl = elements.create(
+            'card',
+            {
+                hidePostalCode: true,
+            }
+        );
+        cardEl.mount('#card-element');
+        $('#formHide').slideDown();
+        
+        $("#pnsk-stripe-submit").click( 
+            function(e){
+                $(e).attr("disabled", true);
+                $("#pnsk-stripe-working").show();
+            }  
+        );
+
         $('#payment-form').submit(function (e) {
             $('.payment-errors').html("");
             var form = $(this);
             // Disable the submit button to prevent repeated clicks
             form.find('input[type="submit"]').prop('disabled', true);
 
-            // Split expiry
-            var exp = $("#cc-exp").val();
-            var expAr = exp.split(' / ');
-            $('#cc-exp-month').val(expAr[0]);
-            $('#cc-exp-year').val(expAr[1]);
-
-            var cardType = $.payment.cardType($('.cc-number').val());
-            $('.cc-number').toggleInputError(!$.payment.validateCardNumber($('.cc-number').val()));
-            $('.cc-exp').toggleInputError(!$.payment.validateCardExpiry($('.cc-exp').payment('cardExpiryVal')));
-            $('.cc-cvc').toggleInputError(!$.payment.validateCardCVC($('.cc-cvc').val(), cardType));
-            if (null != cardType) {
-                $('.cc-brand').text(cardType);
-            } else {
-                $('.cc-brand').text("");
-            }
-
-            $('.validation').removeClass('text-danger text-success');
-
-            Stripe.card.createToken(form, stripeResponseHandler);
-            // Prevent the form from submitting with the default action
+            stripe.createPaymentMethod(
+                'card',
+                cardEl,
+                {
+                    'billing_details':
+                        {
+                            'address':
+                                {
+                                    'line1': '{{ state.address.addressLine1 }}',
+                                    'line2': '{{ state.address.addressLine2 }}',
+                                    'city': '{{ state.address.townOrCity }}',
+                                    'state': '{{ state.address.stateOrRegion }}',
+                                    'postal_code': '{{ state.address.postCode }}',
+                                    'country': '{{ state.address.countryCode }}'
+                                }
+                        }
+                }
+            ).then(function (result) {
+                if (result.error) {
+                    showStripeError(result);
+                } else {
+                    fetch('{{ exec.url( "confirmPayment", [], true ) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            payment_method_id: result.paymentMethod.id
+                        })
+                    }).then(function (result) {
+                        // Handle server response (see Step 3)
+                        result.json().then(function (json) {
+                            handleServerResponse(json, stripe);
+                        })
+                    });
+                }
+            });
             return false;
         });
 
-        $('.cc-number').change(function () {
-            $('.cc-number').toggleInputError(!$.payment.validateCardNumber($('.cc-number').val()));
-            var cardType = $.payment.cardType($('.cc-number').val());
-
-            if (null != cardType) {
-                $('.cc-brand').text(cardType);
-            } else {
-                $('.cc-brand').text("");
-            }
-        });
-
-        $('.cc-cvc').change(function () {
-            var cardType = $.payment.cardType($('.cc-number').val());
-            $('.cc-cvc').toggleInputError(!$.payment.validateCardCVC($('.cc-cvc').val(), cardType));
-        });
-
-        $('.cc-exp').change(function () {
-            $('.cc-exp').toggleInputError(!$.payment.validateCardExpiry($('.cc-exp').payment('cardExpiryVal')));
-        });
-
-
-        Stripe.setPublishableKey('{{ state.apiPubKey }}');
-        $('.cc-number').payment('formatCardNumber');
-        $('.cc-exp').payment('formatCardExpiry');
-        $('.cc-cvc').payment('formatCardCVC');
-
-        $.fn.toggleInputError = function (erred) {
-            this.toggleClass('has-error', erred);
-            return this;
-        };
-        $('#formHide').slideDown();
     });
+
+    function handleServerResponse(response, stripe) {
+        if (response.error) {
+            // Show error from server on payment form
+            showStripeError(response);
+        } else if (response.requires_action) {
+            // Use Stripe.js to handle required card action
+            handleAction(response, stripe);
+        } else {
+            // Success
+            submitCompletionForm(response.paymentIntentId);
+        }
+    }
+
+    function handleAction(response, stripe) {
+        
+        var handleResult = 
+            function (result) {
+                if (result.error) {
+                    // Show error in payment form
+                    showStripeError(result)
+                } else {
+                    // Success
+                    submitCompletionForm(result.paymentIntent.id);
+                }
+            };
+        
+        if( response.confirmation_method == "automatic" ){
+            stripe.handleCardPayment(
+                response.payment_intent_client_secret
+            ).then( handleResult )
+        }else {
+            stripe.handleCardAction(
+                response.payment_intent_client_secret
+            ).then( handleResult );    
+        }
+        
+        
+    }
+
+    function showStripeError(result) {
+        var err = result.error;
+        if( typeof result.error == "object"  ){
+            err = result.error.message; 
+        }
+
+        // Inform the user if there was an error
+        var errorElement = document.getElementById('card-errors');
+        errorElement.textContent = err;
+        // Re-enable the form
+        var form = $('#payment-form');
+        form.find('#pnsk-stripe-submit').prop('disabled', false);
+        // Hide the waiting indicator
+        $("#pnsk-stripe-working").hide();
+    }
+
+    function submitCompletionForm(paymentIntentId) {
+        var form = $('#completion-form');
+        form.append($('<input type="hidden" name="paymentIntentId" />').val(paymentIntentId));
+        // and re-submit
+        form.get(0).submit();
+    };
+    
 </script>

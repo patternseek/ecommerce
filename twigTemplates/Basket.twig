@@ -21,10 +21,10 @@
     
     <table class="basketTable">
         <thead>
-        <th>Quantity</th>
-        <th>Description</th>
-        <th>Net per item</th>
-        <th>VAT per item</th>
+        <th>{{ state.trans.quantity }}</th>
+        <th>{{ state.trans.description }}</th>
+        <th>{{ state.trans.net_per_item }}</th>
+        <th>{{ state.trans.vat_per_item }}</th>
         </thead>
         <tbody>
         {% for lineItem in state.lineItems %}
@@ -44,13 +44,13 @@
             <tr class="topseparator">
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
-                <td><strong>TOTAL VAT</strong></td>
+                <td><strong>{{ state.trans.total_vat }}</strong></td>
                 <td>{{ state.config.currencySymbol }}{{ state.vatTotal|number_format(2) }}</td>
             </tr>
             <tr>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
-                <td><strong>TOTAL</strong></td>
+                <td><strong>{{ state.trans.total }}</strong></td>
                 <td>{{ state.config.currencySymbol }}{{ state.total|number_format(2) }}</td>
             </tr>
     
@@ -62,16 +62,15 @@
                         <strong>{{ state.vatNumber }}</strong>
                         <br>
                     {% endif %}
-                    <input type="text" name="vatNumber" placeholder="EU VAT number">
+                    <input type="text" name="vatNumber" placeholder="{{ state.trans.eu_vat_number }}">
                     <select name="countryCode">
                         {% for cc,country in this.getEUVatCountries() %}
-                            <option value="{{ cc }}"
-                                    {% if cc == state.config.countryCode|upper %}selected="selected"{% endif %}>{{ country }}</option>
+                            <option value="{{ cc }}" {% if cc == state.config.countryCode|upper %}selected="selected"{% endif %}>{{ country }}</option>
                         {% endfor %}
                     </select>
-                    <input type="submit" value="Update">
+                    <input type="submit" value="{{ state.trans.update }}">
                         <br>
-                        <small>If you are purchasing for a VAT registered company.</small>
+                        <small>{{ state.trans.for_vat_regged_company }}</small>
                     {% endset %}
                     {{ exec.replaceElementUsingForm( "validateVatNumber", "POST", validateFormBody, "component-basket", "vatNumberUpdate" ) }}
                     {# {{ exec.wrapForm( "validateVatNumber", "POST", validateFormBody, false, "vatNumberUpdate" ) }} #}
@@ -94,7 +93,7 @@
         {% elseif ( not state.readyForPaymentInfo() ) and (not state.complete) %}
             {# ... #}
         {% else %}
-            <span class="error">This transaction has been completed.</span>
+            <span class="error">{{ state.trans.this_transaction_has_been_completed }}</span>
         {% endif %}
         
         <br clear="both">

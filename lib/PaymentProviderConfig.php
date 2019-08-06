@@ -47,5 +47,12 @@ class PaymentProviderConfig extends StructClass\StructClass
      * @Assert\NotBlank()
      */
     public $conf;
+    
+    /**
+     * Provider-type specific translated strings. 
+     * 
+     * @var StructClass\StructClass
+     */
+    public $translations;
 
 }

@@ -3,6 +3,7 @@
 namespace PatternSeek\ECommerce\ViewState;
 
 use PatternSeek\ComponentView\ViewState\ViewState;
+use PatternSeek\ECommerce\BasketTranslations;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -76,6 +77,16 @@ class AddressState extends ViewState
      * @Assert\Type(type="array")
      */
     public $requiredFields;
+    
+    /**
+     * Translated strings. 
+     * Strings for payment providers are within their PaymentProviderConfigs.
+     * 
+     * @var BasketTranslations
+     *
+     * @Assert\Type(type="PatternSeek\ECommerce\BasketTranslations")
+     */
+    public $trans;
 
     /**
      * @return string

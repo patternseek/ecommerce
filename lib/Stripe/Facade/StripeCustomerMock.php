@@ -8,11 +8,11 @@
  * file that was distributed with this source code.
  */
 
-namespace PatternSeek\ECommerce\StripeFacade;
+namespace PatternSeek\ECommerce\Stripe\Facade;
 
-use Stripe\Charge;
+use Stripe\Customer;
 
-class StripeChargeMock extends Charge
+class StripeCustomerMock extends Customer
 {
 
     public static $params;
@@ -20,8 +20,12 @@ class StripeChargeMock extends Charge
     public static function create( $params = null, $options = null )
     {
         self::$params = $params;
-        $charge = new StripeChargeMock();
-        $charge->id = "TestStripeID";
-        return $charge;
+        $customer = new StripeCustomerMock("TestStripeCustomerID");
+        return $customer;
+    }
+    
+    public static function retrieve($id, $opts = NULL){
+        $customer = new StripeCustomerMock("TestStripeCustomerID");
+        return $customer;
     }
 }

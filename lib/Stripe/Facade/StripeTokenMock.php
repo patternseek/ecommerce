@@ -8,13 +8,13 @@
  * file that was distributed with this source code.
  */
 
-namespace PatternSeek\ECommerce\StripeFacade;
+namespace PatternSeek\ECommerce\Stripe\Facade;
 
 use Stripe\Token;
 
 /**
  * Class Stripe_TokenMock
- * @package PatternSeek\ECommerce\StripeFacade
+ * @package PatternSeek\ECommerce\Stripe\Facade
  */
 class StripeTokenMock extends Token
 {
