@@ -7,15 +7,22 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace PatternSeek\ECommerce;
 
 use Exception;
+use function GuzzleHttp\default_ca_bundle;
 use PatternSeek\ComponentView\AbstractViewComponent;
 use PatternSeek\ComponentView\Response;
 use PatternSeek\ComponentView\Template\TwigTemplate;
-use PatternSeek\ECommerce\StripeFacade\StripeFacade;
+use PatternSeek\ECommerce\Stripe\AbstractChargeStrategy;
+use PatternSeek\ECommerce\Stripe\ImmediateChargeStrategy;
+use PatternSeek\ECommerce\Stripe\StripeTranslations;
+use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
+use PatternSeek\ECommerce\Stripe\SubscriptionChargeStrategy;
 use PatternSeek\ECommerce\ViewState\AddressState;
 use PatternSeek\ECommerce\ViewState\StripeState;
+use PatternSeek\StructClass\StructClass;
 
 /**
  * A ViewComponent for rendering Stripe checkout within a ViewComponents
@@ -38,293 +45,227 @@ class Stripe extends AbstractViewComponent
      * @var StripeState
      */
     protected $state;
-
+    
     /**
-     * HTTP accessible method
-     * @param $args
-     * @return array
-     * @throws \Exception
-     * @throws \Stripe\Error\Card
+     * @var AbstractChargeStrategy
      */
-    public function submitFormHandler( $args )
+    private $chargeStrategy;
+
+    protected function getStripeFacade( ){
+        $c = (object)$this->state->config;
+        $apiPrivKey = $this->state->testMode?$c->testApiPrivKey:$c->liveApiPrivKey;
+        $stripe = new StripeFacade( $apiPrivKey );
+        return $stripe;
+    }
+
+    public function confirmPaymentHandler( $args )
     {
 
-        $stripe = new StripeFacade();
-
-        // Is the basket ready for a transaction? Or has the transaction
-        // already occurred? If not then refuse to process
-        // This is just a backup as the basket won't show the stripe button
-        // if it's not ready or the transaction is complete.
-        if (( !$this->state->ready ) || ( $this->state->complete )) {
-            $this->parent->setFlashError( "The basket is not ready yet. Please ensure you've filled in all required fields." );
-
-            $root = $this->getRootComponent();
-            $root->updateState();
-            return $root->render();
-        }
-
-        $this->testInputs(
-            [
-                'stripeToken' => [ "string" ] // Required
-            ],
-            $args
-        );
-
+        $stripe = $this->getStripeFacade();
         $c = (object)$this->state->config;
-        $stripeToken = $args[ 'stripeToken' ];
-        $apiPrivKey = $this->state->testMode?$c->testApiPrivKey:$c->liveApiPrivKey;
-        $stripe->setApiKey( $apiPrivKey );
-        $tok = $stripe->tokenRetrieve( $stripeToken, $apiPrivKey );
-        $paymentCountryCode = '';
-        $paymentType = "";
-        if ($tok->type == 'card') {
-            $paymentCountryCode = $tok->card->country;
-            $paymentType = "card";
-        }
-        if ($tok->type == 'bank_account') {
-            $paymentCountryCode = $tok->bank_account->country;
-            $paymentType = "bank_account";
-        }
 
-        // Do we require VAT location proof, and if so do we have
-        // enough and does it match the information used
-        // to calculate the original VAT?
-        if (!$this->parent->confirmValidTxnFunc( $paymentCountryCode )) {
-            $this->parent->setFlashError( "Sorry but we can't collect enough information about your location to comply with EU VAT legislation with the information we have available. You have not been charged. Please contact us to arrange a manual payment." );
-
-            $root = $this->getRootComponent();
-            $root->updateState();
-            return $root->render();
-        }
-
-        /*
-         Stripe_Token Object
-        (
-            [_apiKey:protected] => sk_test_xxx
-            [_values:protected] => Array
-            (
-                [id] => tok_xxx
-                [livemode] =>
-                [created] => 141xxx
-                [used] =>
-                [object] => token
-                [type] => card
-                [card] => Stripe_Card Object
-                    (
-                    [_apiKey:protected] => sk_test_xxx
-                    [_values:protected] => Array
-                        (
-                        [id] => card_xxx
-                        [object] => card
-                        [last4] => xxx
-                        [brand] => Visa
-                        [funding] => credit
-                        [exp_month] => 1
-                        [exp_year] => 2016
-                        [fingerprint] => xxx
-                        [country] => US
-                        [name] => xxx@xxx.org
-                        [address_line1] =>
-                        [address_line2] =>
-                        [address_city] =>
-                        [address_state] =>
-                        [address_zip] =>
-                        [address_country] =>
-                        [cvc_check] =>
-                        [address_line1_check] =>
-                        [address_zip_check] =>
-                        [dynamic_last4] =>
-                        [customer] =>
-
-         */
+        # retrieve json from POST body
+        $json_str = file_get_contents( 'php://input' );
+        $json_obj = json_decode( $json_str );
 
         $amount = $this->state->amount;
         $currency = $c->currency;
         $description = $this->state->description;
+
+        $intent = null;
         try{
-            switch ( $this->state->chargeMode ){
-                case "immediate":
-                    // Create the charge on Stripe's servers - this will charge the user's card
-                    $ret =
-                        $this->chargeCard(
-                            $stripe,
-                            $stripeToken,
-                            $amount,
-                            $currency,
-                            $description,
-                            $paymentCountryCode,
-                            $paymentType );
-                    break;
-                case "delayed":
-                    // Generate token for later/repeat charge
-                    $ret =
-                        $this->getDelayedOrRepeatPaymentTransaction( $stripe, $stripeToken, $paymentCountryCode, $paymentType );
-                    break;
-                case "subscription":
-                    // Subscribe user
-                    $ret =
-                        $this->createUserAndSubscribe( $stripe, $stripeToken, $this->state->lineItems, $paymentCountryCode, $paymentType  );
-                    break;
-                default:
-                    throw new Exception("Sorry there was an internal error: 'Unknown chargeMode {$this->state->chargeMode}'");
+            if (isset( $json_obj->payment_method_id )) {
+
+                $method = $stripe->paymentMethodRetrieve( $json_obj->payment_method_id );
+                $paymentCountryCode = $method->card->country;
+
+                // Do we require VAT location proof, and if so do we have
+                // enough and does it match the information used
+                // to calculate the original VAT?
+                if (!$this->parent->confirmValidTxnFunc( $paymentCountryCode )) {
+                    $resJson = json_encode(
+                        [
+                            'error' =>
+                                "Sorry but we can't collect enough information about your location to comply with EU VAT legislation with the information we have available. You have not been charged. Please contact us to arrange a manual payment."
+                        ]
+                    );
+                    return new Response( "application/json", $resJson );
+                }
+
+                return $this->chargeStrategy->initialPaymentAttempt(
+                    $json_obj->payment_method_id,
+                    $amount,
+                    $currency, 
+                    $description,
+                    $this->state->email,
+                    $stripe,
+                    // These two params are only relevant for subscriptions
+                    $this->state->lineItems[0]->subscriptionTypeId,
+                    $this->state->lineItems[0]->vatRate,                    
+                    $this->state
+                );
+
             }
 
+            
         }catch( Exception $e ){
-            $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
+            # Display error on client
+            $resJson = json_encode( [
+                'error' => $e->getMessage()
+            ] );
+            return new Response( "application/json", $resJson );
+        }
+    }
+
+
+
+    /**
+     * HTTP accessible method
+     * @param $args
+     * @return Response
+     * @throws Exception
+     */
+    public function completionHandler( $args )
+    {
+
+        $this->testInputs(
+            [
+                'paymentIntentId' => [ "string" ] // Required
+            ],
+            $args
+        );
+        $paymentIntentId = $args['paymentIntentId'];
+        
+        // Is the basket ready for a transaction? Or has the transaction
+        // already occurred? If not then refuse to process
+        // This is just a backup as the basket won't show the stripe form
+        // if it's not ready or the transaction is complete.
+        if (( !$this->state->ready ) || ( $this->state->complete )) {
+            $this->parent->setFlashError( $this->state->trans->fill_all_fields );
 
             $root = $this->getRootComponent();
             $root->updateState();
-            $ret = $root->render();
+            return $root->render();
         }
 
+        $stripe = $this->getStripeFacade();
+        $c = (object)$this->state->config;
+        $currency = $c->currency;
+
+        $intent = $stripe->paymentIntentRetrieve( $paymentIntentId );
+        $method = $stripe->paymentMethodRetrieve( $intent->payment_method );
+
+        // Do we require VAT location proof, and if so do we have
+        // enough and does it match the information used
+        // to calculate the original VAT?
+        $paymentCountryCode = $method->card->country;
+        if (!$this->parent->confirmValidTxnFunc( $paymentCountryCode )) {
+            $this->parent->setFlashError( $this->state->trans->not_enough_vat_info );
+
+            $root = $this->getRootComponent();
+            $root->updateState();
+            return $root->render();
+        }
         
-        return $ret;
+        // Charge if not done already (because the user bounced to extended authorisation)
+        if ($intent->status != 'succeeded') {
+            $intent->confirm();
+        }
+        
+        if ($intent->status == 'succeeded') {
+            // The payment is complete
+            $txn = $this->chargeStrategy->createTransaction( $paymentIntentId, $method, $currency, $stripe, $this->state );
+    
+            $this->state->complete = true;
+            $ret = $this->parent->transactionSuccess( $txn );
+            return $ret;
+        }else {
+            # Invalid status
+            throw new Exception( "Invalid PaymentIntent status: {$intent->status}" );
+        }
+        
+//
+//
+//        try{
+//            switch ($this->state->chargeMode) {
+//                case "immediate":
+//                    // Create the charge on Stripe's servers - this will charge the user's card
+//                    $ret =
+//                        $this->chargeCard(
+//                            $stripe,
+//                            $stripeToken,
+//                            $amount,
+//                            $currency,
+//                            $description,
+//                            $paymentCountryCode,
+//                            $paymentType );
+//                    break;
+//                case "subscription":
+//                    // Subscribe user
+//                    $ret =
+//                        $this->createUserAndSubscribe( $stripe, $stripeToken, $this->state->lineItems,
+//                            $paymentCountryCode, $paymentType );
+//                    break;
+//                default:
+//                    throw new Exception( "Sorry there was an internal error: 'Unknown chargeMode {$this->state->chargeMode}'" );
+//            }
+//        }catch( Exception $e ){
+//            $this->parent->setFlashError( "Sorry but there was a problem authorising your transaction. The payment provider said: '{$e->getMessage()}'" );
+//
+//            $root = $this->getRootComponent();
+//            $root->updateState();
+//            $ret = $root->render();
+//        }
+//
+//        return $ret;
     }
 
-    /**
-     * @param StripeFacade $stripe
-     * @param $card
-     * @param $amount
-     * @param $currency
-     * @param $description
-     * @param $paymentCountryCode
-     * @param string $type
-     * @return Response
-     * @throws Exception
-     */
-    private function chargeCard( StripeFacade $stripe, $card, $amount, $currency, $description, $paymentCountryCode, $type = "card" )
-    {
-
-        $params = [
-            "amount" => $amount, // amount in cents/pence etc, again
-            "currency" => $currency,
-            "card" => $card,
-            "description" => $description
-        ];
-        if ($this->state->email !== null) {
-            $params[ 'receipt_email' ] = $this->state->email;
-        }
-        $charge = $stripe->chargeCreate( $params );
-
-        $txn = new Transaction();
-        $txn->chargeID = $charge->id;
-        $txn->paymentCountryCode = $paymentCountryCode;
-        $txn->paymentType = $type;
-        $txn->transactionCurrency = $currency;
-
-        $this->state->complete = true;
-        $ret = $this->parent->transactionSuccess( $txn );
-        return $ret;
-    }
-
-    /**
-     * @param StripeFacade $stripe
-     * @param $stripeToken
-     * @param $paymentCountryCode
-     * @param string $paymentType
-     * @return Response
-     * @throws Exception
-     */
-    private function getDelayedOrRepeatPaymentTransaction( StripeFacade $stripe, $stripeToken, $paymentCountryCode, $paymentType )
-    {
-
-        $params = [
-            "source" => $stripeToken
-        ];
-        if( null !== $this->state->email ){
-            $params['description'] = $this->state->email;
-            $params['email'] = $this->state->email;
-        }
-        $customer = $stripe->customerCreate( $params );
-        
-        if ($this->state->email) {
-            $params[ 'receipt_email' ] = $this->state->email;
-        }
-        
-        $futureTxn = new DelayedOrRepeatTransaction();
-        $futureTxn->paymentCountryCode = $paymentCountryCode;
-        $futureTxn->paymentType = $paymentType;
-        $this->parent->populateTransactionDetails( $futureTxn );        
-        $futureTxn->storedToken = $customer->id;
-        $futureTxn->providerClass = Stripe::class;
-        
-        $this->state->complete = true;
-        $ret = $this->parent->delayedTransactionSuccess( $futureTxn );
-        return $ret;
-    }
-
-    /**
-     * @param StripeFacade $stripe
-     * @param string $stripeToken
-     * @param LineItem[] $lineItems
-     * @param $paymentCountryCode
-     * @param $paymentType
-     * @return Response
-     * @throws Exception
-     */
-    private function createUserAndSubscribe( StripeFacade $stripe, $stripeToken, $lineItems, $paymentCountryCode, $paymentType )
-    {
-        $params = [
-            "source" => $stripeToken,
-            "description" => $this->state->email
-        ];
-        $customer = $stripe->customerCreate( $params );
-
-        $txn = new Transaction();
-        $txn->paymentCountryCode = $paymentCountryCode;
-        $txn->paymentType = $paymentType;
-        
-        $subs = [];
-        foreach( $lineItems as $lineItem ){
-            $subscriptionRaw = $stripe->subscriptionCreate([
-                'customer' => $customer->id,
-                'items' => [['plan' => $lineItem->subscriptionTypeId]],
-                'tax_percent' => round( $lineItem->vatRate * 100, 2 ),
-            ]);
-            $subs[] = 
-                ['providerRawResult'=>
-                    [
-                        'customer' => (array)$customer->jsonSerialize(),
-                        'subscription' => (array)$subscriptionRaw->jsonSerialize()
-                    ]
-                ];
-
-        }
-        $txn->setSubscriptions( $subs );
-        $ret = $this->parent->subscriptionSuccess( $txn );
-        return $ret;
-        
-    }
-
-    /**
-     * @param array $credentials
-     * @param DelayedOrRepeatTransaction $delayedTxn
-     * @return Transaction
-     */
-    public static function chargeDelayedOrRepeatPaymentTransaction( $credentials, DelayedOrRepeatTransaction $delayedTxn )
-    {
-        $stripe = new StripeFacade();
-        $stripe->setApiKey( $credentials[ 'apiPrivKey' ] );
-        
-        $charge = $stripe->chargeCreate( [ 
-            "amount"   => $delayedTxn->transactionAmount * 100, // Stripe wants amount in pence/cents etc. In an instance, $this->state->amount has already been multiplied.
-            "currency" => $delayedTxn->transactionCurrency,
-            "description" => $delayedTxn->transactionDescription,
-            "customer" => $delayedTxn->storedToken
-        ]);
-
-        /** @var Transaction $finalTxn */
-        $finalTxn = Transaction::fromArray( $delayedTxn->toArray(), true );
-        $finalTxn->chargeID = $charge->id;
-        $finalTxn->time = time();
-        try{
-            $finalTxn->validate();
-        }catch( \Exception $e ){
-            $finalTxn->validationError = $e->getMessage();
-        }
-        
-        return $finalTxn;
-    }
+//    /**
+//     * @param StripeFacade $stripe
+//     * @param string $stripeToken
+//     * @param LineItem[] $lineItems
+//     * @param $paymentCountryCode
+//     * @param $paymentType
+//     * @return Response
+//     * @throws Exception
+//     */
+//    private function createUserAndSubscribe(
+//        StripeFacade $stripe,
+//        $stripeToken,
+//        $lineItems,
+//        $paymentCountryCode,
+//        $paymentType
+//    ){
+//        $params = [
+//            "source" => $stripeToken,
+//            "description" => $this->state->email
+//        ];
+//        $customer = $stripe->customerCreate( $params );
+//
+//        $txn = new Transaction();
+//        $txn->paymentCountryCode = $paymentCountryCode;
+//        $txn->paymentType = $paymentType;
+//
+//        $subs = [];
+//        foreach ($lineItems as $lineItem) {
+//            $subscriptionRaw = $stripe->subscriptionCreate( [
+//                'customer' => $customer->id,
+//                'items' => [ [ 'plan' => $lineItem->subscriptionTypeId ] ],
+//                'tax_percent' => round( $lineItem->vatRate * 100, 2 ),
+//            ] );
+//            $subs[] =
+//                [
+//                    'providerRawResult' =>
+//                        [
+//                            'customer' => (array)$customer->jsonSerialize(),
+//                            'subscription' => (array)$subscriptionRaw->jsonSerialize()
+//                        ]
+//                ];
+//        }
+//        $txn->setSubscriptions( $subs );
+//        $ret = $this->parent->subscriptionSuccess( $txn );
+//        return $ret;
+//    }
 
     /**
      * Initialise $this->state with either a new ViewState or an appropriate subclass
@@ -357,7 +298,7 @@ class Stripe extends AbstractViewComponent
         if (null === $this->state) {
             $this->init( $props );
         }
-        
+
         $this->testInputs(
             [
                 'amount' => [ 'double' ],
@@ -366,7 +307,8 @@ class Stripe extends AbstractViewComponent
                 'transactionComplete' => [ 'boolean' ],
                 'address' => [ AddressState::class ],
                 'lineItems' => [ 'array' ],
-                'email' => ['string', null ]
+                'email' => ['string', null ],
+                'translations' => [StripeTranslations::class, new StripeTranslations() ]
             ],
             $props
         );
@@ -375,9 +317,23 @@ class Stripe extends AbstractViewComponent
         $this->state->ready = $props[ 'basketReady' ];
         $this->state->complete = $props[ 'transactionComplete' ];
         $this->state->address = $props[ 'address' ];
-        $this->state->lineItems = $props['lineItems'];
-        $this->state->email = $props['email'];
+        $this->state->lineItems = $props[ 'lineItems' ];
+        $this->state->email = $props[ 'email' ];
+        $this->state->trans = $props['translations'];
 
+        switch ( $this->state->chargeMode ){
+            case "immediate":
+                $this->chargeStrategy = new ImmediateChargeStrategy();
+                break;
+            case "subscription":
+                $this->chargeStrategy = new SubscriptionChargeStrategy();
+                if( count( $this->state->lineItems ) > 1 ){
+                    throw new Exception("Only one subscription can be added to the basket at a time.");
+                }
+                break;
+            default:
+                throw new Exception("Invalid charge mode {$this->state->chargeMode}");
+        }
     }
 
     /**

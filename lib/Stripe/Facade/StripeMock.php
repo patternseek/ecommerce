@@ -8,13 +8,13 @@
  * file that was distributed with this source code.
  */
 
-namespace PatternSeek\ECommerce\StripeFacade;
+namespace PatternSeek\ECommerce\Stripe\Facade;
 
 use Stripe\Stripe;
 
 /**
  * Class StripeMock
- * @package PatternSeek\ECommerce\StripeFacade
+ * @package PatternSeek\ECommerce\Stripe\Facade
  */
 class StripeMock extends Stripe
 {

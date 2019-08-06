@@ -3,7 +3,7 @@
 {# @var state \PatternSeek\ECommerce\ViewState\AddressState #}
 <div class="address" id="component-{{ this.handle }}">
     <fieldset>
-        <legend>Billing address</legend>
+        <legend>{{ state.trans.billing_address }}</legend>
 
         {% if this.flashMessage %}
             <strong class="message">{{ this.flashMessage }}</strong>
@@ -17,45 +17,44 @@
 {% if state.mode == 'view' %}
     {% set formBody %}
         <label for="addressLine1">
-            Address line 1
+            {{ state.trans.address_line_1 }}
         </label>
         {{ state.addressLine1 }}
         <br>
         <label for="addressLine2">
-            Address line 2
+            {{ state.trans.address_line_2 }}
         </label>
         {{ state.addressLine2 }}
         <br>
 
         <label for="townOrCity">
-            Town or city
+            {{ state.trans.town_or_city }}
         </label>
         {{ state.townOrCity }}
         <br>
         <label for="stateOrRegion">
-            State or region
+            {{ state.trans.state_or_region }}
         </label>
         {{ state.stateOrRegion }}
         <br>
         <label for="postCode">
-            Postcode
+            {{ state.trans.postcode }}
         </label>
         {{ state.postCode }}
         <br>
         <label for="countryCode">
-            Country
+            {{ state.trans.country }}
         </label>
         {{ state.countryString }}
         <br>
-        <input type="submit" value="Edit address" class="editAddress">
+        <input type="submit" value="{{ state.trans.edit_address }}" class="editAddress">
     {% endset %}
-    {#{ exec.replaceElementUsingLink( 'editMode', [], "component-"~ this.handle , "Edit address" ) }#}
     {{ exec.replaceElementUsingForm( "editMode", "POST", formBody, "component-basket", "addressEdit" ) }}
 
 {% else %}
     {% set formBody %}
         <label for="addressLine1" class="{{ state.requiredFields['addressLine1']?'required':'' }}">
-            Address line 1
+            {{ state.trans.address_line_1 }}
         </label>
         <input type="text"
                name="addressLine1"
@@ -63,7 +62,7 @@
                class="{{ state.requiredFields['addressLine1']?'required':'' }}">
         <br>
         <label for="addressLine2" class="{{ state.requiredFields['addressLine2']?'required':'' }}">
-            Address line 2
+            {{ state.trans.address_line_2 }}
         </label>
         <input type="text"
                name="addressLine2"
@@ -71,14 +70,14 @@
                class="{{ state.requiredFields['addressLine2']?'required':'' }}">
         <br>
         <label for="townOrCity" class="{{ state.requiredFields['townOrCity']?'required':'' }}">
-            Town or city
+            {{ state.trans.town_or_city }}
         </label>
         <input type="text" name="townOrCity"
                value="{{ state.townOrCity }}"
                class="{{ state.requiredFields['townOrCity']?'required':'' }}">
         <br>
         <label for="stateOrRegion" class="{{ state.requiredFields['stateOrRegion']?'required':'' }}">
-            State or region
+            {{ state.trans.state_or_region }}
         </label>
         <input type="text"
                name="stateOrRegion"
@@ -86,7 +85,7 @@
                class="{{ state.requiredFields['stateOrRegion']?'required':'' }}">
         <br>
         <label for="postCode" class="{{ state.requiredFields['postCode']?'required':'' }}">
-            Postcode
+            {{ state.trans.postcode }}
         </label>
         <input type="text"
                name="postCode"
@@ -94,12 +93,12 @@
                class="{{ state.requiredFields['postCode']?'required':'' }}">
         <br>
         <label for="countryCode" class="{{ state.requiredFields['countryCode']?'required':'' }}">
-            Country
+            {{ state.trans.country }}
         </label>
         <select name="countryCode"
                 class="{{ state.requiredFields['countryCode']?'required':'' }}">
-            <option value="">Select...</option>
-            {% for code,country in this.getCountriesByISO() %}
+            <option value="">{{ state.trans.select }}</option>
+            {% for code,country in state.trans.countriesByISO %}
                 <option
                         value="{{ code|lower }}"
                         {% if code == state.countryCode %}
@@ -111,7 +110,7 @@
             {% endfor %}
         </select>
         <br>
-        <input type="submit" value="Continue..." class="updateAddress">
+        <input type="submit" value="{{ state.trans.continue }}" class="updateAddress">
     {% endset %}
     {{ exec.replaceElementUsingForm( "setAddress", "POST", formBody, "component-basket", "addressUpdate" ) }}
 {% endif %}
