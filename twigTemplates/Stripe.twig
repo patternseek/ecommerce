@@ -27,7 +27,7 @@
             <div id="card-errors" role="alert" style="color: darkred"></div>
             <br>
         <input type="submit" id="pnsk-stripe-submit" value="{{ state.trans.submit_payment }}">
-        <span id="pnsk-stripe-working">Please wait...</span>
+        <span id="pnsk-stripe-working">{{ state.trans.please_wait }}</span>
         </fieldset>
     </div>
 </form>

@@ -19,6 +19,7 @@ class StripeTranslations extends StructClass
     public $fill_all_fields = "The basket is not ready yet. Please ensure you've filled in all required fields.";
     public $not_enough_vat_info = "Sorry but we can't collect enough information about your location to comply with EU VAT legislation with the information we have available. You have not been charged. Please contact us to arrange a manual payment.";
     public $stripe_error = "Sorry but there was a problem authorising your transaction. The payment provider said: ";
+    public $please_wait = "Please wait...";
     
     public $credit_or_debit_card = "Credit or debit card";
     public $card_details = "Card details";
