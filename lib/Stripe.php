@@ -68,7 +68,7 @@ class Stripe extends AbstractViewComponent
         $json_str = file_get_contents( 'php://input' );
         $json_obj = json_decode( $json_str );
 
-        $amount = $this->state->amount;
+        $amount = $this->state->amountCents;
         $currency = $c->currency;
         $description = $this->state->description;
 
@@ -99,11 +99,9 @@ class Stripe extends AbstractViewComponent
                     $description,
                     $this->state->email,
                     $stripe,
-                    // These two params are only relevant for subscriptions
-                    $this->state->lineItems[0]->subscriptionTypeId,
-                    $this->state->lineItems[0]->vatRate,                    
+                    $this->state->lineItems,                  
                     $this->state
-                );
+                );                    
 
             }
 
@@ -230,7 +228,7 @@ class Stripe extends AbstractViewComponent
             ],
             $props
         );
-        $this->state->amount = $props[ 'amount' ] * 100; // Stripe wants amount in cents
+        $this->state->amountCents = (int)($props[ 'amount' ] * 100); // Stripe wants amount in cents
         $this->state->description = $props[ 'description' ];
         $this->state->ready = $props[ 'basketReady' ];
         $this->state->complete = $props[ 'transactionComplete' ];
@@ -245,7 +243,13 @@ class Stripe extends AbstractViewComponent
                 break;
             case "subscription":
                 $this->chargeStrategy = new SubscriptionChargeStrategy();
-                if( count( $this->state->lineItems ) > 1 ){
+                $numSubs = 0;
+                foreach( $this->state->lineItems as $lineItem ){
+                    if( $lineItem->subscriptionTypeId != null ){
+                        $numSubs++;
+                    }
+                }
+                if( $numSubs > 1 ){
                     throw new Exception("Only one subscription can be added to the basket at a time.");
                 }
                 break;

@@ -16,16 +16,17 @@ use PatternSeek\ECommerce\LineItem;
 use PatternSeek\ECommerce\Stripe;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
 use PatternSeek\ECommerce\Stripe\Facade\StripePaymentMethodMock;
+use PHPUnit\Framework\TestCase;
 use Pimple\Container;
 
 /**
  * Class BasketTest
  * @package PatternSeek\ECommerce\Test
  */
-class BasketTest extends \PHPUnit_Framework_TestCase
+class BasketTest extends TestCase
 {
 
-    function setup(){
+    function setup() : void {
         DependencyInjector::init( new Container() );
     }
 

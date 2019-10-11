@@ -12,6 +12,7 @@
 namespace PatternSeek\ECommerce\Stripe;
 
 use Exception;
+use PatternSeek\ECommerce\LineItem;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
 use PatternSeek\ECommerce\Transaction;
 use PatternSeek\ECommerce\ViewState\StripeState;
@@ -19,6 +20,18 @@ use PatternSeek\ECommerce\ViewState\StripeState;
 class SubscriptionChargeStrategy extends AbstractChargeStrategy
 {
 
+    /**
+     * @param $paymentMethodId
+     * @param $amount
+     * @param $currency
+     * @param $description
+     * @param $email
+     * @param StripeFacade $stripe
+     * @param LineItem[] $lineItems
+     * @param StripeState $state
+     * @return \PatternSeek\ComponentView\Response
+     * @throws Exception
+     */
     public function initialPaymentAttempt(
         $paymentMethodId,
         $amount,
@@ -26,12 +39,34 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
         $description,
         $email,
         StripeFacade $stripe,
-        $subscriptionTypeId,
-        $subscriptionVatRate,
+        $lineItems,
         StripeState $state
     ){
-        if( ( ! is_numeric( $subscriptionVatRate ) ) || null == $subscriptionTypeId ){
-            throw new \Exception("Missing type id or vat rate for subscription");
+        $subscription = null;
+        $numSubs = 0;
+        /** @var LineItem[] $nonSubscriptions */
+        $nonSubscriptions = [];
+        $lastVatRate = $lineItems[0]->vatRate;
+        foreach( $lineItems as $lineItem ){
+            if( $lineItem->vatRate !== $lastVatRate ){
+                // Can't set tax_percent on InvoiceItems. Will have to port to TaxRates at some point
+                throw new Exception( "When creating a subscription all items in the basket must be of the same VAT rate." );
+            }
+            if( $lineItem->subscriptionTypeId !== null ){
+                if( $numSubs > 0 ){
+                    throw new Exception( "Only one subscription can be added to the basket at a time" );
+                }
+                $subscription = $lineItem;
+                $numSubs++;
+            }else{
+                $nonSubscriptions[] = $lineItem;
+            }
+        }
+        if( null === $subscription ){
+            throw new Exception( "Expected subscription but none found in basket." );
+        }
+        if( ! is_numeric( $subscription->vatRate ) ){
+            throw new \Exception("Missing vat rate for subscription");
         } 
         
         // Create customer
@@ -42,13 +77,24 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
         ];
         $customer = $stripe->customerCreate( $params );
 
+        // We only support one subscription in the basket currently but additional single charge items can be included alongside it.
+        // It's possible to have more than one subscription but I'm not implementing it now. See  https://stripe.com/docs/billing/subscriptions/multiplan and https://stripe.com/docs/billing/subscriptions/multiple
+        if( count( $nonSubscriptions ) > 0  ){
+            foreach ( $nonSubscriptions as $nonSub ){
+                // https://stripe.com/docs/billing/invoices/subscription#adding-upcoming-invoice-items
+                $stripe->invoiceItemCreate([
+                    'amount' => ($nonSub->netPrice * 100),
+                    'currency' => $currency,
+                    'customer' => $customer->id,
+                    'description' => $nonSub->description,
+                ]);
+            }
+        }
         // Create subcription
-        
-        // Only support one subscription in the basket
         $payload = [
             'customer' => $customer->id,
-            'items' => [ [ 'plan' => $subscriptionTypeId ] ],
-            'tax_percent' => round( $subscriptionVatRate * 100, 2 ),
+            'items' => [ [ 'plan' => $subscription->subscriptionTypeId ] ],
+            'tax_percent' => round( $subscription->vatRate * 100, 2 ),
             'default_payment_method' => $paymentMethodId,
             'expand' => [ "latest_invoice.payment_intent" ]
         ];
