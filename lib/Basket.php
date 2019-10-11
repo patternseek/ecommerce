@@ -54,18 +54,6 @@ class Basket extends AbstractViewComponent
             $this->state->lineItems[ ] = $lineItem;
         }
         
-        // We only support one charge type per basket currently.
-        // In the case of subscriptions this means that all line items must have
-        // an associated subscriptionTypeId
-        if( $props['chargeMode'] == 'subscription' ){
-            foreach ($this->state->lineItems as $lineItem){
-                if( empty( $lineItem->subscriptionTypeId ) ){
-                    throw new \Exception("When setting the basket charge mode to subscription all line items must include a subscription type ID.");
-                }
-            }
-        }
-
-
         // Set required billing address fields
         $this->state->config->billingAddress->requiredFields = [
             'addressLine1' => $this->state->trans->address_line_1,

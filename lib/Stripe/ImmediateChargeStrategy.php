@@ -25,8 +25,7 @@ class ImmediateChargeStrategy extends AbstractChargeStrategy
         $description,
         $email,
         StripeFacade $stripe,
-        $subscriptionTypeId,
-        $subscriptionVatRate,
+        $lineItems,
         StripeState $state
     ){
         # Create the PaymentIntent

@@ -27,8 +27,7 @@ abstract class AbstractChargeStrategy
         $description,
         $email,
         StripeFacade $stripe,
-        $subscriptionTypeId,
-        $subscriptionVatRate,
+        $lineItems,
         StripeState $state
     );
 

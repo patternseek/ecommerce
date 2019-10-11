@@ -96,11 +96,11 @@ class StripeState extends ViewState
     public $buttonLabelHTML;
 
     /**
-     * @var double
+     * @var integer
      *
-     * @Assert\Type(type="double")
+     * @Assert\Type(type="integer")
      */
-    public $amount;
+    public $amountCents;
 
     /**
      * @var boolean

@@ -12,6 +12,7 @@ namespace PatternSeek\ECommerce\Stripe\Facade;
 use Stripe\Charge;
 use Stripe\Customer;
 use Stripe\Invoice;
+use Stripe\InvoiceItem;
 use Stripe\PaymentIntent;
 use Stripe\PaymentMethod;
 use Stripe\Stripe as StripeAPI;
@@ -193,6 +194,19 @@ class StripeFacade
             return StripeInvoiceMock::retrieve($stripeInvoice);
         }else {
             return Invoice::retrieve( $stripeInvoice );
+        }
+    }
+    
+    /**
+     * @param $params
+     * @return StripeInvoiceItemMock|InvoiceItem
+     */
+    public function invoiceItemCreate( $params )
+    {
+        if (self::$testMode) {
+            return StripeInvoiceItemMock::create( $params );
+        }else {
+            return InvoiceItem::create( $params );
         }
     }
 
