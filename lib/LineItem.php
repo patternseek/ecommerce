@@ -10,6 +10,7 @@
 
 namespace PatternSeek\ECommerce;
 
+use \Exception;
 use PatternSeek\StructClass\StructClass;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -91,6 +92,14 @@ class LineItem extends StructClass
      * @var double
      */
     public $vatRate;
+
+    /**
+     * Array of arbitrary string key/value pairs associated with the line item
+     * IMPORTANT. When passing multiple line items with metadata, no two line items may have metadata with the same key. Unless one of them is a subscription
+     * 
+     * @var array
+     */
+    public $metadata = [];
 
     /**
      * Work out which VAT type and amount per item are applicable to this line item.
@@ -236,6 +245,34 @@ class LineItem extends StructClass
         }
         $this->vatRate = $rate;
         return $this->vatRate;
+    }
+
+    /**
+     * Check metadata
+     * 
+     * @param LineItem[] $lineItems
+     */
+    public function checkForDuplicateMetadataKeys( $lineItems ){
+        foreach ( $lineItems as $lineItem ){
+            // Subscriptions aren't included, they can have duplicate keys
+            if( $lineItem->subscriptionTypeId ){
+                continue;
+            }
+            foreach ($lineItems as $lineItemCompare ){
+                // Subscriptions aren't included, they can have duplicate keys
+                if( $lineItemCompare->subscriptionTypeId ){
+                    continue;
+                }
+                if( $lineItem === $lineItemCompare ){
+                    continue;
+                }
+                $metaDataDiff = array_intersect_key( $lineItem->metadata, $lineItemCompare->metadata );
+                if( count( $metaDataDiff ) > 0 ){
+                    $firstKeyFound = array_keys( $metaDataDiff )[0];
+                    throw new Exception( "Line items may not contain duplicate metadata keys. Found key '{$firstKeyFound}' in more than one line item" );
+                }
+            }
+        }
     }
 
 }

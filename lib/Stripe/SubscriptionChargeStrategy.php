@@ -82,12 +82,17 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
         if( count( $nonSubscriptions ) > 0  ){
             foreach ( $nonSubscriptions as $nonSub ){
                 // https://stripe.com/docs/billing/invoices/subscription#adding-upcoming-invoice-items
-                $stripe->invoiceItemCreate([
-                    'amount' => ($nonSub->netPrice * 100),
+                $invoiceItemPayload = [
+                    'amount' => ( $nonSub->netPrice * 100 ),
                     'currency' => $currency,
                     'customer' => $customer->id,
                     'description' => $nonSub->description,
-                ]);
+                ];
+                // Attach metadata if present
+                if( is_array( $nonSub->metadata && count( $nonSub->metadata ) > 0 ) ){
+                    $invoiceItemPayload['metadata'] = $nonSub->metadata;
+                }
+                $stripe->invoiceItemCreate( $invoiceItemPayload );
             }
         }
         // Create subcription
@@ -98,6 +103,10 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
             'default_payment_method' => $paymentMethodId,
             'expand' => [ "latest_invoice.payment_intent" ]
         ];
+        // Attach metadata if present
+        if( is_array( $subscription->metadata && count( $subscription->metadata ) > 0 ) ){
+            $payload['metadata'] = $subscription->metadata;
+        }
         $subscriptionRaw = $stripe->subscriptionCreate( $payload );
         
         if( $subscriptionRaw['error'] ){

@@ -12,6 +12,7 @@
 namespace PatternSeek\ECommerce\Stripe;
 
 use PatternSeek\ComponentView\Response;
+use PatternSeek\ECommerce\LineItem;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
 use PatternSeek\ECommerce\ViewState\StripeState;
 
@@ -36,7 +37,16 @@ class ImmediateChargeStrategy extends AbstractChargeStrategy
             "description" => $description,
             'confirmation_method' => 'manual',
             'confirm' => true,
+            'metadata' => []
         ];
+        // Attach metadata if present. The Basket enforces that multiple non-subscription LineItems will not have duplicate metadata keys
+        /** @var LineItem $lineItem */
+        foreach ($lineItems as $lineItem){
+            if( is_array( $lineItem->metadata && count( $lineItem->metadata ) > 0 ) ){
+                $params['metadata'] = array_merge( $params['metadata'], $lineItem->metadata ); 
+            }
+        }
+        
         if ($email !== null) {
             $params[ 'receipt_email' ] = $email;
         }
