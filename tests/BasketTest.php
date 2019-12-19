@@ -409,6 +409,90 @@ class BasketTest extends TestCase
         $this->succeedOnAllCountriesMatch( $unserialised, $successOutput );
 
     }
+    
+    function testFailOnDuplicateNonSubscriptionLineItemMetadata(){
+        $billingAddress = $this->getUSAddress();
+        $lineItem1 = $this->getElectronicServiceLineItem();
+        $lineItem2 = $this->getElectronicServiceLineItem();
+        
+        $lineItem1->metadata = ["somekey"=>"1", "otherkey"=>"2"];
+        $lineItem2->metadata = ["somekey"=>"1", "otherkey"=>"2"];
+        
+        $failed = false;
+        try{
+            /** @var Basket $view */
+            $view = $this->prepareBasket( [$lineItem1,$lineItem2], $billingAddress );
+            // Should have thrown exception
+            $failed = true;
+        }catch( \Exception $e ){
+            // Success
+            $this->assertTrue(true);
+        }
+        if($failed){
+            $this->fail("Failed to throw exception on duplicate metadata keys");
+        }
+    }
+    
+    function testFailOnDuplicateNonSubscriptionLineItemPassedWithSubscriptionMetadata(){
+        $billingAddress = $this->getUSAddress();
+        $lineItem1 = $this->getElectronicServiceLineItem();
+        $lineItem2 = $this->getElectronicServiceLineItem();
+        $lineItem3 = $this->getElectronicServiceLineItem();
+        
+        $lineItem1->metadata = ["somekey"=>"1", "otherkey"=>"2"];
+        $lineItem2->metadata = ["somekey"=>"1", "otherkey"=>"2"];
+        
+        $lineItem3->subscriptionTypeId = "sub3";
+        
+        $failed = false;
+        try{
+            /** @var Basket $view */
+            $view = $this->prepareBasket( [$lineItem1,$lineItem2,$lineItem3], $billingAddress );
+            // Should have thrown exception
+            $failed = true;
+        }catch( \Exception $e ){
+            // Success
+            $this->assertTrue(true);
+        }
+        if($failed){
+            $this->fail("Failed to throw exception on duplicate metadata keys");
+        }
+    }
+    
+    function testSucceedOnDuplicateSubscriptionLineItemMetadata(){
+        $billingAddress = $this->getUSAddress();
+        $lineItem1 = $this->getElectronicServiceLineItem();
+        $lineItem2 = $this->getElectronicServiceLineItem();
+        
+        $lineItem1->subscriptionTypeId = "sub1";
+        $lineItem2->subscriptionTypeId = "sub2";
+        
+        $lineItem1->metadata = ["somekey"=>"1", "otherkey"=>"2"];
+        $lineItem2->metadata = ["somekey"=>"1", "otherkey"=>"2"];
+        
+        /** @var Basket $view */
+        $view = $this->prepareBasket( [$lineItem1,$lineItem2], $billingAddress );
+        
+        // No exception means success
+        $this->assertTrue(true);
+    }
+    
+    function testSucceedOnDuplicateSubscriptionAndNonSubscriptionLineItemMetadata(){
+        $billingAddress = $this->getUSAddress();
+        $lineItem1 = $this->getElectronicServiceLineItem();
+        $lineItem2 = $this->getElectronicServiceLineItem();
+        
+        $lineItem1->subscriptionTypeId = "sub1";
+        
+        $lineItem1->metadata = ["somekey"=>"1", "otherkey"=>"2"];
+        $lineItem2->metadata = ["somekey"=>"1", "otherkey"=>"2"];
+        
+        /** @var Basket $view */
+        $view = $this->prepareBasket( [$lineItem1,$lineItem2], $billingAddress );
+        
+        // No exception means success
+        $this->assertTrue(true);
+    }
 
     /**
      * @return mixed
@@ -505,7 +589,11 @@ class BasketTest extends TestCase
         "productType": "electronicservices",
         "enjoyedInLocationType": "local",
         "subscriptionTypeId": "example-subscription-id",
-        "vatRate": 0.2
+        "vatRate": 0.2,
+        "metadata": {
+            "somekey": "1",
+            "otherkey": "2"
+        }
     }
 ]',
                 'transactionDetailLegacy' => NULL,
@@ -589,7 +677,11 @@ United Kingdom',
         "productType": "electronicservices",
         "enjoyedInLocationType": "row",
         "subscriptionTypeId": null,
-        "vatRate": 0
+        "vatRate": 0,
+        "metadata": {
+            "somekey": "1",
+            "otherkey": "2"
+        }
     }
 ]',
             'chargeID' => 'TestStripeID',
@@ -662,7 +754,11 @@ United Kingdom',
         "productType": "electronicservices",
         "enjoyedInLocationType": "local",
         "subscriptionTypeId": null,
-        "vatRate": 0.2
+        "vatRate": 0.2,
+        "metadata": {
+            "somekey": "1",
+            "otherkey": "2"
+        }
     }
 ]',
             'chargeID' => 'TestStripeID',
@@ -689,14 +785,14 @@ United Kingdom',
     }
 
     /**
-     * @param LineItem $lineItem
+     * @param LineItem|LineItem[] $lineItemOrArr
      * @param $billingAddress
      * @param string $chargeMode
      * @return Basket
      * @throws \Exception
      */
     private function prepareBasket(
-        LineItem $lineItem,
+        $lineItemOrArr,
         $billingAddress,
         $chargeMode = "immediate"
     )
@@ -737,11 +833,13 @@ United Kingdom',
 
         $this->successCallback = new TestSuccess();
 
+        $lineItems = is_array( $lineItemOrArr )?$lineItemOrArr:[$lineItemOrArr];
+        
         $view->updateView(
             [
                 'config' => $config,
                 'vatRates' => $vatRates,
-                'lineItems' => [ $lineItem ],
+                'lineItems' => $lineItems,
                 'testMode' => true,
                 'chargeMode' => $chargeMode,
                 'transactionSuccessCallback' => $this->successCallback
@@ -822,6 +920,7 @@ United Kingdom',
         $lineItem->netPrice = 100.00;
         $lineItem->quantity = 1;
         $lineItem->productType = "electronicservices";
+        $lineItem->metadata = ["somekey"=>"1", "otherkey"=>"2"];
         return $lineItem;
     }
 
@@ -835,6 +934,7 @@ United Kingdom',
         $lineItem->netPrice = 100.00;
         $lineItem->quantity = 1;
         $lineItem->productType = "normalservices";
+        $lineItem->metadata = ["somekey"=>"1", "otherkey"=>"2"];
         return $lineItem;
     }
 

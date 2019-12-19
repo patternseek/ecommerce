@@ -49,7 +49,8 @@ class Basket extends AbstractViewComponent
         $this->state->config->billingAddress->trans = $props['translations'];
 
 
-        
+        LineItem::checkForDuplicateMetadataKeys( $props['lineItems'] );
+
         foreach ($props[ 'lineItems' ] as $lineItem) {
             $this->state->lineItems[ ] = $lineItem;
         }
