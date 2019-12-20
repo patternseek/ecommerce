@@ -42,7 +42,7 @@ class ImmediateChargeStrategy extends AbstractChargeStrategy
         // Attach metadata if present. The Basket enforces that multiple non-subscription LineItems will not have duplicate metadata keys
         /** @var LineItem $lineItem */
         foreach ($lineItems as $lineItem){
-            if( is_array( $lineItem->metadata && count( $lineItem->metadata ) > 0 ) ){
+            if( is_array( $lineItem->metadata ) && count( $lineItem->metadata ) > 0 ){
                 $params['metadata'] = array_merge( $params['metadata'], $lineItem->metadata ); 
             }
         }
