@@ -89,7 +89,7 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
                     'description' => $nonSub->description,
                 ];
                 // Attach metadata if present
-                if( is_array( $nonSub->metadata && count( $nonSub->metadata ) > 0 ) ){
+                if( is_array( $nonSub->metadata ) && count( $nonSub->metadata ) > 0 ){
                     $invoiceItemPayload['metadata'] = $nonSub->metadata;
                 }
                 $stripe->invoiceItemCreate( $invoiceItemPayload );
@@ -104,7 +104,7 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
             'expand' => [ "latest_invoice.payment_intent" ]
         ];
         // Attach metadata if present
-        if( is_array( $subscription->metadata && count( $subscription->metadata ) > 0 ) ){
+        if( is_array( $subscription->metadata ) && count( $subscription->metadata ) > 0  ){
             $payload['metadata'] = $subscription->metadata;
         }
         $subscriptionRaw = $stripe->subscriptionCreate( $payload );
