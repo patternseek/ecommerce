@@ -34,7 +34,7 @@ class BasketTranslations extends StructClass
     public $total = "TOTAL";
     public $eu_vat_number = "EU VAT number";
     public $update = "Update";
-    public $for_vat_regged_company = "If you are purchasing for a VAT registered company.";
+    public $for_vat_regged_company = "If you are purchasing for a VAT registered company. (Optional)";
     public $this_transaction_has_been_completed = "This transaction has been completed.";
     
     
