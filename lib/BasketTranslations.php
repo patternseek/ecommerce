@@ -32,11 +32,12 @@ class BasketTranslations extends StructClass
     public $vat_per_item = "VAT per item";
     public $total_vat = "TOTAL VAT";
     public $total = "TOTAL";
-    public $eu_vat_number = "EU VAT number";
-    public $update = "Update";
-    public $for_vat_regged_company = "If you are purchasing for a VAT registered company. (Optional)";
+    public $eu_vat_number = "UK/EU VAT number";
+    public $update = "Add or update VAT number";
+    public $for_vat_regged_company = "If you are purchasing for a VAT-registered company, please enter its EU (including UK) VAT number here. This is optional but is necessary for your payment to be treated as a B2B transaction and/or if reverse charge applies.";
     public $this_transaction_has_been_completed = "This transaction has been completed.";
-    
+    public $uk_eu_vat_number_without_country_code = "UK/EU VAT number, <em>without country code</em>";
+    public $vat_number_country = "VAT number country";
     
     public $is_a_required_field = " is a required field.";
     
