@@ -58,19 +58,27 @@
             <tr class="topseparator">
                 <td colspan="4">
                     {% set validateFormBody %}
-                    {% if state.vatNumber %}
-                        <strong>{{ state.vatNumber }}</strong>
-                        <br>
-                    {% endif %}
-                    <input type="text" name="vatNumber" placeholder="{{ state.trans.eu_vat_number }}">
+
+                    <div style="float:right; max-width: 40%">{{ state.trans.for_vat_regged_company }}</div>
+                        
+                    <label for="countryCode">
+                        {{ state.trans.vat_number_country }}
+                    </label>                   
                     <select name="countryCode">
                         {% for cc,country in this.getEUVatCountries() %}
                             <option value="{{ cc }}" {% if cc == state.config.countryCode|upper %}selected="selected"{% endif %}>{{ country }}</option>
                         {% endfor %}
                     </select>
+                    <br>    
+                    <label for="vatNumber">
+                        {{ state.trans.uk_eu_vat_number_without_country_code }}
+                    </label>
+                    <input type="text" name="vatNumber" placeholder="{{ state.trans.eu_vat_number }}" value="{{ state.vatNumber }}">
+                    <br>    
+                        
                     <input type="submit" value="{{ state.trans.update }}">
                         <br>
-                        <small>{{ state.trans.for_vat_regged_company }}</small>
+                        
                     {% endset %}
                     {{ exec.replaceElementUsingForm( "validateVatNumber", "POST", validateFormBody, "component-basket", "vatNumberUpdate" ) }}
                     {# {{ exec.wrapForm( "validateVatNumber", "POST", validateFormBody, false, "vatNumberUpdate" ) }} #}
