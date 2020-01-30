@@ -78,6 +78,13 @@ class BasketState extends ViewState
     public $outro;
 
     /**
+     * @var string
+     * 
+     * @Assert\Type(type="string")
+     */
+    public $transactionUid;
+
+    /**
      * @var \PatternSeek\ECommerce\LineItem[]
      *
      * @Assert\Type(type="array")

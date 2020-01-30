@@ -19,7 +19,21 @@ use PatternSeek\ECommerce\ViewState\StripeState;
 class ImmediateChargeStrategy extends AbstractChargeStrategy
 {
 
+    /**
+     * @param $uid
+     * @param $paymentMethodId
+     * @param $amount
+     * @param $currency
+     * @param $description
+     * @param $email
+     * @param StripeFacade $stripe
+     * @param LineItem[] $lineItems
+     * @param StripeState $state
+     * @return \PatternSeek\ComponentView\Response
+     * @throws \Exception
+     */
     public function initialPaymentAttempt(
+        $uid,
         $paymentMethodId,
         $amount,
         $currency,
@@ -37,7 +51,7 @@ class ImmediateChargeStrategy extends AbstractChargeStrategy
             "description" => $description,
             'confirmation_method' => 'manual',
             'confirm' => true,
-            'metadata' => []
+            'metadata' => ['uid'=>$uid]
         ];
         // Attach metadata if present. The Basket enforces that multiple non-subscription LineItems will not have duplicate metadata keys
         /** @var LineItem $lineItem */
@@ -56,3 +70,4 @@ class ImmediateChargeStrategy extends AbstractChargeStrategy
     }
 
 }
+

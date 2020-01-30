@@ -12,6 +12,7 @@
 namespace PatternSeek\ECommerce\Stripe;
 
 use PatternSeek\ComponentView\Response;
+use PatternSeek\ECommerce\LineItem;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
 use PatternSeek\ECommerce\Transaction;
 use PatternSeek\ECommerce\ViewState\StripeState;
@@ -20,7 +21,21 @@ use Stripe\PaymentIntent;
 abstract class AbstractChargeStrategy
 {
 
+    /**
+     * @param $uid
+     * @param $paymentMethodId
+     * @param $amount
+     * @param $currency
+     * @param $description
+     * @param $email
+     * @param StripeFacade $stripe
+     * @param LineItem[] $lineItems
+     * @param StripeState $state
+     * @return \PatternSeek\ComponentView\Response
+     * @throws \Exception
+     */
     abstract public function initialPaymentAttempt(
+        $uid,
         $paymentMethodId,
         $amount,
         $currency,

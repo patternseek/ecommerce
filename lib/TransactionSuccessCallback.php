@@ -40,5 +40,15 @@ abstract class TransactionSuccessCallback
     }
     
     abstract public function __invoke( Transaction $txn, Basket $basket );
+
+    /**
+     * Provides information to the client about a transaction that is about to be attemped.
+     * This method is called by the basket once we're ready to begin the transaction.
+     * 
+     * @param Transaction $txn
+     */
+    public function preTransactionNotification( Transaction $txn ){
+        // Optional
+    }
     
 }

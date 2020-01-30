@@ -188,6 +188,32 @@ class Basket extends AbstractViewComponent
         asort( $ret );
         return $ret;
     }
+    
+    /**
+     * Provides information to the client about a transaction that is about to be attemped.
+     * This method is called by the payment provides class once we're ready to begin the transaction.
+     * 
+     * @param $uid
+     * @param $paymentMethodId
+     * @param $amountCents
+     * @param $currency
+     * @param $description
+     * @param $email
+     * @param $lineItems
+     */
+    public function preTransactionNotification(
+        $uid
+    ){
+        $this->state->transactionUid = $uid;
+        
+        $txn = new Transaction();
+        $txn->complete = false;
+        $txn->time = time();
+        
+        $this->populateTransactionDetails( $txn );
+        
+        $this->state->transactionSuccessCallback->preTransactionNotification( $txn );
+    }
 
     /**
      * @param Transaction $txn
@@ -197,6 +223,8 @@ class Basket extends AbstractViewComponent
     public function transactionSuccess( Transaction $txn )
     {
         $this->state->complete = true;
+        $txn->complete = true;
+        $txn->uid = $this->state->transactionUid;
 
         $this->populateTransactionDetails( $txn ); 
         
@@ -234,6 +262,7 @@ class Basket extends AbstractViewComponent
      */
     public function populateTransactionDetails( Transaction $txn )
     {
+        $txn->uid = $this->state->transactionUid;
         $txn->testMode = $this->state->testMode;
         $txn->vatNumberStatus = $this->state->vatNumberStatus;
         $txn->vatNumberGiven = $this->state->vatNumber;
@@ -242,6 +271,7 @@ class Basket extends AbstractViewComponent
         $txn->transactionCurrency = $this->state->config->currencyCode;
         $txn->vatAmount = $this->state->vatTotal;
         $txn->billingAddressCountryCode = $this->state->addressCountryCode;
+        $txn->clientEmail = $this->state->config->email;
         $txn->ipCountryCode = $this->state->ipCountryCode;
         $txn->billingAddress = $this->state->addressAsString;
         $txn->transactionDescription = $this->state->config->briefDescription;

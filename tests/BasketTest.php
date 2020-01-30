@@ -577,6 +577,7 @@ class BasketTest extends TestCase
                 'vatNumberGivenCountryCode' => NULL,
                 'vatNumberGiven' => NULL,
                 'vatAmount' => 20.0,
+                'uid' => NULL,
                 'validationError' => NULL,
                 'transactionDetailRaw' => '[
     {
@@ -623,6 +624,7 @@ class BasketTest extends TestCase
                 'paymentType' => 'card',
                 'paymentCountryCode' => 'US',
                 'ipCountryCode' => 'GB',
+                'complete' => true,
                 'clientName' => NULL,
                 'clientEmail' => NULL,
                 'chargeID' => 'TestStripeID',
@@ -661,6 +663,7 @@ United Kingdom',
         );
         $execOut = $uns->render( "stripe.completion", [ 'paymentIntentId' => "TestStripeID" ] )->content;
         $expected = [
+            'complete' => true,
             'clientName' => null,
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited States",
             'clientEmail' => null,
@@ -685,6 +688,7 @@ United Kingdom',
     }
 ]',
             'chargeID' => 'TestStripeID',
+            'uid' => NULL,
             'validationError' => NULL,
             'vatAmount' => 0.0,
             'paymentCountryCode' => 'US',
@@ -738,6 +742,7 @@ United Kingdom',
         $execOut = $uns->render( "stripe.completion", [ 'paymentIntentId' => "TestStripeID" ] )->content;
 
         $expected = [
+            'complete' => true,
             'clientName' => null,
             'billingAddress' => "addressLine1\naddressLine2\ntownOrCity\nstateOrRegion\npostCode\nUnited Kingdom",
             'clientEmail' => null,
@@ -769,6 +774,7 @@ United Kingdom',
             'vatNumberStatus' => 'notchecked',
             'vatNumberGiven' => null,
             'validationError' => NULL,
+            'uid' => NULL,
             'vatAmount' => 20.0,
             'vatNumberGivenCountryCode' => null,
             'transactionAmount' => 120.0,

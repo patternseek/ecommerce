@@ -16,6 +16,18 @@ class Transaction extends StructClass
      * @var string
      * @Assert\Type(type="string")
      */
+    public $uid;
+    
+    /**
+     * @var boolean
+     * @Assert\Type(type="boolean")
+     */
+    public $complete;
+    
+    /**
+     * @var string
+     * @Assert\Type(type="string")
+     */
     public $validationError;
 
     /**
