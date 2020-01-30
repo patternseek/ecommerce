@@ -11,7 +11,6 @@
 
 namespace PatternSeek\ECommerce\Stripe;
 
-use Exception;
 use PatternSeek\ECommerce\LineItem;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
 use PatternSeek\ECommerce\Transaction;
@@ -21,6 +20,7 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
 {
 
     /**
+     * @param $uid
      * @param $paymentMethodId
      * @param $amount
      * @param $currency
@@ -30,9 +30,10 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
      * @param LineItem[] $lineItems
      * @param StripeState $state
      * @return \PatternSeek\ComponentView\Response
-     * @throws Exception
+     * @throws \Exception
      */
     public function initialPaymentAttempt(
+        $uid,
         $paymentMethodId,
         $amount,
         $currency,
@@ -50,11 +51,11 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
         foreach( $lineItems as $lineItem ){
             if( $lineItem->vatRate !== $lastVatRate ){
                 // Can't set tax_percent on InvoiceItems. Will have to port to TaxRates at some point
-                throw new Exception( "When creating a subscription all items in the basket must be of the same VAT rate." );
+                throw new \Exception( "When creating a subscription all items in the basket must be of the same VAT rate." );
             }
             if( $lineItem->subscriptionTypeId !== null ){
                 if( $numSubs > 0 ){
-                    throw new Exception( "Only one subscription can be added to the basket at a time" );
+                    throw new \Exception( "Only one subscription can be added to the basket at a time" );
                 }
                 $subscription = $lineItem;
                 $numSubs++;
@@ -63,7 +64,7 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
             }
         }
         if( null === $subscription ){
-            throw new Exception( "Expected subscription but none found in basket." );
+            throw new \Exception( "Expected subscription but none found in basket." );
         }
         if( ! is_numeric( $subscription->vatRate ) ){
             throw new \Exception("Missing vat rate for subscription");
@@ -101,7 +102,8 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
             'items' => [ [ 'plan' => $subscription->subscriptionTypeId ] ],
             'tax_percent' => round( $subscription->vatRate * 100, 2 ),
             'default_payment_method' => $paymentMethodId,
-            'expand' => [ "latest_invoice.payment_intent" ]
+            'expand' => [ "latest_invoice.payment_intent" ],
+            'metadata' => ['uid'=>$uid]
         ];
         // Attach metadata if present
         if( is_array( $subscription->metadata ) && count( $subscription->metadata ) > 0  ){
@@ -110,7 +112,7 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
         $subscriptionRaw = $stripe->subscriptionCreate( $payload );
         
         if( $subscriptionRaw['error'] ){
-            throw new Exception( "Sorry there was a problem creating your subscription. The payment provider said: {$subscriptionRaw['error']}" );
+            throw new \Exception( "Sorry there was a problem creating your subscription. The payment provider said: {$subscriptionRaw['error']}" );
         }
         
         

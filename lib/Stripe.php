@@ -91,8 +91,26 @@ class Stripe extends AbstractViewComponent
                     );
                     return new Response( "application/json", $resJson );
                 }
+                
+                $uid = sha1(
+                    serialize(
+                        // This is overkill but harmless
+                        [
+                            time(),
+                            $json_obj->payment_method_id,
+                            $amount,
+                            $currency, 
+                            $description,
+                            $this->state->email,
+                            $this->state->lineItems,                  
+                        ]
+                    )
+                );
+                
+                $this->parent->preTransactionNotification( $uid );
 
                 return $this->chargeStrategy->initialPaymentAttempt(
+                    $uid,
                     $json_obj->payment_method_id,
                     $amount,
                     $currency, 
