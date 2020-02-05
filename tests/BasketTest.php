@@ -590,6 +590,7 @@ class BasketTest extends TestCase
         "productType": "electronicservices",
         "enjoyedInLocationType": "local",
         "subscriptionTypeId": "example-subscription-id",
+        "couponCode": null,
         "vatRate": 0.2,
         "metadata": {
             "somekey": "1",
@@ -680,6 +681,7 @@ United Kingdom',
         "productType": "electronicservices",
         "enjoyedInLocationType": "row",
         "subscriptionTypeId": null,
+        "couponCode": null,
         "vatRate": 0,
         "metadata": {
             "somekey": "1",
@@ -759,6 +761,7 @@ United Kingdom',
         "productType": "electronicservices",
         "enjoyedInLocationType": "local",
         "subscriptionTypeId": null,
+        "couponCode": null,
         "vatRate": 0.2,
         "metadata": {
             "somekey": "1",
