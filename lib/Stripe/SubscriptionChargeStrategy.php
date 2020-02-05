@@ -63,6 +63,9 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
                 $nonSubscriptions[] = $lineItem;
             }
         }
+        if( $numSubs > 1 ){
+            throw new \Exception( "Currently only one subscription per basket is supported." );
+        }
         if( null === $subscription ){
             throw new \Exception( "Expected subscription but none found in basket." );
         }
@@ -105,6 +108,9 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
             'expand' => [ "latest_invoice.payment_intent" ],
             'metadata' => ['uid'=>$uid]
         ];
+        if( $subscription->couponCode ){
+            $payload['coupon'] = $subscription->couponCode;
+        }
         // Attach metadata if present
         if( is_array( $subscription->metadata ) && count( $subscription->metadata ) > 0  ){
             $payload['metadata'] = $subscription->metadata;

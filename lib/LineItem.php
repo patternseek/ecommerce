@@ -83,9 +83,16 @@ class LineItem extends StructClass
     /**
      * In the case of subscription products, an ID is required to subscribe the user to.
      * 
-     * @var mixed
+     * @Assert\Type(type="string")
+     * @var string
      */
     public $subscriptionTypeId;
+
+    /**
+     * @Assert\Type(type="string")
+     * @var string
+     */
+    public $couponCode;
 
     /**
      * The VAT rate for this item for the current customer
