@@ -113,7 +113,7 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
         }
         // Attach metadata if present
         if( is_array( $subscription->metadata ) && count( $subscription->metadata ) > 0  ){
-            $payload['metadata'] = $subscription->metadata;
+            $payload['metadata'] = array_merge( $payload['metadata'], $subscription->metadata );
         }
         $subscriptionRaw = $stripe->subscriptionCreate( $payload );
         
