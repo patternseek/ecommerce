@@ -68,7 +68,7 @@ class LineItem extends StructClass
 
     /**
      * @var string
-     * @Assert\Choice(choices = {"deliveredgoods", "normalservices", "electronicservices"})
+     * @Assert\Choice(choices = {"deliveredgoods", "normalservices", "electronicservices", "eventadmissioninvendorcountry"})
      * @Assert\NotBlank()
      */
     public $productType;
@@ -154,7 +154,7 @@ class LineItem extends StructClass
     /**
      * Determine what type of VAT to charge. The rate in the vendor country, the customer country or zero.
      *
-     * @param string $productType One of 'deliveredgoods','normalservices','electronicservices'
+     * @param string $productType One of 'deliveredgoods','normalservices','electronicservices','eventadmissioninvendorcountry'
      * @param bool $isB2b B2B transaction if true, B2C if not.
      * @param string $enjoyedInLocationType Where the goods are sent or the service is consumed, one of 'local','eu','row'. 'row' being Rest Of World
      * @return string
@@ -162,7 +162,7 @@ class LineItem extends StructClass
      */
     private function getVatType( $productType, $isB2b, $enjoyedInLocationType )
     {
-        if (!in_array( $productType, [ 'deliveredgoods', 'normalservices', 'electronicservices' ] )) {
+        if (!in_array( $productType, [ 'deliveredgoods', 'normalservices', 'electronicservices','eventadmissioninvendorcountry' ] )) {
             throw new \Exception( "Invalid product type" );
         }
         if (!in_array( $enjoyedInLocationType, [ 'local', 'eu', 'row' ] )) {
@@ -191,6 +191,19 @@ class LineItem extends StructClass
                     'local' => 'vendor',
                     'eu' => 'vendor',
                     'row' => 'zero'
+
+                ]
+            ],
+            'eventadmissioninvendorcountry' => [ // Event admissions are a special case and always charge VAT in the country where the event is. We only support events in the vendor country.
+                'b2b' => [
+                    'local' => 'vendor',
+                    'eu' => 'vendor',
+                    'row' => 'vendor'
+                ],
+                'b2c' => [
+                    'local' => 'vendor',
+                    'eu' => 'vendor',
+                    'row' => 'vendor'
 
                 ]
             ],
