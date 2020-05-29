@@ -66,7 +66,7 @@
                     </label>                   
                     <select name="countryCode">
                         {% for cc,country in this.getEUVatCountries() %}
-                            <option value="{{ cc }}" {% if cc == state.config.countryCode|upper %}selected="selected"{% endif %}>{{ country }}</option>
+                            <option value="{{ cc }}" {% if (state.vatNumberCountryCode and cc == state.vatNumberCountryCode ) or ( not state.vatNumberCountryCode and  cc == state.config.countryCode|upper )  %}selected="selected"{% endif %}>{{ country }}</option>
                         {% endfor %}
                     </select>
                     <br>    
