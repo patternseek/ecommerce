@@ -69,7 +69,43 @@ class BasketConfig extends StructClass
      * @Assert\NotBlank
      */
     public $currencySymbol;
-
+    
+    /**
+     * OAuth client ID for HMRC VAT API
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $hmrcClientId;
+    
+    /**
+     * OAuth client secret for HMRC VAT API
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $hmrcClientSecret;
+    
+    /**
+     * OAuth token request URL for HMRC VAT API
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $hmrcOauthTokenUrl;
+    
+    /**
+     * HMRC VAT API URL
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $hmrcVatUrl;
+    
     /**
      * Configuration for payment system providers
      * @var PaymentProviderConfig[]
