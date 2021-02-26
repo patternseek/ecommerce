@@ -123,6 +123,18 @@ class Basket extends AbstractViewComponent
      */
     private function validateGbVatNumber( $args ){
         
+        if( $this->state->testMode ){
+            $clientId = $this->state->config->hmrcVatApiConfig->testClientId;
+            $clientSecret = $this->state->config->hmrcVatApiConfig->testClientSecret;
+            $oauthTokenUrl = $this->state->config->hmrcVatApiConfig->testOauthTokenUrl;
+            $vatUrl = $this->state->config->hmrcVatApiConfig->testVatUrl;
+        }else{
+            $clientId = $this->state->config->hmrcVatApiConfig->liveClientId;
+            $clientSecret = $this->state->config->hmrcVatApiConfig->liveClientSecret;
+            $oauthTokenUrl = $this->state->config->hmrcVatApiConfig->liveOauthTokenUrl;
+            $vatUrl = $this->state->config->hmrcVatApiConfig->liveVatUrl;
+        }
+        
         // Retrieve OAuth token
         $optsAr = [
             'http' => [
@@ -130,15 +142,15 @@ class Basket extends AbstractViewComponent
                 'ignore_errors' => true, // Needed to get body of non-200 responses
                 'header' => "Content-Type: application/x-www-form-urlencoded",
                 'content' => http_build_query( [
-                    'client_id' => $this->state->config->hmrcClientId,
-                    'client_secret' => $this->state->config->hmrcClientSecret,
+                    'client_id' => $clientId,
+                    'client_secret' => $clientSecret,
                     'grant_type' => 'client_credentials'
                 ] )
             ]
         ];
         $context = stream_context_create( $optsAr );
 
-        $tokenResRaw = file_get_contents( $this->state->config->hmrcOauthTokenUrl, false, $context );
+        $tokenResRaw = file_get_contents( $oauthTokenUrl, false, $context );
         if( $tokenResRaw === false ){
             $this->logger->alert("Unexpected error from HMRC VAT API when attempting to log retrieve OAuth token: Connection failed or no response");
             $this->vatCheckFailedDueToTechnicalError( $args );
@@ -164,7 +176,7 @@ class Basket extends AbstractViewComponent
         ];
 
         $context  = stream_context_create($optsAr);
-        $lookupResRaw = file_get_contents( $this->state->config->hmrcVatUrl.urlencode($args['vatNumber']), false, $context );
+        $lookupResRaw = file_get_contents( $vatUrl.urlencode($args['vatNumber']), false, $context );
 
         if( $lookupResRaw === false ){
             $this->logger->alert("Unexpected error from HMRC VAT API when attempting to verify VAT number: Connection failed or no response");

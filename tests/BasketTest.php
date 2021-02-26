@@ -12,6 +12,7 @@ namespace PatternSeek\ECommerce\Test;
 use PatternSeek\DependencyInjector\DependencyInjector;
 use PatternSeek\ECommerce\Basket;
 use PatternSeek\ECommerce\BasketConfig;
+use PatternSeek\ECommerce\HmrcVatApiConfig;
 use PatternSeek\ECommerce\LineItem;
 use PatternSeek\ECommerce\Stripe;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
@@ -815,10 +816,7 @@ United Kingdom',
         if( ! getenv('hmrc_client_secret') ){
             throw new \Exception( "Please set the hmrc_client_secret environment variable" );
         }
-                
-        $hmrcClientId = getenv('hmrc_client_id');
-        $hmrcClientSecret = getenv('hmrc_client_secret');
-        
+            
         // This would usually come from a config source
         $configArray = [
             'localVatRate' => 0.20,
@@ -830,10 +828,16 @@ United Kingdom',
             'intro' => "Optional intro HTML for page.",
             'paymentProviders' => $this->getPaymentProvidersConfig(),
             'billingAddress' => $billingAddress,
-            'hmrcClientId' => $hmrcClientId,
-            'hmrcClientSecret' => $hmrcClientSecret,
-            'hmrcOauthTokenUrl' => "https://test-api.service.hmrc.gov.uk/oauth/token",
-            'hmrcVatUrl' => "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/"
+            'hmrcVatApiConfig' => [
+                "testOauthTokenUrl" => "https://test-api.service.hmrc.gov.uk/oauth/token",
+                "testVatUrl" => "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/",
+                "testClientId" => getenv('hmrc_client_id'),
+                "testClientSecret" => getenv('hmrc_client_secret'),
+                "liveOauthTokenUrl" => "https://test-api.service.hmrc.gov.uk/oauth/token",
+                "liveVatUrl" => "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/",
+                "liveClientId" => getenv('hmrc_client_id'),
+                "liveClientSecret" => getenv('hmrc_client_secret'),
+            ],
         ];
         file_put_contents( "/tmp/cnf", yaml_emit( $configArray, YAML_UTF8_ENCODING ) );
 
