@@ -104,6 +104,106 @@ class Basket extends AbstractViewComponent
         $this->state->vatNumberStatus = null;
         $this->state->vatNumberCountryCode = null;
 
+        if( $args['countryCode'] == "GB" ){
+            $this->validateGbVatNumber( $args );            
+        }else{
+            $this->validateEuVatNumber( $args );
+        }
+        
+        
+        $this->updateLineItemsAndTotal();
+
+        // Render full component
+        $this->updateState();
+        return $this->render();
+    }
+
+    /**
+     * @param $args
+     */
+    private function validateGbVatNumber( $args ){
+        
+        // Retrieve OAuth token
+        $optsAr = [
+            'http' => [
+                'method' => 'POST',
+                'ignore_errors' => true, // Needed to get body of non-200 responses
+                'header' => "Content-Type: application/x-www-form-urlencoded",
+                'content' => http_build_query( [
+                    'client_id' => $this->state->config->hmrcClientId,
+                    'client_secret' => $this->state->config->hmrcClientSecret,
+                    'grant_type' => 'client_credentials'
+                ] )
+            ]
+        ];
+        $context = stream_context_create( $optsAr );
+
+        $tokenResRaw = file_get_contents( $this->state->config->hmrcOauthTokenUrl, false, $context );
+        if( $tokenResRaw === false ){
+            $this->logger->alert("Unexpected error from HMRC VAT API when attempting to log retrieve OAuth token: Connection failed or no response");
+            $this->vatCheckFailedDueToTechnicalError( $args );
+            return;
+        }
+        $tokenRes = json_decode( $tokenResRaw );
+        if( isset( $tokenRes->error) ){
+            $this->logger->alert("Unexpected error from HMRC VAT API when attempting to log retrieve OAuth token: {$tokenRes->error} : {$tokenRes->error_description}");
+            $this->vatCheckFailedDueToTechnicalError( $args );
+            return;
+        }
+        
+        // Do VAT check
+        $optsAr = [
+            'http' => [
+                'method' => 'GET',
+                'ignore_errors' => true, // Needed to get body of non-200 responses
+                'header' => [
+                    "Accept: application/vnd.hmrc.1.0+json",
+                    "Authorization: Bearer {$tokenRes->access_token}",
+                ]
+            ]
+        ];
+
+        $context  = stream_context_create($optsAr);
+        $lookupResRaw = file_get_contents( $this->state->config->hmrcVatUrl.urlencode($args['vatNumber']), false, $context );
+
+        if( $lookupResRaw === false ){
+            $this->logger->alert("Unexpected error from HMRC VAT API when attempting to verify VAT number: Connection failed or no response");
+            $this->vatCheckFailedDueToTechnicalError( $args );
+            return;
+        }
+        $lookupRes = json_decode( $lookupResRaw );
+        if (isset( $lookupRes->code )) {
+            switch ($lookupRes->code) {
+                case "NOT_FOUND":
+                    // Invalid
+                    $this->state->vatNumber = null;
+                    $this->state->vatNumberCountryCode = null;
+                    $this->state->vatNumberStatus = 'invalid';
+                    $this->setFlashError( $this->state->trans->invalid_vat_number );
+                    return;
+            }
+        } 
+        if( $lookupRes->target ){
+            // Valid
+            $this->state->vatNumber = $args[ 'vatNumber' ];
+            $this->state->vatNumberStatus = 'valid';
+            $this->state->vatNumberCountryCode = $args[ 'countryCode' ];
+            /** @noinspection PhpUnnecessaryReturnInspection */
+            return;
+        }else{
+            // Not expecting this to match to log fatal
+            $this->log( "Unexpected response from HMRC VAT API: {$tokenResRaw}", LogLevel::ALERT );
+            $this->vatCheckFailedDueToTechnicalError( $args );
+        }
+        
+        
+    }
+    
+    /**
+     * @param $args
+     */
+    private function validateEuVatNumber( $args ): void
+    {
         $client = new \SoapClient( "http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl" );
         $soapResponse = null;
         try{
@@ -131,18 +231,9 @@ class Basket extends AbstractViewComponent
                 $this->state->vatNumberStatus = 'invalid';
                 $this->setFlashError( $this->state->trans->invalid_vat_number );
             }else {
-                // Unknown due to technical error
-                // We allow the vat number but flag it for manual checking
-                $this->state->vatNumber = $args[ 'vatNumber' ];
-                $this->state->vatNumberStatus = 'unknown';
-                $this->state->vatNumberCountryCode = $args[ 'countryCode' ];
+                $this->vatCheckFailedDueToTechnicalError( $args );
             }
         }
-        $this->updateLineItemsAndTotal();
-
-        // Render full component
-        $this->updateState();
-        return $this->render();
     }
 
     /**
@@ -283,6 +374,8 @@ class Basket extends AbstractViewComponent
         $txn->setTransactionDetail( $txnDetailArr );
     }
 
+
+
     /**
      * @return string
      * @throws \Exception
@@ -410,5 +503,17 @@ class Basket extends AbstractViewComponent
         $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Basket.twig" );
 
         $this->template = new TwigTemplate( $this, null, $tplTwig );
+    }
+
+    /**
+     * VAT check status is unknown due to technical error
+     * We allow the vat number but flag it for manual checking
+     * @param $args
+     */
+    private function vatCheckFailedDueToTechnicalError( $args ): void
+    {
+        $this->state->vatNumber = $args[ 'vatNumber' ];
+        $this->state->vatNumberStatus = 'unknown';
+        $this->state->vatNumberCountryCode = $args[ 'countryCode' ];
     }
 }
