@@ -239,7 +239,7 @@ class BasketTest extends TestCase
         /** @var Basket $view */
         $view = $this->prepareBasket( $lineItem, $billingAddress );
 
-        $view->render( "validateVatNumber", [ "countryCode" => "GB", "vatNumber" => "333289454" ] ); //BBC VAT number
+        $view->render( "validateVatNumber", [ "countryCode" => "GB", "vatNumber" => "166804280212" ] ); //  166804280212 is a test vat number for use with the HMRC VAT API test environment
 
         $state = $view->getStateForTesting();
         $this->assertTrue(
@@ -250,6 +250,9 @@ class BasketTest extends TestCase
         );
         $this->assertTrue(
             $state->vatInfoOk() // Confirmed country code
+        );
+        $this->assertTrue(
+            $state->vatNumberStatus == "valid"
         );
         $this->assertTrue(
             $state->addressReady
@@ -806,6 +809,16 @@ United Kingdom',
         $chargeMode = "immediate"
     )
     {
+        if( ! getenv('hmrc_client_id') ){
+            throw new \Exception( "Please set the hmrc_client_id environment variable" );
+        }
+        if( ! getenv('hmrc_client_secret') ){
+            throw new \Exception( "Please set the hmrc_client_secret environment variable" );
+        }
+                
+        $hmrcClientId = getenv('hmrc_client_id');
+        $hmrcClientSecret = getenv('hmrc_client_secret');
+        
         // This would usually come from a config source
         $configArray = [
             'localVatRate' => 0.20,
@@ -816,7 +829,11 @@ United Kingdom',
             'briefDescription' => "Brief description of basket contents.",
             'intro' => "Optional intro HTML for page.",
             'paymentProviders' => $this->getPaymentProvidersConfig(),
-            'billingAddress' => $billingAddress
+            'billingAddress' => $billingAddress,
+            'hmrcClientId' => $hmrcClientId,
+            'hmrcClientSecret' => $hmrcClientSecret,
+            'hmrcOauthTokenUrl' => "https://test-api.service.hmrc.gov.uk/oauth/token",
+            'hmrcVatUrl' => "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/"
         ];
         file_put_contents( "/tmp/cnf", yaml_emit( $configArray, YAML_UTF8_ENCODING ) );
 
