@@ -69,42 +69,15 @@ class BasketConfig extends StructClass
      * @Assert\NotBlank
      */
     public $currencySymbol;
-    
+
     /**
-     * OAuth client ID for HMRC VAT API
-     * @var string
+     * Configuration for HMRC VAT API
+     * @var HmrcVatApiConfig
      *
-     * @Assert\Type( type="string" )
-     * @Assert\NotBlank
+     * @Assert\Type( type="PatternSeek\ECommerce\HmrcVatApiConfig" )
      */
-    public $hmrcClientId;
-    
-    /**
-     * OAuth client secret for HMRC VAT API
-     * @var string
-     *
-     * @Assert\Type( type="string" )
-     * @Assert\NotBlank
-     */
-    public $hmrcClientSecret;
-    
-    /**
-     * OAuth token request URL for HMRC VAT API
-     * @var string
-     *
-     * @Assert\Type( type="string" )
-     * @Assert\NotBlank
-     */
-    public $hmrcOauthTokenUrl;
-    
-    /**
-     * HMRC VAT API URL
-     * @var string
-     *
-     * @Assert\Type( type="string" )
-     * @Assert\NotBlank
-     */
-    public $hmrcVatUrl;
+    public $hmrcVatApiConfig;
+
     
     /**
      * Configuration for payment system providers
@@ -179,6 +152,8 @@ class BasketConfig extends StructClass
             $provConf = PaymentProviderConfig::fromArray( $provider );
             $base->paymentProviders[$provider['componentClass']] = $provConf;
         }
+        
+        $base->hmrcVatApiConfig = HmrcVatApiConfig::fromArray( $properties['hmrcVatApiConfig'] );
 
         if ($properties[ 'billingAddress' ]) {
             $base->billingAddress = AddressState::fromArray( $properties[ 'billingAddress' ] );
