@@ -30,7 +30,7 @@ class HmrcVatApiConfig extends StructClass
      * @Assert\Type( type="string" )
      * @Assert\NotBlank
      */
-    public $liveClientId;
+    public $clientId;
     
     /**
      * OAuth client secret for HMRC VAT API
@@ -39,7 +39,7 @@ class HmrcVatApiConfig extends StructClass
      * @Assert\Type( type="string" )
      * @Assert\NotBlank
      */
-    public $liveClientSecret;
+    public $clientSecret;
     
     /**
      * OAuth token request URL for HMRC VAT API
@@ -48,7 +48,7 @@ class HmrcVatApiConfig extends StructClass
      * @Assert\Type( type="string" )
      * @Assert\NotBlank
      */
-    public $liveOauthTokenUrl;
+    public $oauthTokenUrl;
     
     /**
      * HMRC VAT API URL
@@ -57,43 +57,8 @@ class HmrcVatApiConfig extends StructClass
      * @Assert\Type( type="string" )
      * @Assert\NotBlank
      */
-    public $liveVatUrl;
-    
-    /**
-     * TEST OAuth client ID for HMRC VAT API
-     * @var string
-     *
-     * @Assert\Type( type="string" )
-     * @Assert\NotBlank
-     */
-    public $testClientId;
-    
-    /**
-     * TEST OAuth client secret for HMRC VAT API
-     * @var string
-     *
-     * @Assert\Type( type="string" )
-     * @Assert\NotBlank
-     */
-    public $testClientSecret;
-    
-    /**
-     * TEST OAuth token request URL for HMRC VAT API
-     * @var string
-     *
-     * @Assert\Type( type="string" )
-     * @Assert\NotBlank
-     */
-    public $testOauthTokenUrl;
-    
-    /**
-     * TEST HMRC VAT API URL
-     * @var string
-     *
-     * @Assert\Type( type="string" )
-     * @Assert\NotBlank
-     */
-    public $testVatUrl;
+    public $vatUrl;
+
     
     
  
