@@ -19,6 +19,8 @@ use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
 use PatternSeek\ECommerce\Stripe\Facade\StripePaymentMethodMock;
 use PHPUnit\Framework\TestCase;
 use Pimple\Container;
+use Psr\Log\LogLevel;
+use Psr\Log\Test\TestLogger;
 
 /**
  * Class BasketTest
@@ -27,8 +29,30 @@ use Pimple\Container;
 class BasketTest extends TestCase
 {
 
+    private $validUkVatNumber;
+    /**
+     * @var TestLogger
+     */
+    private $testLogger;
+
     function setup() : void {
         DependencyInjector::init( new Container() );
+        $this->testLogger = new TestLogger();
+    }
+    
+    protected function tearDown() : void{
+        if( $this->testLogger->hasRecords( LogLevel::WARNING )
+            || $this->testLogger->hasRecords( LogLevel::ERROR )
+            || $this->testLogger->hasRecords( LogLevel::ALERT )
+            || $this->testLogger->hasRecords( LogLevel::EMERGENCY )
+            || $this->testLogger->hasRecords( LogLevel::CRITICAL )
+        ){
+            print_r( $this->testLogger->recordsByLevel[LogLevel::WARNING]);
+            print_r( $this->testLogger->recordsByLevel[LogLevel::ERROR]);
+            print_r( $this->testLogger->recordsByLevel[LogLevel::EMERGENCY]);
+            print_r( $this->testLogger->recordsByLevel[LogLevel::ALERT]);
+            print_r( $this->testLogger->recordsByLevel[LogLevel::CRITICAL]);
+        }
     }
 
     protected $successCallback;
@@ -240,7 +264,7 @@ class BasketTest extends TestCase
         /** @var Basket $view */
         $view = $this->prepareBasket( $lineItem, $billingAddress );
 
-        $view->render( "validateVatNumber", [ "countryCode" => "GB", "vatNumber" => "166804280212" ] ); //  166804280212 is a test vat number for use with the HMRC VAT API test environment
+        $view->render( "validateVatNumber", [ "countryCode" => "GB", "vatNumber" => $this->validUkVatNumber ] );
 
         $state = $view->getStateForTesting();
         $this->assertTrue(
@@ -275,7 +299,7 @@ class BasketTest extends TestCase
         /** @var Basket $view */
         $view = $this->prepareBasket( $lineItem, $billingAddress );
 
-        $view->render( "validateVatNumber", [ "countryCode" => "GB", "vatNumber" => "333289454" ] ); //BBC VAT number
+        $view->render( "validateVatNumber", [ "countryCode" => "GB", "vatNumber" => $this->validUkVatNumber ] );
 
         $state = $view->getStateForTesting();
         $this->assertFalse(
@@ -286,6 +310,9 @@ class BasketTest extends TestCase
         );
         $this->assertTrue(
             $state->vatInfoOk() // Confirmed country code
+        );
+        $this->assertTrue(
+            $state->vatNumberStatus == "valid"
         );
         $this->assertTrue(
             $state->addressReady
@@ -816,6 +843,21 @@ United Kingdom',
         if( ! getenv('hmrc_client_secret') ){
             throw new \Exception( "Please set the hmrc_client_secret environment variable" );
         }
+        if( ! getenv('hmrc_use_live_api') ){
+            throw new \Exception( "Please set the hmrc_use_live_api environment variable" );
+        }
+        
+        $useHmrcLiveApi = strtolower(getenv('hmrc_use_live_api')); 
+        if( $useHmrcLiveApi === "true" ){
+            $oauthTokenUrl = "https://api.service.hmrc.gov.uk/oauth/token";
+            $vatUrl = "https://api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/";
+            $this->validUkVatNumber = "245719348"; // BT's VAT number
+        }else{
+            $oauthTokenUrl = "https://test-api.service.hmrc.gov.uk/oauth/token";
+            $vatUrl = "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/";
+            $this->validUkVatNumber = "166804280212"; // 166804280212 is a test vat number for use with the HMRC VAT API test environment
+        }
+        
             
         // This would usually come from a config source
         $configArray = [
@@ -829,14 +871,10 @@ United Kingdom',
             'paymentProviders' => $this->getPaymentProvidersConfig(),
             'billingAddress' => $billingAddress,
             'hmrcVatApiConfig' => [
-                "testOauthTokenUrl" => "https://test-api.service.hmrc.gov.uk/oauth/token",
-                "testVatUrl" => "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/",
-                "testClientId" => getenv('hmrc_client_id'),
-                "testClientSecret" => getenv('hmrc_client_secret'),
-                "liveOauthTokenUrl" => "https://test-api.service.hmrc.gov.uk/oauth/token",
-                "liveVatUrl" => "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/",
-                "liveClientId" => getenv('hmrc_client_id'),
-                "liveClientSecret" => getenv('hmrc_client_secret'),
+                "oauthTokenUrl" => $oauthTokenUrl,
+                "vatUrl" => $vatUrl,
+                "clientId" => getenv('hmrc_client_id'),
+                "clientSecret" => getenv('hmrc_client_secret'),
             ],
         ];
         file_put_contents( "/tmp/cnf", yaml_emit( $configArray, YAML_UTF8_ENCODING ) );
@@ -859,7 +897,7 @@ United Kingdom',
 //        ];
 
         /** @var \PatternSeek\ECommerce\Basket $view */
-        $view = new Basket();
+        $view = new Basket(null, null, null, $this->testLogger );
 
         $this->successCallback = new TestSuccess();
 
