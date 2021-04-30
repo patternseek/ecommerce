@@ -149,15 +149,12 @@ class Basket extends AbstractViewComponent
         }
         $lookupRes = json_decode( $lookupResRaw );
         if (isset( $lookupRes->code )) {
-            switch ($lookupRes->code) {
-                case "NOT_FOUND":
-                    // Invalid
-                    $this->state->vatNumber = null;
-                    $this->state->vatNumberCountryCode = null;
-                    $this->state->vatNumberStatus = 'invalid';
-                    $this->setFlashError( $this->state->trans->invalid_vat_number );
-                    return;
-            }
+            // Invalid
+            $this->state->vatNumber = null;
+            $this->state->vatNumberCountryCode = null;
+            $this->state->vatNumberStatus = 'invalid';
+            $this->setFlashError( $this->state->trans->invalid_vat_number );
+            return;
         } 
         if( $lookupRes->target ){
             // Valid
