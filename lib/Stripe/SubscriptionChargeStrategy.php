@@ -77,7 +77,8 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
         
         $params = [
             "payment_method" => $paymentMethodId,
-            "description" => $email
+            "description" => $email,
+            "email" => $email,
         ];
         $customer = $stripe->customerCreate( $params );
 
