@@ -837,23 +837,23 @@ United Kingdom',
         $chargeMode = "immediate"
     )
     {
-        if( ! getenv('hmrc_client_id') ){
-            throw new \Exception( "Please set the hmrc_client_id environment variable" );
-        }
-        if( ! getenv('hmrc_client_secret') ){
-            throw new \Exception( "Please set the hmrc_client_secret environment variable" );
-        }
+//        if( ! getenv('hmrc_client_id') ){
+//            throw new \Exception( "Please set the hmrc_client_id environment variable" );
+//        }
+//        if( ! getenv('hmrc_client_secret') ){
+//            throw new \Exception( "Please set the hmrc_client_secret environment variable" );
+//        }
         if( ! getenv('hmrc_use_live_api') ){
             throw new \Exception( "Please set the hmrc_use_live_api environment variable" );
         }
         
         $useHmrcLiveApi = strtolower(getenv('hmrc_use_live_api')); 
         if( $useHmrcLiveApi === "true" ){
-            $oauthTokenUrl = "https://api.service.hmrc.gov.uk/oauth/token";
+//            $oauthTokenUrl = "https://api.service.hmrc.gov.uk/oauth/token";
             $vatUrl = "https://api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/";
             $this->validUkVatNumber = "245719348"; // BT's VAT number
         }else{
-            $oauthTokenUrl = "https://test-api.service.hmrc.gov.uk/oauth/token";
+//            $oauthTokenUrl = "https://test-api.service.hmrc.gov.uk/oauth/token";
             $vatUrl = "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/";
             $this->validUkVatNumber = "166804280212"; // 166804280212 is a test vat number for use with the HMRC VAT API test environment
         }
@@ -871,10 +871,10 @@ United Kingdom',
             'paymentProviders' => $this->getPaymentProvidersConfig(),
             'billingAddress' => $billingAddress,
             'hmrcVatApiConfig' => [
-                "oauthTokenUrl" => $oauthTokenUrl,
+//                "oauthTokenUrl" => $oauthTokenUrl,
                 "vatUrl" => $vatUrl,
-                "clientId" => getenv('hmrc_client_id'),
-                "clientSecret" => getenv('hmrc_client_secret'),
+//                "clientId" => getenv('hmrc_client_id'),
+//                "clientSecret" => getenv('hmrc_client_secret'),
             ],
         ];
         file_put_contents( "/tmp/cnf", yaml_emit( $configArray, YAML_UTF8_ENCODING ) );
@@ -888,13 +888,6 @@ United Kingdom',
         $config->validate();
 
         $vatRates = $this->getVatRates();
-
-//        $initConfig = [
-//            'config' => $config,
-//            'vatRates' => $vatRates,
-//            'lineItems' => [ $lineItem ],
-//            'testMode' => true
-//        ];
 
         /** @var \PatternSeek\ECommerce\Basket $view */
         $view = new Basket(null, null, null, $this->testLogger );
