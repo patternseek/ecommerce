@@ -11,15 +11,19 @@
     }
 </style>
 
-<div id="payment-request-element">
-    <!-- a Stripe Element will be inserted here. -->
-</div>
-
-
 <form id="payment-form">
     <div style="display: none;" id="formHide">
+        
         <fieldset>
         <legend>{{ state.trans.card_details }}</legend>
+            
+            <span id="payment-request-element-wrapper">
+                <div id="payment-request-element">
+                    <!-- a Stripe Element will be inserted here. -->
+                </div>
+                <br>
+            </span>
+
 
             <label for="card-element">
                 {{ state.trans.credit_or_debit_card }}
@@ -137,7 +141,7 @@
             if (result) {
                 prButton.mount('#payment-request-element');
             } else {
-                //$('#payment-request-button').style.display = 'none';
+                $('#payment-request-element-wrapper').style.display = 'none';
             }
         });
         paymentRequest.on('paymentmethod', function(ev) {
