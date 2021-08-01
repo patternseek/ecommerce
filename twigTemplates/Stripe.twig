@@ -11,6 +11,11 @@
     }
 </style>
 
+<div id="payment-request-element">
+    <!-- a Stripe Element will be inserted here. -->
+</div>
+
+
 <form id="payment-form">
     <div style="display: none;" id="formHide">
         <fieldset>
@@ -40,6 +45,13 @@
 
         var stripe = Stripe('{{ state.apiPubKey }}');
         var elements = stripe.elements();
+
+        setupCardElement( stripe, elements );
+        setupPaymentRequestButtonElement( stripe, elements );
+
+    });
+
+    function setupCardElement( stripe, elements ){
         var cardEl = elements.create(
             'card',
             {
@@ -48,12 +60,12 @@
         );
         cardEl.mount('#card-element');
         $('#formHide').slideDown();
-        
-        $("#pnsk-stripe-submit").click( 
+
+        $("#pnsk-stripe-submit").click(
             function(e){
                 $(e).attr("disabled", true);
                 $("#pnsk-stripe-working").show();
-            }  
+            }
         );
 
         $('#payment-form').submit(function (e) {
@@ -102,8 +114,57 @@
             });
             return false;
         });
+    }
 
-    });
+    function setupPaymentRequestButtonElement(stripe, elements ){
+        FIXME
+        var paymentRequest = stripe.paymentRequest({
+            country: 'GB',
+            currency: '{{ state.config.currency|lower }}',
+            total: {
+                label: '{{ state.description }}',
+                amount: {{ state.amountCents }},
+            },
+            requestPayerName: true,
+            requestPayerEmail: true,
+        });
+
+        var prButton = elements.create('paymentRequestButton', {
+            paymentRequest: paymentRequest,
+        });
+
+        // Check the availability of the Payment Request API first.
+        paymentRequest.canMakePayment().then(function(result) {
+            if (result) {
+                prButton.mount('#payment-request-element');
+            } else {
+                //$('#payment-request-button').style.display = 'none';
+            }
+        });
+        paymentRequest.on('paymentmethod', function(ev) {
+
+            if (ev.error) {
+                showStripeError(ev);
+            } else {
+                fetch('{{ exec.url( "confirmPayment", [], true ) }}', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        payment_method_id: ev.paymentMethod.id
+                    })
+                }).then(function (result) {
+                    result.json().then(function (res) {
+                        handleServerResponsePaymentButton(res,ev, stripe);
+                    })
+                });
+            }
+
+
+        });
+    }
 
     function handleServerResponse(response, stripe) {
         if (response.error) {
@@ -118,9 +179,24 @@
         }
     }
 
+    function handleServerResponsePaymentButton(response,ev, stripe) {
+        if (response.error) {
+            ev.complete('fail');
+            // Show error from server on payment form
+            showStripeError(response);
+        } else if (response.requires_action) {
+            // Use Stripe.js to handle required card action
+            handleAction(response, stripe);
+        } else {
+            ev.complete('success');
+            // Success
+            submitCompletionForm(response.paymentIntentId);
+        }
+    }
+
     function handleAction(response, stripe) {
-        
-        var handleResult = 
+
+        var handleResult =
             function (result) {
                 if (result.error) {
                     // Show error in payment form
@@ -130,7 +206,7 @@
                     submitCompletionForm(result.paymentIntent.id);
                 }
             };
-        
+
         if( response.confirmation_method == "automatic" ){
             stripe.handleCardPayment(
                 response.payment_intent_client_secret
@@ -138,16 +214,16 @@
         }else {
             stripe.handleCardAction(
                 response.payment_intent_client_secret
-            ).then( handleResult );    
+            ).then( handleResult );
         }
-        
-        
+
+
     }
 
     function showStripeError(result) {
         var err = result.error;
         if( typeof result.error == "object"  ){
-            err = result.error.message; 
+            err = result.error.message;
         }
 
         // Inform the user if there was an error
