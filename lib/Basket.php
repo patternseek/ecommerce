@@ -108,7 +108,7 @@ class Basket extends AbstractViewComponent
         $this->state->vatNumberCountryCode = null;
 
         if( $args['countryCode'] == "GB" ){
-            $this-> validateGbVatNumber( $args );            
+            $this->validateGbVatNumber( $args );            
         }else{
             $this->validateEuVatNumber( $args );
         }
