@@ -117,9 +117,8 @@
     }
 
     function setupPaymentRequestButtonElement(stripe, elements ){
-        FIXME
         var paymentRequest = stripe.paymentRequest({
-            country: 'GB',
+            country: '{{ state.config.countryCode }}',
             currency: '{{ state.config.currency|lower }}',
             total: {
                 label: '{{ state.description }}',
