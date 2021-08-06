@@ -57,6 +57,17 @@ abstract class AbstractChargeStrategy
                 'confirmation_method' => $intent->confirmation_method
             ] );
             return new Response( "application/json", $resJson );
+            
+        // It seems it's possible for card validation to happen later in the flow in which case a failure will
+        // return the PaymentIntent status to return to "requires_payment_method". This has only been seen
+        // with a Mastercard which had insufficient funds in production. Can't reproduce in  testing. However,
+        // this https://stripe.com/docs/payments/intents#intent-statuses seems to support that things can fail at this
+        // point, so testing for it here.
+        }elseif($intent->status == 'requires_payment_method') {
+            $resJson = json_encode( [
+                'error' => "We're sorry, there was an error processing your payment. Please try again with different payment method."
+            ] );
+            return new Response( "application/json", $resJson );
         }else {
             if ($intent->status == 'succeeded') {
                 # The payment didn’t need any additional actions and completed!
@@ -69,7 +80,7 @@ abstract class AbstractChargeStrategy
                 return new Response( "application/json", $resJson );
             }else {
                 # Invalid status
-                $resJson = json_encode( [ 'error' => "Invalid PaymentIntent status: {$intent->status}" ] );
+                $resJson = json_encode( [ 'error' => "Invalid PaymentIntent status(1): {$intent->status}" ] );
                 return new Response( "application/json", $resJson, 500 );
             }
         }

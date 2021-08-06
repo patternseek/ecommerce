@@ -80,6 +80,8 @@ class SubscriptionChargeStrategy extends AbstractChargeStrategy
             "description" => $email,
             "email" => $email,
         ];
+        
+        // HEY! This is where the card is initially tested, it throws an exception if there's an error
         $customer = $stripe->customerCreate( $params );
 
         // We only support one subscription in the basket currently but additional single charge items can be included alongside it.

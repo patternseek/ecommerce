@@ -197,7 +197,7 @@ class Stripe extends AbstractViewComponent
             return $ret;
         }else {
             # Invalid status
-            throw new Exception( "Invalid PaymentIntent status: {$intent->status}" );
+            throw new Exception( "Invalid PaymentIntent status (2): {$intent->status}" );
         }
     }
 
