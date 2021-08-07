@@ -16,35 +16,26 @@
 
 {% if state.mode == 'view' %}
     {% set formBody %}
-        <label for="addressLine1">
-            {{ state.trans.address_line_1 }}
-        </label>
         {{ state.addressLine1 }}
         <br>
-        <label for="addressLine2">
-            {{ state.trans.address_line_2 }}
-        </label>
-        {{ state.addressLine2 }}
-        <br>
-
-        <label for="townOrCity">
-            {{ state.trans.town_or_city }}
-        </label>
-        {{ state.townOrCity }}
-        <br>
-        <label for="stateOrRegion">
-            {{ state.trans.state_or_region }}
-        </label>
-        {{ state.stateOrRegion }}
-        <br>
-        <label for="postCode">
-            {{ state.trans.postcode }}
-        </label>
+        
+        {% if state.addressLine2 is not empty %}
+            {{ state.addressLine2 }}
+            <br>
+        {% endif %}
+        
+        {% if state.addressLine2 is not empty %}
+            {{ state.townOrCity }}
+            <br>
+        {% endif %}
+        
+        {% if state.addressLine2 is not empty %}
+            {{ state.stateOrRegion }}
+            <br>
+        {% endif %}
+        
         {{ state.postCode }}
         <br>
-        <label for="countryCode">
-            {{ state.trans.country }}
-        </label>
         {{ state.countryString }}
         <br>
         <input type="submit" value="{{ state.trans.edit_address }}" class="editAddress">
@@ -53,48 +44,35 @@
 
 {% else %}
     {% set formBody %}
-        <label for="addressLine1" class="{{ state.requiredFields['addressLine1']?'required':'' }}">
-            {{ state.trans.address_line_1 }}
-        </label>
         <input type="text"
                name="addressLine1"
                value="{{ state.addressLine1 }}"
+               placeholder="{{ state.trans.address_line_1 }}"
                class="{{ state.requiredFields['addressLine1']?'required':'' }}">
         <br>
-        <label for="addressLine2" class="{{ state.requiredFields['addressLine2']?'required':'' }}">
-            {{ state.trans.address_line_2 }}
-        </label>
         <input type="text"
                name="addressLine2"
                value="{{ state.addressLine2 }}"
+               placeholder="{{ state.trans.address_line_2 }}"
                class="{{ state.requiredFields['addressLine2']?'required':'' }}">
         <br>
-        <label for="townOrCity" class="{{ state.requiredFields['townOrCity']?'required':'' }}">
-            {{ state.trans.town_or_city }}
-        </label>
         <input type="text" name="townOrCity"
                value="{{ state.townOrCity }}"
+               placeholder="{{ state.trans.town_or_city }}"
                class="{{ state.requiredFields['townOrCity']?'required':'' }}">
         <br>
-        <label for="stateOrRegion" class="{{ state.requiredFields['stateOrRegion']?'required':'' }}">
-            {{ state.trans.state_or_region }}
-        </label>
         <input type="text"
                name="stateOrRegion"
                value="{{ state.stateOrRegion }}"
+               placeholder="{{ state.trans.state_or_region }}"
                class="{{ state.requiredFields['stateOrRegion']?'required':'' }}">
         <br>
-        <label for="postCode" class="{{ state.requiredFields['postCode']?'required':'' }}">
-            {{ state.trans.postcode }}
-        </label>
         <input type="text"
                name="postCode"
                value="{{ state.postCode }}"
+               placeholder="{{ state.trans.postcode }}"
                class="{{ state.requiredFields['postCode']?'required':'' }}">
         <br>
-        <label for="countryCode" class="{{ state.requiredFields['countryCode']?'required':'' }}">
-            {{ state.trans.country }}
-        </label>
         <select name="countryCode"
                 class="{{ state.requiredFields['countryCode']?'required':'' }}">
             <option value="">{{ state.trans.select }}</option>

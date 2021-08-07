@@ -22,10 +22,10 @@ class StripeTranslations extends StructClass
     public $please_wait = "Please wait...";
     
     public $credit_or_debit_card = "Credit or debit card";
-    public $card_details = "Card details";
+    public $card_details = "Payment";
     public $card_number = "Card number";
     public $expiry_date = "Expiry date";
     public $cvc_number = "CVC number";
-    public $submit_payment = "Submit Payment";
+    public $submit_payment = "Pay";
     
 }

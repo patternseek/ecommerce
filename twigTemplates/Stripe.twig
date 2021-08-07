@@ -17,7 +17,7 @@
         <fieldset>
         <legend>{{ state.trans.card_details }}</legend>
             
-            <span id="payment-request-element-wrapper">
+            <span id="payment-request-element-wrapper" style="display: none">
                 <div id="payment-request-element">
                     <!-- a Stripe Element will be inserted here. -->
                 </div>
@@ -63,7 +63,7 @@
             }
         );
         cardEl.mount('#card-element');
-        $('#formHide').slideDown();
+        $('#formHide').fadeIn();
 
         $("#pnsk-stripe-submit").click(
             function(e){
@@ -121,27 +121,30 @@
     }
 
     function setupPaymentRequestButtonElement(stripe, elements ){
-        var paymentRequest = stripe.paymentRequest({
-            country: '{{ state.config.countryCode }}',
-            currency: '{{ state.config.currency|lower }}',
-            total: {
-                label: '{{ state.description }}',
-                amount: {{ state.amountCents }},
-            },
-            requestPayerName: true,
-            requestPayerEmail: true,
-        });
-
-        var prButton = elements.create('paymentRequestButton', {
-            paymentRequest: paymentRequest,
-        });
+        try{
+            var paymentRequest = stripe.paymentRequest({
+                country: '{{ state.config.countryCode }}',
+                currency: '{{ state.config.currency|lower }}',
+                total: {
+                    label: '{{ state.description }}',
+                    amount: {{ state.amountCents }},
+                },
+                requestPayerName: true,
+                requestPayerEmail: true,
+            });
+            var prButton = elements.create('paymentRequestButton', {
+                paymentRequest: paymentRequest,
+            });
+        }catch (err){
+            console.log(err);
+            return;
+        }
 
         // Check the availability of the Payment Request API first.
         paymentRequest.canMakePayment().then(function(result) {
             if (result) {
+                $('#payment-request-element-wrapper').css( 'display', 'block' );
                 prButton.mount('#payment-request-element');
-            } else {
-                $('#payment-request-element-wrapper').style.display = 'none';
             }
         });
         paymentRequest.on('paymentmethod', function(ev) {
