@@ -74,7 +74,7 @@
                class="{{ state.requiredFields['postCode']?'required':'' }}">{{ state.requiredFields['postCode']?' *':'' }}
         <br>
         <select name="countryCode"
-                class="{{ state.requiredFields['countryCode']?'required':'' }}">{{ state.requiredFields['countryCode']?' *':'' }}
+                class="{{ state.requiredFields['countryCode']?'required':'' }}">
             <option value="">{{ state.trans.select }}</option>
             {% for code,country in state.trans.countriesByISO %}
                 <option
@@ -86,7 +86,7 @@
                     {{ country }}
                 </option>
             {% endfor %}
-        </select>
+        </select>{{ state.requiredFields['countryCode']?' *':'' }}
         <br>
         <input type="submit" value="{{ state.trans.continue }}" class="updateAddress">
     {% endset %}
