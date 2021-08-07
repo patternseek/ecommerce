@@ -61,7 +61,7 @@
                         <a href="#" onclick="$('#vattoggle').hide(); $('#vatsection').fadeToggle(); return false">Click here if you're purchasing for a VAT registered business</a>
                     </span>
                     
-                    <div id="vatsection"  style="display: none">
+                    <div id="vatsection"  {% if state.vatNumberStatus != "invalid" %}style="display: none"{% endif %}>
                     
                         {% set validateFormBody %}
     
