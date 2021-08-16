@@ -126,7 +126,7 @@
                 country: '{{ state.config.countryCode }}',
                 currency: '{{ state.config.currency|lower }}',
                 total: {
-                    label: '{{ state.description }}',
+                    label: '{{ state.description|replace({"\n":"\\n"}) }}',
                     amount: {{ state.amountCents }},
                 },
                 requestPayerName: true,
