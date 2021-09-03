@@ -27,7 +27,7 @@ jobs:
           ${{ runner.os }}-php-
 
     - name: Install extensions
-      run: apt install php-geoip
+      run: sudo apt install php-geoip
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
