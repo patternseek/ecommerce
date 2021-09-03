@@ -26,8 +26,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-php-
 
-    - name: Install extensions
+    - name: Install geoip
       run: sudo apt install php-geoip
+      
+    - name: Enable geoip
+      run: sudo phpenmod geoip
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
