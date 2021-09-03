@@ -36,4 +36,7 @@ jobs:
       run: composer install --prefer-dist --no-progress
 
     - name: Run test suite
-      run: export vatlayer_api_key=${{ secrets.VATLAYER_API_KEY }}; export hmrc_use_live_api=false; ./vendor/bin/phpunit tests/
+      run: ./vendor/bin/phpunit tests/
+      env:
+          vatlayer_api_key: ${{ secrets.VATLAYER_API_KEY }}
+          hmrc_use_live_api: false
