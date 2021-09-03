@@ -32,6 +32,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-php-
 
+    - name: Install GeoIP database
+      run: sudo apt install geoip-database
+
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
 
