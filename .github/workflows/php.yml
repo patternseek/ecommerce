@@ -13,6 +13,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    
+    - uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.3'
+        tools: pecl
+        extensions: geoip
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
@@ -26,16 +32,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-php-
 
-    - name: Install geoip
-      run: sudo apt install php-geoip
-      
-    - name: Enable geoip
-      run: sudo phpenmod geoip
-
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
-
-    
 
     - name: Run test suite
       run: export vatlayer_api_key=${{ secrets.vatlayer_api_key }}; export hmrc_use_live_api=false; ./vendor/bin/phpunit tests/
