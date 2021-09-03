@@ -32,5 +32,5 @@ jobs:
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
-    # - name: Run test suite
-    #   run: composer run-script test
+    - name: Run test suite
+      run: export vatlayer_api_key=${{ secrets.vatlayer_api_key }}; export hmrc_use_live_api=false; ./vendor/bin/phpunit tests/
