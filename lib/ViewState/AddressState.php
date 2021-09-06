@@ -87,6 +87,13 @@ class AddressState extends ViewState
      * @Assert\Type(type="PatternSeek\ECommerce\BasketTranslations")
      */
     public $trans;
+    
+    /**
+     * An optional Twig template to override the default
+     * 
+     * @var string
+     */
+    public $passedTemplate;
 
     /**
      * @return string

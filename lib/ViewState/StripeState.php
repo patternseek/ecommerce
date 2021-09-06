@@ -133,5 +133,12 @@ class StripeState extends ViewState
      * @var string
      */
     public $createdSubscriptionId;
+    
+    /**
+     * An optional Twig template to override the default
+     * 
+     * @var string
+     */
+    public $passedTemplate;
 
 }

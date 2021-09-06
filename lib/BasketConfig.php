@@ -131,6 +131,26 @@ class BasketConfig extends StructClass
      * @Assert\Type(type="string")
      */
     public $email;
+    
+    /**
+     * Optional Twig template to allow the caller to pass in a template for the Basket component
+     * 
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $basketTemplate;
+    
+    /**
+     * Optional Twig template as a string to override the default
+     * 
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $addressTemplate;
+    
+    
 
     /**
      * Populate the StructClass's properties from an array
