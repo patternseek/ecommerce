@@ -1,0 +1,211 @@
+{# @var this \PatternSeek\ECommerce\Stripe #}
+{# @var exec \PatternSeek\ComponentView\ExecHelper #}
+{# @var state \PatternSeek\ECommerce\ViewState\StripeState #}
+
+<script type="text/javascript">
+
+    jQuery(function ($) {
+
+        var stripe = Stripe('{{ state.apiPubKey }}');
+        var elements = stripe.elements();
+
+        setupCardElement( stripe, elements );
+        setupPaymentRequestButtonElement( stripe, elements );
+
+    });
+
+    function setupCardElement( stripe, elements ){
+        var cardEl = elements.create(
+            'card',
+            {
+                hidePostalCode: true,
+            }
+        );
+        cardEl.mount('#card-element');
+        $('#formHide').fadeIn();
+
+        $("#pnsk-stripe-submit").click(
+            function(e){
+                $(e).attr("disabled", true);
+                $("#pnsk-stripe-working").show();
+            }
+        );
+
+        $('#payment-form').submit(function (e) {
+            $('.payment-errors').html("");
+            var form = $(this);
+            // Disable the submit button to prevent repeated clicks
+            form.find('input[type="submit"]').prop('disabled', true);
+
+            stripe.createPaymentMethod(
+                'card',
+                cardEl,
+                {
+                    'billing_details':
+                        {
+                            'address':
+                                {
+                                    'line1': '{{ state.address.addressLine1 }}',
+                                    'line2': '{{ state.address.addressLine2 }}',
+                                    'city': '{{ state.address.townOrCity }}',
+                                    'state': '{{ state.address.stateOrRegion }}',
+                                    'postal_code': '{{ state.address.postCode }}',
+                                    'country': '{{ state.address.countryCode }}'
+                                }
+                        }
+                }
+            ).then(function (result) {
+                if (result.error) {
+                    showStripeError(result);
+                } else {
+                    fetch('{{ exec.url( "confirmPayment", [], true ) }}', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            payment_method_id: result.paymentMethod.id
+                        })
+                    }).then(function (result) {
+                        // Handle server response (see Step 3)
+                        result.json().then(function (json) {
+                            handleServerResponse(json, stripe);
+                        })
+                    });
+                }
+            });
+            return false;
+        });
+    }
+
+    function setupPaymentRequestButtonElement(stripe, elements ){
+        try{
+            var paymentRequest = stripe.paymentRequest({
+                country: '{{ state.config.countryCode }}',
+                currency: '{{ state.config.currency|lower }}',
+                total: {
+                    label: '{{ state.description|replace({"\n":"\\n"}) }}',
+                    amount: {{ state.amountCents }},
+                },
+                requestPayerName: true,
+                requestPayerEmail: true,
+            });
+            var prButton = elements.create('paymentRequestButton', {
+                paymentRequest: paymentRequest,
+            });
+        }catch (err){
+            console.log(err);
+            return;
+        }
+
+        // Check the availability of the Payment Request API first.
+        paymentRequest.canMakePayment().then(function(result) {
+            if (result) {
+                $('#payment-request-element-wrapper').css( 'display', 'block' );
+                prButton.mount('#payment-request-element');
+            }
+        });
+        paymentRequest.on('paymentmethod', function(ev) {
+
+            if (ev.error) {
+                showStripeError(ev);
+            } else {
+                fetch('{{ exec.url( "confirmPayment", [], true ) }}', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        payment_method_id: ev.paymentMethod.id
+                    })
+                }).then(function (result) {
+                    result.json().then(function (res) {
+                        handleServerResponsePaymentButton(res,ev, stripe);
+                    })
+                });
+            }
+
+
+        });
+    }
+
+    function handleServerResponse(response, stripe) {
+        if (response.error) {
+            // Show error from server on payment form
+            showStripeError(response);
+        } else if (response.requires_action) {
+            // Use Stripe.js to handle required card action
+            handleAction(response, stripe);
+        } else {
+            // Success
+            submitCompletionForm(response.paymentIntentId);
+        }
+    }
+
+    function handleServerResponsePaymentButton(response,ev, stripe) {
+        if (response.error) {
+            ev.complete('fail');
+            // Show error from server on payment form
+            showStripeError(response);
+        } else if (response.requires_action) {
+            // Use Stripe.js to handle required card action
+            handleAction(response, stripe);
+        } else {
+            ev.complete('success');
+            // Success
+            submitCompletionForm(response.paymentIntentId);
+        }
+    }
+
+    function handleAction(response, stripe) {
+
+        var handleResult =
+            function (result) {
+                if (result.error) {
+                    // Show error in payment form
+                    showStripeError(result)
+                } else {
+                    // Success
+                    submitCompletionForm(result.paymentIntent.id);
+                }
+            };
+
+        if( response.confirmation_method == "automatic" ){
+            stripe.handleCardPayment(
+                response.payment_intent_client_secret
+            ).then( handleResult )
+        }else {
+            stripe.handleCardAction(
+                response.payment_intent_client_secret
+            ).then( handleResult );
+        }
+
+
+    }
+
+    function showStripeError(result) {
+        var err = result.error;
+        if( typeof result.error == "object"  ){
+            err = result.error.message;
+        }
+
+        // Inform the user if there was an error
+        var errorElement = document.getElementById('card-errors');
+        errorElement.textContent = err;
+        // Re-enable the form
+        var form = $('#payment-form');
+        form.find('#pnsk-stripe-submit').prop('disabled', false);
+        // Hide the waiting indicator
+        $("#pnsk-stripe-working").hide();
+    }
+
+    function submitCompletionForm(paymentIntentId) {
+        var form = $('#completion-form');
+        form.append($('<input type="hidden" name="paymentIntentId" />').val(paymentIntentId));
+        // and re-submit
+        form.get(0).submit();
+    };
+    
+</script>
