@@ -11,12 +11,11 @@ namespace PatternSeek\ECommerce\Test;
 
 use PatternSeek\DependencyInjector\DependencyInjector;
 use PatternSeek\ECommerce\Basket;
-use PatternSeek\ECommerce\BasketConfig;
-use PatternSeek\ECommerce\HmrcVatApiConfig;
+use PatternSeek\ECommerce\Config\BasketConfig;
 use PatternSeek\ECommerce\LineItem;
-use PatternSeek\ECommerce\Stripe;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
 use PatternSeek\ECommerce\Stripe\Facade\StripePaymentMethodMock;
+use PatternSeek\ECommerce\Stripe\Stripe;
 use PHPUnit\Framework\TestCase;
 use Pimple\Container;
 use Psr\Log\LogLevel;
