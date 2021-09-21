@@ -8,9 +8,8 @@
  * file that was distributed with this source code.
  */
 
-namespace PatternSeek\ECommerce;
+namespace PatternSeek\ECommerce\Config;
 
-use PatternSeek\ECommerce\ViewState\AddressState;
 use PatternSeek\ECommerce\TemplateConfig;
 use PatternSeek\StructClass;
 use Symfony\Component\Validator\Constraints as Assert;
