@@ -3,8 +3,8 @@
 namespace PatternSeek\ECommerce\ViewState;
 
 use PatternSeek\ComponentView\ViewState\ViewState;
-use PatternSeek\ECommerce\BasketConfig;
 use PatternSeek\ECommerce\BasketTranslations;
+use PatternSeek\ECommerce\Config\BasketConfig;
 use PatternSeek\ECommerce\TransactionSuccessCallback;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -28,7 +28,7 @@ class BasketState extends ViewState
     /**
      * @var BasketConfig
      *
-     * @Assert\Type(type="PatternSeek\ECommerce\BasketConfig")
+     * @Assert\Type(type="PatternSeek\ECommerce\Config\BasketConfig")
      */
     public $config;
     

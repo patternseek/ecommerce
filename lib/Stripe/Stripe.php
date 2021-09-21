@@ -8,21 +8,16 @@
  * file that was distributed with this source code.
  */
 
-namespace PatternSeek\ECommerce;
+namespace PatternSeek\ECommerce\Stripe;
 
 use Exception;
-use function GuzzleHttp\default_ca_bundle;
 use PatternSeek\ComponentView\AbstractViewComponent;
 use PatternSeek\ComponentView\Response;
 use PatternSeek\ComponentView\Template\TwigTemplate;
-use PatternSeek\ECommerce\Stripe\AbstractChargeStrategy;
-use PatternSeek\ECommerce\Stripe\ImmediateChargeStrategy;
-use PatternSeek\ECommerce\Stripe\StripeTranslations;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
-use PatternSeek\ECommerce\Stripe\SubscriptionChargeStrategy;
 use PatternSeek\ECommerce\ViewState\AddressState;
 use PatternSeek\ECommerce\ViewState\StripeState;
-use PatternSeek\StructClass\StructClass;
+use function GuzzleHttp\default_ca_bundle;
 
 /**
  * A ViewComponent for rendering Stripe checkout within a ViewComponents
@@ -217,7 +212,14 @@ class Stripe extends AbstractViewComponent
      */
     protected function initTemplate()
     {
-        $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Stripe.twig" );
+        // Template can be overridden in config
+        if( null !== $this->state->passedTemplate ){
+            $mainTplTwig = $this->state->passedTemplate;
+        }else{
+            $mainTplTwig = file_get_contents( __DIR__ . "/../../twigTemplates/Stripe.twig" );
+        }
+        $jsTplTwig = file_get_contents( __DIR__ . "/../../twigTemplates/StripeJs.twig" );
+        $tplTwig = $mainTplTwig.$jsTplTwig;
         $this->template = new TwigTemplate( $this, null, $tplTwig );
     }
 
@@ -242,7 +244,8 @@ class Stripe extends AbstractViewComponent
                 'address' => [ AddressState::class ],
                 'lineItems' => [ 'array' ],
                 'email' => ['string', null ],
-                'translations' => [StripeTranslations::class, new StripeTranslations() ]
+                'translations' => [StripeTranslations::class, new StripeTranslations() ],
+                'template' => ['string', null]
             ],
             $props
         );
@@ -254,6 +257,7 @@ class Stripe extends AbstractViewComponent
         $this->state->lineItems = $props[ 'lineItems' ];
         $this->state->email = $props[ 'email' ];
         $this->state->trans = $props['translations'];
+        $this->state->passedTemplate = $props['template'];
 
         switch ( $this->state->chargeMode ){
             case "immediate":
@@ -284,7 +288,7 @@ class Stripe extends AbstractViewComponent
     {
         $this->testInputs(
             [
-                'config' => [ "array" ],  // Required, entries should be PatternSeek\ECommerce\PaymentProviderConfig
+                'config' => [ "array" ],  // Required, entries should be PatternSeek\ECommerce\Config\PaymentProviderConfig
                 'buttonLabel' => [ 'string', null ],                                 // Optional, default null
                 'email' => [ 'string', null ],                                       // Optional, default null
                 'testMode' => [ 'boolean' ],                                        // Required

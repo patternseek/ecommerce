@@ -13,6 +13,7 @@ namespace PatternSeek\ECommerce;
 use PatternSeek\ComponentView\AbstractViewComponent;
 use PatternSeek\ComponentView\Response;
 use PatternSeek\ComponentView\Template\TwigTemplate;
+use PatternSeek\ECommerce\Config\BasketConfig;
 use PatternSeek\ECommerce\ViewState\BasketState;
 use Psr\Log\LogLevel;
 
@@ -439,7 +440,10 @@ class Basket extends AbstractViewComponent
 
         $this->addOrUpdateChild(
             'billingAddress', Address::class,
-            [ 'state' => $this->state->config->billingAddress ]
+            [ 
+                'state' => $this->state->config->billingAddress, 
+                'template'=>$this->state->config->addressTemplate 
+            ]
         );
 
         foreach ($this->state->config->paymentProviders as $providerConfig) {
@@ -449,6 +453,7 @@ class Basket extends AbstractViewComponent
                 [
                     'config' => $providerConfig->conf,
                     'translations' => $providerConfig->translations,
+                    'template' => $providerConfig->template,
                     'buttonLabel' => null,
                     'email' => $this->state->config->email,
                     'testMode' => $this->state->testMode,
@@ -473,8 +478,12 @@ class Basket extends AbstractViewComponent
      */
     protected function initTemplate()
     {
-        $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Basket.twig" );
-
+        // Template can be overridden in config
+        if( null !== $this->state->config->basketTemplate ){
+            $tplTwig = $this->state->config->basketTemplate;
+        }else{
+            $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Basket.twig" );
+        }
         $this->template = new TwigTemplate( $this, null, $tplTwig );
     }
 

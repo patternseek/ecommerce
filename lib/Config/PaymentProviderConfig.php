@@ -8,8 +8,9 @@
  * file that was distributed with this source code.
  */
 
-namespace PatternSeek\ECommerce;
+namespace PatternSeek\ECommerce\Config;
 
+use PatternSeek\ECommerce\TemplateConfig;
 use PatternSeek\StructClass;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -38,6 +39,15 @@ class PaymentProviderConfig extends StructClass\StructClass
      * @Assert\NotBlank()
      */
     public $componentClass;
+    
+    /**
+     * Optional Twig template as a string to allow the caller to pass in a template for the payment provider instead of using the default.
+     * 
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $template;
 
     /**
      * Provider-type specific config

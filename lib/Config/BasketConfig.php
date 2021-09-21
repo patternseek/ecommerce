@@ -8,7 +8,7 @@
  * file that was distributed with this source code.
  */
 
-namespace PatternSeek\ECommerce;
+namespace PatternSeek\ECommerce\Config;
 
 use PatternSeek\ECommerce\ViewState\AddressState;
 use PatternSeek\StructClass\StructClass;
@@ -74,7 +74,7 @@ class BasketConfig extends StructClass
      * Configuration for HMRC VAT API
      * @var HmrcVatApiConfig
      *
-     * @Assert\Type( type="PatternSeek\ECommerce\HmrcVatApiConfig" )
+     * @Assert\Type( type="PatternSeek\ECommerce\Config\HmrcVatApiConfig" )
      */
     public $hmrcVatApiConfig;
 
@@ -86,7 +86,7 @@ class BasketConfig extends StructClass
      * @Assert\Type(type="array")
      * @Assert\All(
      *      @Assert\NotBlank(),
-     *      @Assert\Type( type="PatternSeek\ECommerce\PaymentProviderConfig" )
+     *      @Assert\Type( type="PatternSeek\ECommerce\Config\PaymentProviderConfig" )
      * )
      */
     public $paymentProviders;
@@ -131,6 +131,26 @@ class BasketConfig extends StructClass
      * @Assert\Type(type="string")
      */
     public $email;
+    
+    /**
+     * Optional Twig template to allow the caller to pass in a template for the Basket component
+     * 
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $basketTemplate;
+    
+    /**
+     * Optional Twig template as a string to override the default
+     * 
+     * @var string
+     *
+     * @Assert\Type(type="string")
+     */
+    public $addressTemplate;
+    
+    
 
     /**
      * Populate the StructClass's properties from an array

@@ -94,7 +94,12 @@ class Address extends AbstractViewComponent
      */
     protected function initTemplate()
     {
-        $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Address.twig" );
+        // Template can be overridden in config
+        if( null !== $this->state->passedTemplate ){
+            $tplTwig = $this->state->passedTemplate;
+        }else{
+            $tplTwig = file_get_contents( __DIR__ . "/../twigTemplates/Address.twig" );
+        }
         $this->template = new TwigTemplate( $this, null, $tplTwig );
     }
 
@@ -113,7 +118,8 @@ class Address extends AbstractViewComponent
 
         $this->testInputs(
             [
-                'state' => [ 'PatternSeek\\ECommerce\\ViewState\\AddressState', null ]
+                'state' => [ AddressState::class, null ],
+                'template' => ['string', null]
             ],
             $props
         );
@@ -125,6 +131,7 @@ class Address extends AbstractViewComponent
             if (null === $this->state->mode) {
                 $this->state->mode = 'view';
             }    
+            $this->state->passedTemplate = $props['template'];
         }
         
         // Update

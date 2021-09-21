@@ -11,12 +11,11 @@ namespace PatternSeek\ECommerce\Test;
 
 use PatternSeek\DependencyInjector\DependencyInjector;
 use PatternSeek\ECommerce\Basket;
-use PatternSeek\ECommerce\BasketConfig;
-use PatternSeek\ECommerce\HmrcVatApiConfig;
+use PatternSeek\ECommerce\Config\BasketConfig;
 use PatternSeek\ECommerce\LineItem;
-use PatternSeek\ECommerce\Stripe;
 use PatternSeek\ECommerce\Stripe\Facade\StripeFacade;
 use PatternSeek\ECommerce\Stripe\Facade\StripePaymentMethodMock;
+use PatternSeek\ECommerce\Stripe\Stripe;
 use PHPUnit\Framework\TestCase;
 use Pimple\Container;
 use Psr\Log\LogLevel;
@@ -58,7 +57,7 @@ class BasketTest extends TestCase
     protected $successCallback;
 
     
-    public function testSubscription()
+    public function testSubscription($passTemplatesAsConfig = false)
     {
         $billingAddress = $this->getUKAddress();
         $lineItem = $this->getElectronicServiceLineItem();
@@ -66,20 +65,30 @@ class BasketTest extends TestCase
         $successOutput = [ ];
 
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $billingAddress, $chargeMode = "subscription" );
+        $view = $this->prepareBasket( $lineItem, $billingAddress, $chargeMode = "subscription", $passTemplatesAsConfig );
 
         StripeFacade::$testMode = true;
         $this->succeedOnSubscription( $view );
 
     }
     
-    public function testElectronicServiceToUKConsumer()
+    public function testSubscriptionWithPassedTemplates()
+    {
+        $view = $this->testSubscription(true);
+    }
+    
+    public function testElectronicServiceToUKConsumerWithPassedTemplates()
+    {
+        $view = $this->testElectronicServiceToUKConsumer(true);
+    }
+    
+    public function testElectronicServiceToUKConsumer($passTemplatesAsConfig = false)
     {
         $billingAddress = $this->getUKAddress();
         $lineItem = $this->getElectronicServiceLineItem();
         $successOutput = [ ];
         /** @var Basket $view */
-        $view = $this->prepareBasket( $lineItem, $billingAddress );
+        $view = $this->prepareBasket( $lineItem, $billingAddress, 'immediate', $passTemplatesAsConfig );
         $state = $view->getStateForTesting();
         $this->assertTrue(
             $state->requireUserLocationProof
@@ -452,7 +461,7 @@ class BasketTest extends TestCase
         $failed = false;
         try{
             /** @var Basket $view */
-            $view = $this->prepareBasket( [$lineItem1,$lineItem2], $billingAddress );
+            $view = $this->prepareBasket( [ $lineItem1, $lineItem2 ], $billingAddress );
             // Should have thrown exception
             $failed = true;
         }catch( \Exception $e ){
@@ -478,7 +487,7 @@ class BasketTest extends TestCase
         $failed = false;
         try{
             /** @var Basket $view */
-            $view = $this->prepareBasket( [$lineItem1,$lineItem2,$lineItem3], $billingAddress );
+            $view = $this->prepareBasket( [ $lineItem1, $lineItem2, $lineItem3 ], $billingAddress );
             // Should have thrown exception
             $failed = true;
         }catch( \Exception $e ){
@@ -502,7 +511,7 @@ class BasketTest extends TestCase
         $lineItem2->metadata = ["somekey"=>"1", "otherkey"=>"2"];
         
         /** @var Basket $view */
-        $view = $this->prepareBasket( [$lineItem1,$lineItem2], $billingAddress );
+        $view = $this->prepareBasket( [ $lineItem1, $lineItem2 ], $billingAddress );
         
         // No exception means success
         $this->assertTrue(true);
@@ -519,7 +528,7 @@ class BasketTest extends TestCase
         $lineItem2->metadata = ["somekey"=>"1", "otherkey"=>"2"];
         
         /** @var Basket $view */
-        $view = $this->prepareBasket( [$lineItem1,$lineItem2], $billingAddress );
+        $view = $this->prepareBasket( [ $lineItem1, $lineItem2 ], $billingAddress );
         
         // No exception means success
         $this->assertTrue(true);
@@ -828,13 +837,15 @@ United Kingdom',
      * @param LineItem|LineItem[] $lineItemOrArr
      * @param $billingAddress
      * @param string $chargeMode
+     * @param bool $passTemplatesAsConfig
      * @return Basket
      * @throws \Exception
      */
     private function prepareBasket(
         $lineItemOrArr,
         $billingAddress,
-        $chargeMode = "immediate"
+        string $chargeMode = "immediate",
+        bool $passTemplatesAsConfig = false
     )
     {
         if( ! getenv('hmrc_use_live_api') ){
@@ -860,12 +871,18 @@ United Kingdom',
             'countryCode' => "GB",
             'briefDescription' => "Brief description of basket contents.",
             'intro' => "Optional intro HTML for page.",
-            'paymentProviders' => $this->getPaymentProvidersConfig(),
+            'paymentProviders' => $this->getPaymentProvidersConfig($passTemplatesAsConfig),
             'billingAddress' => $billingAddress,
             'hmrcVatApiConfig' => [
                 "vatUrl" => $vatUrl,
             ],
         ];
+        
+        if ($passTemplatesAsConfig){
+            $configArray['basketTemplate'] = file_get_contents(__DIR__."/../twigTemplates/Basket.twig"); 
+            $configArray['addressTemplate'] = file_get_contents(__DIR__."/../twigTemplates/Address.twig");
+        }
+        
         file_put_contents( "/tmp/cnf", yaml_emit( $configArray, YAML_UTF8_ENCODING ) );
 
         /** @var BasketConfig $config */
@@ -991,9 +1008,9 @@ United Kingdom',
     /**
      * @return array
      */
-    private function getPaymentProvidersConfig()
+    private function getPaymentProvidersConfig($passTemplatesAsConfig = false)
     {
-        return [
+        $ret = [
             'Stripe' => [
                 'name' => 'stripe',
                 'componentClass' => Stripe::class,
@@ -1006,5 +1023,11 @@ United Kingdom',
                 ]
             ]
         ];
+        
+        if( $passTemplatesAsConfig ){
+            $ret['Stripe']['template'] = file_get_contents(__DIR__."/../twigTemplates/Stripe.twig");
+        }
+        
+        return $ret;
     }
 }
