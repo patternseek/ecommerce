@@ -45,12 +45,12 @@
                         {
                             'address':
                                 {
-                                    'line1': '{{ state.address.addressLine1 }}',
-                                    'line2': '{{ state.address.addressLine2 }}',
-                                    'city': '{{ state.address.townOrCity }}',
-                                    'state': '{{ state.address.stateOrRegion }}',
-                                    'postal_code': '{{ state.address.postCode }}',
-                                    'country': '{{ state.address.countryCode }}'
+                                    'line1': '{{ state.address.addressLine1|e("js") }}',
+                                    'line2': '{{ state.address.addressLine2|e("js") }}',
+                                    'city': '{{ state.address.townOrCity|e("js") }}',
+                                    'state': '{{ state.address.stateOrRegion|e("js") }}',
+                                    'postal_code': '{{ state.address.postCode|e("js") }}',
+                                    'country': '{{ state.address.countryCode|e("js") }}'
                                 }
                         }
                 }
@@ -82,10 +82,10 @@
     function setupPaymentRequestButtonElement(stripe, elements ){
         try{
             var paymentRequest = stripe.paymentRequest({
-                country: '{{ state.config.countryCode }}',
-                currency: '{{ state.config.currency|lower }}',
+                country: '{{ state.config.countryCode|e("js") }}',
+                currency: '{{ state.config.currency|lower|e("js") }}',
                 total: {
-                    label: '{{ state.description|replace({"\n":"\\n"}) }}',
+                    label: '{{ state.description|e("js") }}',
                     amount: {{ state.amountCents }},
                 },
                 requestPayerName: true,
