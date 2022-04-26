@@ -2,7 +2,7 @@
 /*
  * This file is part of the Patternseek ECommerce library.
  *
- * (c)2015 Tolan Blundell <tolan@patternseek.net>
+ * (c)2015 - 2021 Tolan Blundell <tolan@patternseek.net>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
