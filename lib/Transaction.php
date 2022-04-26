@@ -1,4 +1,12 @@
 <?php
+/*
+ * This file is part of the Patternseek ECommerce library.
+ *
+ * (c)2015 - 2021 Tolan Blundell <tolan@patternseek.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace PatternSeek\ECommerce;
 
@@ -227,7 +235,7 @@ class Transaction extends StructClass
     }
 
     /**
-     * Set transaction details as array
+     * Set transaction details as array - These are serialised LineItems
      * @param array $transactionDetail
      */
     public function setTransactionDetail( array $transactionDetail )
@@ -236,7 +244,7 @@ class Transaction extends StructClass
     }
 
     /**
-     * Convert from old CSV style transaction details to new JSON string format.
+     * Convert from old CSV style transaction details to new JSON string format (which is a JSON serialised array of LineItems).
      * @return boolean True if the transaction was upgraded, false if it was already in the new format.
      */
     public function upgradeTransactionDetail()
@@ -253,6 +261,7 @@ class Transaction extends StructClass
                     continue;
                 }
                 $tmp = [ ];
+                // New items are generated directly from LineItems
                 $tmp[ 'quantity' ] = ( trim( $parts[ 0 ] ) == '-' )?1:trim( $parts[ 0 ] );
                 $tmp[ 'description' ] = trim( $parts[ 1 ] );
                 $tmp[ 'netPrice' ] = trim( $parts[ 2 ] );
