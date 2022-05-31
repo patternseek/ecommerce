@@ -301,6 +301,9 @@ class Basket extends AbstractViewComponent
         }
 
         $this->state->successMessage = $this->state->transactionSuccessCallback->__invoke( $txn, $this )->content;
+        if( null == $this->state->successMessage ){
+            $this->state->successMessage = "ERROR: transaction success callback must return a success message!";
+        }
         // Render full component, including parent of basket, if any.
         $root = $this->getRootComponent();
         $root->updateState();
