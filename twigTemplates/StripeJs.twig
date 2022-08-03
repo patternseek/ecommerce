@@ -4,15 +4,25 @@
 
 <script type="text/javascript">
 
-    document.addEventListener("DOMContentLoaded", function() {
-
+    
+    var stripeInit = function (){
         var stripe = Stripe('{{ state.apiPubKey }}');
         var elements = stripe.elements();
 
         setupCardElement( stripe, elements );
         setupPaymentRequestButtonElement( stripe, elements );
+    };
 
-    });
+    // This code gets re-loaded after page load if the address box gets saved,
+    // so in that case we need to detect that the DOMContentLoaded event has 
+    // already been fired.
+    if (document.readyState === "complete" || document.readyState === "loaded") {
+        stripeInit();
+    }else{
+        document.addEventListener("DOMContentLoaded", function() {
+            stripeInit();
+        });
+    }
 
     function setupCardElement( stripe, elements ){
         var cardEl = elements.create(
