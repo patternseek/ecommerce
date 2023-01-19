@@ -78,6 +78,15 @@ class BasketConfig extends StructClass
      */
     public $hmrcVatApiConfig;
 
+    /**
+     * Path to GeoLite 2 Countries DB
+     * 
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $geoIpDbPath;
     
     /**
      * Configuration for payment system providers
