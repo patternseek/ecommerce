@@ -279,7 +279,11 @@ class Basket extends AbstractViewComponent
         
         $this->state->transactionSuccessCallback->preTransactionNotification( $txn );
     }
-
+    
+    public function successWithNoTransaction(){
+        // FIXME NOT IMPLEMENTED
+    }
+    
     /**
      * @param Transaction $txn
      * @return Response
