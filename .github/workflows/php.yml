@@ -16,9 +16,8 @@ jobs:
     
     - uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.3'
+        php-version: '8.1'
         tools: pecl
-        extensions: geoip
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
@@ -32,8 +31,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-php-
 
-    - name: Install GeoIP database
-      run: sudo apt install geoip-database
+    - name: Download GeoIP database
+      run: curl "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=${{ secrets.MAXMIND_API_KEY }}&suffix=tar.gz" --output /tmp/geo.tar.gz
+      
+    - name: Extract GeoIP database
+      run: cd /tmp/; tar zxvf geo.tar.gz; mv GeoLite2-Country*/GeoLite2-Country.mmdb . 
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
@@ -43,3 +45,4 @@ jobs:
       env:
           vatlayer_api_key: ${{ secrets.VATLAYER_API_KEY }}
           hmrc_use_live_api: false
+          geoip_db_path: /tmp/GeoLite2-Country.mmdb
