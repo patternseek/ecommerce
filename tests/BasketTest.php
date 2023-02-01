@@ -744,7 +744,7 @@ United Kingdom',
             'transactionCurrency' => "GBP",
             'billingAddressCountryCode' => 'US',
             'ipCountryCode' => 'GB',
-            'time' => $successOutput[ 'time' ]
+            'time' => $successOutput[ 'time' ]??null
         ];
         ksort( $expected );
         $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";
@@ -860,6 +860,12 @@ United Kingdom',
             $vatUrl = "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/";
             $this->validUkVatNumber = "166804280212"; // 166804280212 is a test vat number for use with the HMRC VAT API test environment
         }
+
+        if( ! getenv('geoip_db_path') ){
+            throw new \Exception( "Please set the geoip_db_path environment variable to the location of the MaxMind GeoList2 Country database file" );
+        }
+        $geoDbPath = getenv('geoip_db_path');
+        
         
             
         // This would usually come from a config source
@@ -876,6 +882,7 @@ United Kingdom',
             'hmrcVatApiConfig' => [
                 "vatUrl" => $vatUrl,
             ],
+            'geoIpDbPath' => $geoDbPath
         ];
         
         if ($passTemplatesAsConfig){

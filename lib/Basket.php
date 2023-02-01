@@ -16,6 +16,7 @@ use PatternSeek\ComponentView\Template\TwigTemplate;
 use PatternSeek\ECommerce\Config\BasketConfig;
 use PatternSeek\ECommerce\ViewState\BasketState;
 use Psr\Log\LogLevel;
+use GeoIp2\Database\Reader;
 
 /**
  * Class Basket
@@ -363,10 +364,12 @@ class Basket extends AbstractViewComponent
      */
     protected function geoIPCountryCode()
     {
-        if (!extension_loaded( 'geoip' )) {
-            throw new \Exception( "There is a configuration error in the application. The GeoIP extension is not loaded." );
+        if (!file_exists( $this->state->config->geoIpDbPath )) {
+            throw new \Exception( "There is a configuration error in the application. The GeoIP database can not be found." );
         }
-        $countryCode = geoip_country_code_by_name( $this->state->config->remoteIp );
+        $reader = new Reader($this->state->config->geoIpDbPath);
+        
+        $countryCode = $reader->country($this->state->config->remoteIp)->country->isoCode;
         if( false === $countryCode ){
             return null;
         }
