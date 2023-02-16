@@ -11,14 +11,14 @@
         }
     ],
     "require": {
-        "php": ">=5.3.3",
+        "php": ">=8.1",
         "ext-mbstring": "*",
         "patternseek/componentview": "2.*",
         "patternseek/structclass": "1.*",
         "patternseek/dependencyinjector": "0.*",
         "stripe/stripe-php": "10.*",
         "ext-soap": "*",
-        "geoip2/geoip2": "^2.13"
+	"geoip2/geoip2": "^2.13"
     },
     "require-dev": {
         "phpunit/phpunit": "8.*.*"
