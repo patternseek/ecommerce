@@ -16,7 +16,7 @@
         "patternseek/componentview": "2.*",
         "patternseek/structclass": "1.*",
         "patternseek/dependencyinjector": "0.*",
-        "stripe/stripe-php": "6.*",
+        "stripe/stripe-php": "10.*",
         "ext-soap": "*",
         "geoip2/geoip2": "^2.13"
     },
