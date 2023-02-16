@@ -855,7 +855,7 @@ United Kingdom',
         $useHmrcLiveApi = strtolower(getenv('hmrc_use_live_api')); 
         if( $useHmrcLiveApi === "true" ){
             $vatUrl = "https://api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/";
-            $this->validUkVatNumber = "245719348"; // BT's VAT number
+            $this->validUkVatNumber = "569953277"; // Vodafone UK's VAT number
         }else{
             $vatUrl = "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/";
             $this->validUkVatNumber = "166804280212"; // 166804280212 is a test vat number for use with the HMRC VAT API test environment
