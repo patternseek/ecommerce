@@ -23,12 +23,12 @@ class Address extends AbstractViewComponent
     /**
      * @var \PatternSeek\ECommerce\Basket
      */
-    protected $parent;
+    protected ?AbstractViewComponent $parent;
 
     /**
      * @var AddressState An object containing state elements
      */
-    protected $state;
+    protected \PatternSeek\ComponentView\ViewState\ViewState $state;
 
     public function isReady()
     {

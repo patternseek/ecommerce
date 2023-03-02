@@ -29,7 +29,7 @@ class Stripe extends AbstractViewComponent
     /**
      * @var \PatternSeek\ECommerce\Basket
      */
-    protected $parent;
+    protected ?AbstractViewComponent $parent;
 
     /**
      * @var array
@@ -39,7 +39,7 @@ class Stripe extends AbstractViewComponent
     /**
      * @var StripeState
      */
-    protected $state;
+    protected \PatternSeek\ComponentView\ViewState\ViewState $state;
     
     /**
      * @var AbstractChargeStrategy
@@ -231,7 +231,7 @@ class Stripe extends AbstractViewComponent
     {
         $props = $this->props;
 
-        if (null === $this->state) {
+        if (! isset($this->state)) {
             $this->init( $props );
         }
 

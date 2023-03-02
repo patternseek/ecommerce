@@ -27,7 +27,7 @@ class Basket extends AbstractViewComponent
     /**
      * @var BasketState
      */
-    protected $state;
+    protected \PatternSeek\ComponentView\ViewState\ViewState $state;
 
     public function init( $props )
     {
