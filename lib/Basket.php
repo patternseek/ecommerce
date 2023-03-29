@@ -369,7 +369,11 @@ class Basket extends AbstractViewComponent
         }
         $reader = new Reader($this->state->config->geoIpDbPath);
         
-        $countryCode = $reader->country($this->state->config->remoteIp)->country->isoCode;
+        try{
+            $countryCode = $reader->country($this->state->config->remoteIp)->country->isoCode;
+        }catch(\Exception $e){
+            $countryCode = false;
+        }
         if( false === $countryCode ){
             return null;
         }
