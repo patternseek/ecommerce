@@ -244,15 +244,13 @@ class Basket extends AbstractViewComponent
      */
     public function getEUVatCountries()
     {
-	$ret = [ ];
-        if(!empty($this->state->vatRates[ 'rates' ])){
-          foreach ($this->state->vatRates[ 'rates' ] as $cc => $info) {
+        $ret = [ ];
+        foreach ($this->state->vatRates[ 'rates' ] as $cc => $info) {
 //            if (isset( $info[ 'iso_duplicate' ] )) {
 //                continue;
 //            }
             $ret[ $cc ] = $this->state->trans->countriesByISO[ $cc ];
-	  }
-	}
+        }
         asort( $ret );
         return $ret;
     }
