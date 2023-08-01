@@ -184,7 +184,7 @@ class BasketConfig extends StructClass
         
         $base->hmrcVatApiConfig = HmrcVatApiConfig::fromArray( $properties['hmrcVatApiConfig'] );
 
-        if ($properties[ 'billingAddress' ]) {
+        if (!empty($properties[ 'billingAddress' ])) {
             $base->billingAddress = AddressState::fromArray( $properties[ 'billingAddress' ] );
         }
 
