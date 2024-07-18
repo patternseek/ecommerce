@@ -29,6 +29,11 @@ class Basket extends AbstractViewComponent
      */
     protected \PatternSeek\ComponentView\ViewState\ViewState $state;
 
+    /**
+     * @param $props
+     * @return void
+     * @throws \Exception
+     */
     public function init( $props )
     {
         $this->testInputs(
@@ -64,7 +69,7 @@ class Basket extends AbstractViewComponent
             'countryCode' => $this->state->trans->country
         ];
 
-        $this->state->vatRates = $props[ 'vatRates' ];
+        $this->state->setVatRates( $props[ 'vatRates' ] );
         $this->state->intro = $config->intro;
         $this->state->outro = $config->outro;
         $this->state->testMode = $props[ 'testMode' ];
