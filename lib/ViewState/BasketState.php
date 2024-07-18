@@ -277,11 +277,10 @@ class BasketState extends ViewState
      */
     public function getVatRate( $countryCode )
     {
-	if(empty($countryCode)){
-           return 0.0;
-	}
-        $ucCountryCode = mb_strtoupper( $countryCode,
-            'UTF-8' );
+        if(empty($countryCode)){
+               return 0.0;
+        }
+        $ucCountryCode = mb_strtoupper( $countryCode, 'UTF-8' );
         if (!isset( $this->vatRates[ 'rates' ][ $ucCountryCode ] )) {
             return 0.0;
         }
