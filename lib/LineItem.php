@@ -262,6 +262,8 @@ class LineItem extends StructClass
             case "zero":
                 $rate = 0.0;
                 break;
+            default:
+                throw new Exception("Invalid VAT type in LineItem::getVatRate()");
         }
         $this->vatRate = $rate;
         return $this->vatRate;

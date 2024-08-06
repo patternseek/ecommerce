@@ -229,6 +229,15 @@ class BasketState extends ViewState
             )
         );
     }
+    
+    public function setVatRates( $vatRates )
+    {
+        // Sanity check the input
+        if( ! isset( $vatRates['rates']['AT']['standard_rate'] ) ){
+            throw new \Exception("VAT rates provided to the Basket appear to be invalid. No VAT rate found for Austria");
+        }
+        $this->vatRates = $vatRates;
+    }
 
     /**
      * Get the confirmed country code. Based on IP, billing address and card country for B2C or
@@ -277,11 +286,10 @@ class BasketState extends ViewState
      */
     public function getVatRate( $countryCode )
     {
-	if(empty($countryCode)){
-           return 0.0;
-	}
-        $ucCountryCode = mb_strtoupper( $countryCode,
-            'UTF-8' );
+        if(empty($countryCode)){
+               return 0.0;
+        }
+        $ucCountryCode = mb_strtoupper( $countryCode, 'UTF-8' );
         if (!isset( $this->vatRates[ 'rates' ][ $ucCountryCode ] )) {
             return 0.0;
         }

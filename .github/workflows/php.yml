@@ -32,7 +32,7 @@ jobs:
           ${{ runner.os }}-php-
 
     - name: Download GeoIP database
-      run: curl "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=${{ secrets.MAXMIND_API_KEY }}&suffix=tar.gz" --output /tmp/geo.tar.gz
+      run: curl -L "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=${{ secrets.MAXMIND_API_KEY }}&suffix=tar.gz" --output /tmp/geo.tar.gz
       
     - name: Extract GeoIP database
       run: cd /tmp/; tar zxvf geo.tar.gz; mv GeoLite2-Country*/GeoLite2-Country.mmdb . 
