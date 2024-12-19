@@ -13,6 +13,7 @@ namespace PatternSeek\ECommerce;
 use PatternSeek\ComponentView\AbstractViewComponent;
 use PatternSeek\ComponentView\Response;
 use PatternSeek\ComponentView\Template\TwigTemplate;
+use PatternSeek\ComponentView\ViewState\ViewState;
 use PatternSeek\ECommerce\Config\BasketConfig;
 use PatternSeek\ECommerce\ViewState\BasketState;
 use Psr\Log\LogLevel;
@@ -126,8 +127,39 @@ class Basket extends AbstractViewComponent
      * @param $args
      */
     private function validateGbVatNumber( $args ){
-        
+
+        $clientId = $this->state->config->hmrcVatApiConfig->clientId;
+        $clientSecret = $this->state->config->hmrcVatApiConfig->clientSecret;
+        $oauthTokenUrl = $this->state->config->hmrcVatApiConfig->oauthTokenUrl;
         $vatUrl = $this->state->config->hmrcVatApiConfig->vatUrl;
+
+        // Retrieve OAuth token
+        $optsAr = [
+            'http' => [
+                'method' => 'POST',
+                'ignore_errors' => true, // Needed to get body of non-200 responses
+                'header' => "Content-Type: application/x-www-form-urlencoded",
+                'content' => http_build_query( [
+                    'client_id' => $clientId,
+                    'client_secret' => $clientSecret,
+                    'grant_type' => 'client_credentials'
+                ] )
+            ]
+        ];
+        $context = stream_context_create( $optsAr );
+
+        $tokenResRaw = file_get_contents( $oauthTokenUrl, false, $context );
+        if( $tokenResRaw === false ){
+            $this->log("Unexpected error from HMRC VAT API when attempting to log retrieve OAuth token: Connection failed or no response", LogLevel::ALERT);
+            $this->vatCheckFailedDueToTechnicalError( $args );
+            return;
+        }
+        $tokenRes = json_decode( $tokenResRaw );
+        if( isset( $tokenRes->error) ){
+            $this->log("Unexpected error from HMRC VAT API when attempting to log retrieve OAuth token: {$tokenRes->error} : {$tokenRes->error_description}", LogLevel::ALERT);
+            $this->vatCheckFailedDueToTechnicalError( $args );
+            return;
+        }
         
         // Do VAT check
         $optsAr = [
@@ -136,6 +168,7 @@ class Basket extends AbstractViewComponent
                 'ignore_errors' => true, // Needed to get body of non-200 responses
                 'header' => [
                     "Accept: application/vnd.hmrc.1.0+json",
+                    "Authorization: Bearer {$tokenRes->access_token}",
                 ]
             ]
         ];

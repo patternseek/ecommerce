@@ -272,7 +272,7 @@ class LineItem extends StructClass
      * 
      * @param LineItem[] $lineItems
      */
-    public function checkForDuplicateMetadataKeys( $lineItems ){
+    public static function checkForDuplicateMetadataKeys( $lineItems ){
         foreach ( $lineItems as $lineItem ){
             // Subscriptions aren't included, they can have duplicate keys
             if( $lineItem->subscriptionTypeId ){
