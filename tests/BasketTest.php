@@ -848,6 +848,13 @@ United Kingdom',
         bool $passTemplatesAsConfig = false
     )
     {
+        if( ! getenv('hmrc_client_id') ){
+            throw new \Exception( "Please set the hmrc_client_id environment variable" );
+        }
+        if( ! getenv('hmrc_client_secret') ){
+            throw new \Exception( "Please set the hmrc_client_secret environment variable" );
+        }
+        
         if( ! getenv('hmrc_use_live_api') ){
             throw new \Exception( "Please set the hmrc_use_live_api environment variable" );
         }
@@ -855,9 +862,11 @@ United Kingdom',
         $useHmrcLiveApi = strtolower(getenv('hmrc_use_live_api')); 
         if( $useHmrcLiveApi === "true" ){
             $vatUrl = "https://api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/";
+            $oauthTokenUrl = "https://api.service.hmrc.gov.uk/oauth/token";
             $this->validUkVatNumber = "569953277"; // Vodafone UK's VAT number
         }else{
             $vatUrl = "https://test-api.service.hmrc.gov.uk/organisations/vat/check-vat-number/lookup/";
+            $oauthTokenUrl = "https://test-api.service.hmrc.gov.uk/oauth/token";
             $this->validUkVatNumber = "166804280212"; // 166804280212 is a test vat number for use with the HMRC VAT API test environment
         }
 
@@ -880,7 +889,10 @@ United Kingdom',
             'paymentProviders' => $this->getPaymentProvidersConfig($passTemplatesAsConfig),
             'billingAddress' => $billingAddress,
             'hmrcVatApiConfig' => [
+                "oauthTokenUrl" => $oauthTokenUrl,
                 "vatUrl" => $vatUrl,
+                "clientId" => getenv('hmrc_client_id'),
+                "clientSecret" => getenv('hmrc_client_secret'),
             ],
             'geoIpDbPath' => $geoDbPath
         ];
