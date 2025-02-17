@@ -44,5 +44,7 @@ jobs:
       run: ./vendor/bin/phpunit tests/
       env:
           vatlayer_api_key: ${{ secrets.VATLAYER_API_KEY }}
+          hmrc_client_id: ${{ secrets.HMRC_CLIENT_ID }}
+          hmrc_client_secret: ${{ secrets.HMRC_CLIENT_SECRET }}
           hmrc_use_live_api: false
           geoip_db_path: /tmp/GeoLite2-Country.mmdb

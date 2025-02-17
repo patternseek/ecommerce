@@ -30,4 +30,31 @@ class HmrcVatApiConfig extends StructClass
      */
     public $vatUrl;
 
+    /**
+     * OAuth token request URL for HMRC VAT API
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $oauthTokenUrl;
+
+    /**
+     * OAuth client ID for HMRC VAT API
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $clientId;
+
+    /**
+     * OAuth client secret for HMRC VAT API
+     * @var string
+     *
+     * @Assert\Type( type="string" )
+     * @Assert\NotBlank
+     */
+    public $clientSecret;
+
 }
