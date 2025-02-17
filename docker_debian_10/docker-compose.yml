@@ -1,0 +1,27 @@
+services:
+  ansible-local:
+    build:
+      context: ./build/
+      args:
+        UID: ${HOST_UID}
+        GID: ${HOST_GID}
+        USERNAME: ${HOST_USERNAME}
+    user: ${HOST_UID}:${HOST_GID}
+    image: ansible-local-ecommerce
+    container_name: ansible-local-ecommerce
+    hostname: ansible-fate
+    volumes:
+      - ~/.vault:/home/${HOST_USERNAME}/.vault
+      - ~/.ansible:/home/${HOST_USERNAME}/.ansible
+      - ~/.ssh:/home/${HOST_USERNAME}/.ssh
+      - ~/.bash_history:/home/${HOST_USERNAME}/.bash_history
+      - ~/.local/share/fish/fish_history:/home/${HOST_USERNAME}/.local/share/fish/fish_history
+      - ../:/home/${HOST_USERNAME}/patternseek-ecommerce
+    networks:
+      - ansible-local-ecommerce
+networks:
+  ansible-local-ecommerce:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.132.135.0/24

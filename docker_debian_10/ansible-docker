@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+if [ $# -eq 0 ]; then
+    >&2 echo "ansible-docker USERNAME UID GID [EXEC=bash]"
+    exit 1
+fi
+
+echo ""
+echo "******************************************************"
+echo "WARNING: This tool maps certain paths from "
+echo "your home directory, including relevant repository"
+echo "checkouts, bash and fish history and the ~/.ssh, "
+echo "~/.vault and ~/.ansible directories."
+echo "******************************************************"
+echo ""
+
+
+pushd "$(dirname "$0")"
+HOST_USERNAME=$1 HOST_UID=$2 HOST_GID=$3 docker compose build; 
+HOST_USERNAME=$1 HOST_UID=$2 HOST_GID=$3 docker compose run --rm -it ansible-local $4
+HOST_USERNAME=$1 HOST_UID=$2 HOST_GID=$3 docker compose down --remove-orphans
+popd
