@@ -9,7 +9,7 @@ services:
     user: ${HOST_UID}:${HOST_GID}
     image: ansible-local-ecommerce
     container_name: ansible-local-ecommerce
-    hostname: ansible-fate
+    hostname: ansible-ecommerce
     volumes:
       - ~/.vault:/home/${HOST_USERNAME}/.vault
       - ~/.ansible:/home/${HOST_USERNAME}/.ansible
