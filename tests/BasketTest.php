@@ -450,7 +450,7 @@ class BasketTest extends TestCase
 
     }
     
-    static function testFailOnDuplicateNonSubscriptionLineItemMetadata(){
+    function testFailOnDuplicateNonSubscriptionLineItemMetadata(){
         $billingAddress = $this->getUSAddress();
         $lineItem1 = $this->getElectronicServiceLineItem();
         $lineItem2 = $this->getElectronicServiceLineItem();
@@ -744,7 +744,7 @@ United Kingdom',
             'transactionCurrency' => "GBP",
             'billingAddressCountryCode' => 'US',
             'ipCountryCode' => 'GB',
-            'time' => $successOutput[ 'time' ]
+            'time' => $successOutput[ 'time' ]??null,
         ];
         ksort( $expected );
         $expectedString = "<div id=\"component-basket\">\n    " . var_export( $expected, true ) . "\n</div>\n";

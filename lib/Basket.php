@@ -138,7 +138,10 @@ class Basket extends AbstractViewComponent
             'http' => [
                 'method' => 'POST',
                 'ignore_errors' => true, // Needed to get body of non-200 responses
-                'header' => "Content-Type: application/x-www-form-urlencoded",
+                'header' => 
+                    #"Accept: application/vnd.hmrc.2.0+json\n". # don't think this is needed for the token step
+                    "Content-Type: application/x-www-form-urlencoded"
+                ,
                 'content' => http_build_query( [
                     'client_id' => $clientId,
                     'client_secret' => $clientSecret,
@@ -167,7 +170,7 @@ class Basket extends AbstractViewComponent
                 'method' => 'GET',
                 'ignore_errors' => true, // Needed to get body of non-200 responses
                 'header' => [
-                    "Accept: application/vnd.hmrc.1.0+json",
+                    "Accept: application/vnd.hmrc.2.0+json", # need 2.0 to properly use the v2 api
                     "Authorization: Bearer {$tokenRes->access_token}",
                 ]
             ]
