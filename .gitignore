@@ -1,1 +1,4 @@
 vendor
+.idea
+*.patch
+.phpunit.result.cache
